@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
+import nProgress from 'nprogress';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -11,20 +12,28 @@ const api = axios.create({
 // REQUEST INTERCEPTOR: Attach Token
 api.interceptors.request.use(
     (config) => {
+        nProgress.start();
         const token = useAuthStore.getState().token;
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+        nProgress.done();
+        Promise.reject(error)
+    }
 
 );
 
 // RESPONSE INTERCEPTOR: Handle 401 (Unauthorized)
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        nProgress.done();
+        return response
+    },
     (error) => {
+        nProgress.done();
         if (error.response?.status === 401) {
             // Auto-logout user if token is invalid/expired
             useAuthStore.getState().logout();
@@ -33,4 +42,5 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 export default api;

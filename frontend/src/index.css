@@ -115,3 +115,13 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+#nprogress .bar {
+  background: #06b6d4 !important;
+  /* Tailwind cyan-500 */
+  height: 3px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #06b6d4, 0 0 5px #06b6d4 !important;
+}
