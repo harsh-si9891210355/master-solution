@@ -4,11 +4,11 @@ from fastapi import HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from src.crud.role import get_role_by_code
-from src.crud.user import create_user, get_user_by_email
-from src.crud.users_token import create_user_token, get_active_user_token, revoke_user_token, get_any_active_user_token
+from src.crud.user import create_user, get_user_by_email, update_user_password
+from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
-from src.schemas.auth import ForgotPasswordResponse, TokenResponse, UserCreate, UserLogin, UserResponse, LoginSignupResponse
+from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, TokenResponse, UserCreate, UserLogin, UserResponse
 from src.utils.translation import resolve_translation
 from src.utils.auth.auth_handler import Authentication
 from src.utils.hashing_service import Hasher
@@ -127,6 +127,31 @@ def forgot_password(db: Session, email: str) -> ForgotPasswordResponse:
         message="Use this token to reset your password",
         reset_token=reset_token,
     )
+
+
+def reset_password(db: Session, reset_token: str, new_password: str) -> MessageResponse:
+    user_email = Authentication.verify_token(reset_token)
+    if not user_email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired reset token",
+        )
+
+    user = get_user_by_email(db, user_email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    update_user_password(
+        db,
+        user=user,
+        hashed_password=Hasher.get_hashed_password(new_password),
+    )
+    revoke_all_user_tokens(db, userid=user.id)
+
+    return MessageResponse(message="Password reset successfully")
 
 
 def get_current_user_from_token(db: Session, token: str) -> User:
