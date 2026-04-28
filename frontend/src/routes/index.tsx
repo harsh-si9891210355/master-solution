@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router';
-import { LoginForm } from '@/feature/auth/LoginForm';
+import { LoginForm } from '@/pages/auth/LoginForm';
 import { AppLayout } from '@/components/layout/appLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 

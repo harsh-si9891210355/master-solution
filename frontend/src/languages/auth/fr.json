@@ -1,0 +1,13 @@
+{
+    "auth": {
+        "login": {
+            "title": "Bon Retour",
+            "subtitle": "Connectez-vous à votre compte Master Solution"
+        },
+        "register": {},
+        "forgotPassword": {},
+        "validation": {},
+        "errors": {},
+        "success": {}
+    }
+}
