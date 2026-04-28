@@ -7,8 +7,11 @@ import { useNavigate } from 'react-router';
 import { FormInput } from '../../components/ui/FormInput';
 import { loginSchema, type LoginFormValues } from '../auth/types/index';
 import { authService } from './api/authService';
+import { useTranslation } from 'react-i18next';
+
 
 export const LoginForm = () => {
+    const { t, i18n } = useTranslation("auth");
     const { control, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: { email: '', password: '' }
@@ -35,6 +38,7 @@ export const LoginForm = () => {
         loginMutation(data);
     };
 
+    const lang = i18n.language as SupportedLanguage;
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto p-6 bg-white shadow-lg rounded-xl">
             <h2 className="text-2xl font-bold mb-6">Login</h2>
