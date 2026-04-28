@@ -83,3 +83,21 @@ def revoke_user_token(db: Session, *, userid: int, token: str) -> bool:
     db.add(user_token)
     db.commit()
     return True
+
+
+def revoke_all_user_tokens(db: Session, *, userid: int) -> int:
+    active_tokens = (
+        db.query(UsersToken)
+        .filter(
+            UsersToken.userid == userid,
+            UsersToken.is_revoked.is_(False),
+        )
+        .all()
+    )
+
+    for token in active_tokens:
+        token.is_revoked = True
+        db.add(token)
+
+    db.commit()
+    return len(active_tokens)

@@ -6,6 +6,7 @@ from src.schemas.auth import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     MessageResponse,
+    ResetPasswordRequest,
     TokenResponse,
     UserCreate,
     UserLogin,
@@ -18,6 +19,7 @@ from src.services.v1.auth_services import (
     get_current_user_from_token,
     login_user,
     logout_user,
+    reset_password,
     signup_user,
 )
 from src.utils.auth.auth_bearer import JWTBearer
@@ -59,6 +61,14 @@ def forgot_password_route(
     db: Session = Depends(get_db),
 ) -> ForgotPasswordResponse:
     return forgot_password(db, payload.email)
+
+
+@router.post("/reset-password", response_model=MessageResponse)
+def reset_password_route(
+    payload: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    return reset_password(db, payload.reset_token, payload.new_password)
 
 
 @router.get("/me", response_model=UserResponse)
