@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, selectinload
-
+from sqlalchemy import or_
 from src.models.camera import Camera
 
 
@@ -15,13 +15,22 @@ def get_camera_by_id(db: Session, camera_id: int) -> Camera | None:
     )
 
 
-def get_camera_by_name(db: Session, name_en: str, name_es: str | None = None, name_fr: str | None = None) -> Camera | None:
-    query = db.query(Camera).filter(Camera.name_en == name_en)
+def get_camera_by_name(
+    db: Session,
+    name_en: str,
+    name_es: str | None = None,
+    name_fr: str | None = None
+) -> Camera | None:
+
+    conditions = [Camera.name_en == name_en]
+
     if name_es:
-        query = query.or_(Camera.name_es == name_es)
+        conditions.append(Camera.name_es == name_es)
+
     if name_fr:
-        query = query.or_(Camera.name_fr == name_fr)
-    return query.first()
+        conditions.append(Camera.name_fr == name_fr)
+
+    return db.query(Camera).filter(or_(*conditions)).first()
 
 
 def get_all_cameras(db: Session) -> list[Camera]:
