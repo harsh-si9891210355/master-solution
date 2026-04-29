@@ -2,10 +2,11 @@ import { createBrowserRouter } from 'react-router';
 import { LoginForm } from '@/pages/auth/LoginForm';
 import { AppLayout } from '@/components/layout/appLayout';
 import { ProtectedRoute } from './ProtectedRoute';
-
+import { SignupForm } from '@/pages/auth/SignUpForm'; 
 export const router = createBrowserRouter([
     // Public Routes
     { path: '/', element: <LoginForm /> },
+    { path: '/signup', element: <SignupForm /> },
     // Protected Routes
     {
         element: <ProtectedRoute />, // 1. Check if logged in
