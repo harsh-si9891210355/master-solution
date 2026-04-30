@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.crud.role import get_role_by_code
 from src.crud.user import create_user, get_user_by_email, update_user_password
-from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
+from src.crud.users_token import create_user_token, delete_expired_user_tokens, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
 from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, TokenResponse, UserCreate, UserLogin, UserResponse
@@ -94,11 +94,19 @@ def login_user(db: Session, payload: UserLogin, request: Request, language: str)
             detail="Invalid email or password",
         )
 
+    current_time = datetime.now(timezone.utc)
+
+    delete_expired_user_tokens(
+        db,
+        userid=user.id,
+        now=current_time,
+    )
+
     # Check if user has an active, non-expired token
     active_token = get_any_active_user_token(
         db,
         userid=user.id,
-        now=datetime.now(timezone.utc),
+        now=current_time,
     )
     if active_token:
         # Reuse existing token instead of creating a new one

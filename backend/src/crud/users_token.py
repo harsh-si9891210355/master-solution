@@ -66,6 +66,23 @@ def get_any_active_user_token(
     )
 
 
+def delete_expired_user_tokens(db: Session, *, userid: int, now: datetime) -> int:
+    expired_tokens = (
+        db.query(UsersToken)
+        .filter(
+            UsersToken.userid == userid,
+            UsersToken.expires_at <= now,
+        )
+        .all()
+    )
+
+    for token in expired_tokens:
+        db.delete(token)
+
+    db.commit()
+    return len(expired_tokens)
+
+
 def revoke_user_token(db: Session, *, userid: int, token: str) -> bool:
     user_token = (
         db.query(UsersToken)
