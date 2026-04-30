@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS incident_comments (
 CREATE INDEX IF NOT EXISTS idx_roles_code ON roles(code);
 CREATE INDEX IF NOT EXISTS idx_usecases_code ON usecases(code);
 CREATE INDEX IF NOT EXISTS idx_locations_name_en ON locations(name_en);
-CREATE INDEX IF NOT EXISTS idx_cameras_name ON cameras(name);
+CREATE INDEX IF NOT EXISTS idx_cameras_name_en ON cameras(name_en);
 CREATE INDEX IF NOT EXISTS idx_cameras_locationid ON cameras(locationid);
 CREATE INDEX IF NOT EXISTS idx_cameras_status_modified_by ON cameras(status_modified_by);
 CREATE INDEX IF NOT EXISTS idx_events_camera_id ON events(camera_id);

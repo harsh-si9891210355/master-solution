@@ -121,7 +121,9 @@ VALUES
 ON CONFLICT (name_en) DO NOTHING;
 
 INSERT INTO cameras (
-    name,
+    name_en,
+    name_es,
+    name_fr,
     locationid,
     codec,
     resolution,
@@ -132,6 +134,8 @@ INSERT INTO cameras (
     last_modified_at
 )
 SELECT
+    seed.name,
+    seed.name,
     seed.name,
     l.id,
     seed.codec,
@@ -158,7 +162,7 @@ CROSS JOIN LATERAL (
 WHERE NOT EXISTS (
     SELECT 1
     FROM cameras c
-    WHERE c.name = seed.name
+    WHERE c.name_en = seed.name
 );
 
 INSERT INTO camera_usecase (cameraid, usecaseid, is_active)
@@ -177,7 +181,7 @@ FROM (
         ('Loading Bay Camera 01', 'goods_obstructing_the_working_zone', true),
         ('Parking Area Camera 01', 'speeding', true)
 ) AS seed(camera_name, usecase_code, is_active)
-JOIN cameras c ON c.name = seed.camera_name
+JOIN cameras c ON c.name_en = seed.camera_name
 JOIN usecases uc ON uc.code = seed.usecase_code
 ON CONFLICT (cameraid, usecaseid) DO NOTHING;
 
