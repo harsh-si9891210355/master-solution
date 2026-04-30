@@ -11,6 +11,14 @@ from src.utils.translation import resolve_translation
 
 
 def _build_event_response(event: Event, language: str) -> EventResponse:
+    camera_name_translation = resolve_translation(
+        [
+            type("CameraTranslation", (), {"language": "en", "value": event.camera.name_en})(),
+            type("CameraTranslation", (), {"language": "es", "value": event.camera.name_es})(),
+            type("CameraTranslation", (), {"language": "fr", "value": event.camera.name_fr})(),
+        ],
+        language,
+    )
     location_translation = resolve_translation(
         [
             type("LocationTranslation", (), {"language": "en", "value": event.location.name_en})(),
@@ -39,7 +47,7 @@ def _build_event_response(event: Event, language: str) -> EventResponse:
     return EventResponse(
         id=event.id,
         camera_id=event.camera_id,
-        camera_name=event.camera.name,
+        camera_name=camera_name_translation.value if camera_name_translation else event.camera.name_en,
         location_id=event.location_id,
         location_name=location_translation.value if location_translation else event.location.name_en,
         usecase_id=event.usecase_id,
