@@ -2,9 +2,9 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
-import enAuth from "./Auth/en.json";
+import enAuth from "../languages/auth/en.json";
 // import esAuth from "./Auth/es.json";
-import frAuth from "./Auth/fr.json";
+import frAuth from "../languages/auth/fr.json";
 
 // import enCommon from "./Layout/en.json";
 // import esCommon from "./Layout/es.json";
