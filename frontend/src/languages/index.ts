@@ -3,24 +3,34 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 import enAuth from "../languages/auth/en.json";
-// import esAuth from "./Auth/es.json";
 import frAuth from "../languages/auth/fr.json";
 
-// import enCommon from "./Layout/en.json";
-// import esCommon from "./Layout/es.json";
-// import frCommon from "./Layout/fr.json";
+import enUserManagement from "./UserManagment/en.json";
+import frUserManagement from "./UserManagment/fr.json";
+import esUserManagement from "./UserManagment/es.json";
 
 export const SUPPORTED_LANGUAGES = [
     { code: "en", label: "English", flag: "🇺🇸" },
-    { code: "fr", label: "Français", flag: "🇫🇷" },
+    { code: "es", label: "Español", flag: "🇪🇸" },
 ] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 
+// Extend this union whenever you add a new namespace JSON file.
+export type AppNamespace = "auth" | "user_management";
+
 const resources = {
-    en: { auth: enAuth.auth },
-    // es: { auth: esAuth.auth, common: esCommon.common },
-    fr: { auth: frAuth.auth },
+    en: {
+        auth: enAuth.auth,
+        user_management: enUserManagement.user_management,
+    },
+    fr: {
+        auth: frAuth.auth,
+        user_management: frUserManagement.user_management,
+    },
+    es: {
+        user_management: esUserManagement.user_management,
+    },
 };
 
 i18n
@@ -30,7 +40,7 @@ i18n
         resources,
         fallbackLng: "en",
         defaultNS: "auth",
-        ns: ["auth", "common"],
+        ns: ["auth", "user_management"] satisfies AppNamespace[],
         detection: {
             order: ["localStorage", "navigator", "htmlTag"],
             caches: ["localStorage"],

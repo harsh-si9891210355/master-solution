@@ -7,11 +7,12 @@ import { useNavigate } from "react-router";
 import { FormInput } from "../../components/ui/FormInput";
 import { loginSchema, type LoginFormValues } from "./types/index";
 import { authService } from "./api/authService";
-import { useTranslation } from "react-i18next";
-import { SUPPORTED_LANGUAGES, SupportedLanguage } from "../../languages/index";
+import { SUPPORTED_LANGUAGES } from "../../languages/index";
+import { useNsTranslation } from "../../hooks/Usenstranslation";
 
 export const LoginForm = () => {
-  const { t, i18n } = useTranslation("auth");
+  const { t, i18n, currentLang } = useNsTranslation("auth");
+
   const {
     control,
     handleSubmit,
@@ -27,7 +28,7 @@ export const LoginForm = () => {
   const { mutate: loginMutation, isPending } = useMutation({
     mutationFn: authService.login,
     onSuccess: (response) => {
-      setAuth(response.data.access_token, response.data.user); // ✅ access_token not token
+      setAuth(response.data.access_token, response.data.user);
       navigate("/dashboard");
     },
     onError: (error: any) => {
@@ -36,7 +37,6 @@ export const LoginForm = () => {
   });
 
   const onSubmit = (data: LoginFormValues) => loginMutation(data);
-  const currentLang = i18n.language as SupportedLanguage;
 
   return (
     <form

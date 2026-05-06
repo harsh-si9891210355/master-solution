@@ -1,0 +1,28 @@
+{
+  "user_management": {
+    "title": "Gestión de Usuarios",
+    "add_user": "Agregar Usuario",
+    "search_placeholder": "Buscar usuarios...",
+    "columns": {
+      "name": "Nombre",
+      "mobile": "Móvil",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "delete_dialog": {
+      "message": "¿Está seguro de que desea eliminar a {{firstName}} {{lastName}}?",
+      "header": "Confirmación de Eliminación"
+    },
+    "empty_message": "No se encontraron usuarios.",
+    "error_message": "Error al cargar los usuarios."
+  }
+}

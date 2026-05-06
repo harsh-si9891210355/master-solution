@@ -1,4 +1,4 @@
-export interface User {
+export interface UserList {
     id: number;
     email: string;
     first_name: string;
@@ -10,7 +10,7 @@ export interface User {
     status: boolean;
 }
 
-export interface UserFormValues {
+export interface AddUserValues {
     email?: string;          
     password?: string;        
     first_name_en: string;

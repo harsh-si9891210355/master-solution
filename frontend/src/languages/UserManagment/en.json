@@ -1,0 +1,28 @@
+{
+  "user_management": {
+    "title": "User Management",
+    "add_user": "Add User",
+    "search_placeholder": "Search users...",
+    "columns": {
+      "name": "Name",
+      "mobile": "Mobile",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "delete_dialog": {
+      "message": "Are you sure you want to delete {{firstName}} {{lastName}}?",
+      "header": "Delete Confirmation"
+    },
+    "empty_message": "No users found.",
+    "error_message": "Failed to load users."
+  }
+}
