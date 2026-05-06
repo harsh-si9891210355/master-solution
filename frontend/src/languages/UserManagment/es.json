@@ -1,0 +1,84 @@
+{
+  "user_management": {
+    "title": "Gestión de Usuarios",
+    "add_user": "Agregar Usuario",
+    "search_placeholder": "Buscar usuarios...",
+    "columns": {
+      "name": "Nombre",
+      "mobile": "Móvil",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "delete_dialog": {
+      "message": "¿Está seguro de que desea eliminar a {{firstName}} {{lastName}}?",
+      "header": "Confirmación de Eliminación"
+    },
+    "empty_message": "No se encontraron usuarios.",
+    "error_message": "Error al cargar los usuarios.",
+    "form": {
+      "add_title": "Agregar Usuario",
+      "edit_title": "Editar Usuario",
+      "add_subtitle": "Complete los detalles para crear un nuevo usuario",
+      "edit_subtitle": "Actualizar los detalles del usuario existente",
+      "loading": "Cargando usuario...",
+      "back": "Volver",
+      "cancel": "Cancelar",
+      "add_submit": "Agregar Usuario",
+      "edit_submit": "Actualizar Usuario",
+      "section_first_name": "Nombre",
+      "section_last_name": "Apellido",
+      "fields": {
+        "email": "Correo *",
+        "password": "Contraseña *",
+        "first_name_en": "Inglés *",
+        "first_name_es": "Español",
+        "first_name_fr": "Francés",
+        "last_name_en": "Inglés *",
+        "last_name_es": "Español",
+        "last_name_fr": "Francés",
+        "mobile_number": "Número de Móvil *",
+        "role_code": "Rol *",
+        "is_active": "Activo",
+        "status": "Estado"
+      },
+      "placeholders": {
+        "email": "tu@ejemplo.com",
+        "password": "••••••••",
+        "first_name_en": "John",
+        "first_name_es": "Juan",
+        "first_name_fr": "Jean",
+        "last_name_en": "Doe",
+        "last_name_es": "García",
+        "last_name_fr": "Dupont",
+        "mobile_number": "Número de móvil",
+        "role_code": "Seleccionar rol",
+        "role_code_loading": "Cargando roles...",
+        "is_active": "Seleccionar estado",
+        "status": "Seleccionar estado"
+      },
+      "validation": {
+        "email_required": "El correo es obligatorio",
+        "password_required": "La contraseña es obligatoria",
+        "first_name_en_required": "Requerido",
+        "last_name_en_required": "Requerido",
+        "mobile_required": "El móvil es obligatorio",
+        "role_required": "El rol es obligatorio"
+      },
+      "options": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado"
+      }
+    }
+  }
+}

@@ -26,7 +26,6 @@ api.interceptors.request.use(
 
 );
 
-// RESPONSE INTERCEPTOR: Handle 401 (Unauthorized)
 api.interceptors.response.use(
     (response) => {
         nProgress.done();

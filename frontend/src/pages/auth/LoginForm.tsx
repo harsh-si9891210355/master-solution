@@ -1,17 +1,18 @@
 import { useAuthStore } from "@/store/authStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { Button } from "primereact/button";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { FormInput } from "../../components/ui/FormInput";
-import { FormButton } from "../../components/ui/FormButton.tsx";
 import { loginSchema, type LoginFormValues } from "./types/index";
 import { authService } from "./api/authService";
-import { useTranslation } from "react-i18next";
-import { SUPPORTED_LANGUAGES, SupportedLanguage } from "../../languages/index";
+import { SUPPORTED_LANGUAGES } from "../../languages/index";
+import { useNsTranslation } from "../../hooks/Usetranslation";
 
 export const LoginForm = () => {
-  const { t, i18n } = useTranslation("auth");
+  const { t, i18n, currentLang } = useNsTranslation("auth");
+
   const {
     control,
     handleSubmit,
@@ -27,7 +28,7 @@ export const LoginForm = () => {
   const { mutate: loginMutation, isPending } = useMutation({
     mutationFn: authService.login,
     onSuccess: (response) => {
-      setAuth(response.data.token, response.data.user);
+      setAuth(response.data.access_token, response.data.user);
       navigate("/dashboard");
     },
     onError: (error: any) => {
@@ -36,7 +37,6 @@ export const LoginForm = () => {
   });
 
   const onSubmit = (data: LoginFormValues) => loginMutation(data);
-  const currentLang = i18n.language as SupportedLanguage;
 
   return (
     <form
@@ -60,13 +60,11 @@ export const LoginForm = () => {
         error={errors.password?.message}
       />
 
-      <FormButton
+      <Button
         type="submit"
-        label={t("login.submit", "Sign In")}
-        variant="primary"
-        fullWidth
         loading={isPending}
-        className="mt-4"
+        label="Sign In"
+        className="w-full mt-4 p-3 bg-blue-600 hover:bg-blue-700 border-none"
       />
 
       <div className="mt-4 text-center text-sm text-gray-500">
