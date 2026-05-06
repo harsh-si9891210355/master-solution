@@ -10,13 +10,16 @@ import type { SupportedLanguage, AppNamespace } from '../languages/index';
  * hook is already scoped to a namespace via useTranslation('ns'). This causes
  * '"status.active" is not assignable' errors throughout every component.
  * The cast here keeps full runtime correctness while silencing the TS conflict.
+ *
+ * `ns` is typed as AppNamespace so passing an unregistered namespace name is
+ * caught at compile time. Add new namespaces to AppNamespace in index.ts.
  */
 export const useNsTranslation = (ns: AppNamespace) => {
     const { t: rawT, i18n } = useTranslation(ns);
- 
+
     const t = rawT as (key: string, options?: Record<string, any>) => string;
     const currentLang = i18n.language as SupportedLanguage;
     const changeLanguage = (lang: SupportedLanguage) => i18n.changeLanguage(lang);
- 
+
     return { t, i18n, currentLang, changeLanguage };
 };

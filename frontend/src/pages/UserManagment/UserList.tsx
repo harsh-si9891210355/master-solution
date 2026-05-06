@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
-import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
 import { useNavigate } from 'react-router';
-import { userService } from './api/userService';
+import { userService } from './api/UserService';
 import type { UserList } from './types';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usenstranslation';
 import { SUPPORTED_LANGUAGES } from '../../languages/index';
+import { FormButton } from '../../components/ui/FormButton';
+import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 
 export const UsersList = () => {
     const { t, currentLang, changeLanguage } = useNsTranslation('user_management');
@@ -38,20 +38,18 @@ export const UsersList = () => {
         return row.last_name ?? row.last_name;
     };
 
-    // ── Confirm delete ───────────────────────────────────────────────────────
-    const confirmDelete = (row: UserList) => {
+    // ── Delete handler ───────────────────────────────────────────────────────
+    const handleDelete = (row: UserList) => {
         const firstName = getLocalizedFirstName(row);
         const lastName  = getLocalizedLastName(row);
-        confirmDialog({
+        DeleteModalPopup.show({
             message: t('delete_dialog.message', {
                 firstName,
                 lastName,
                 defaultValue: `Are you sure you want to delete ${firstName} ${lastName}?`,
             }),
-            header:          t('delete_dialog.header'),
-            icon:            'pi pi-exclamation-triangle',
-            acceptClassName: 'p-button-danger',
-            accept:          () => deleteUser(row.id),
+            header:    t('delete_dialog.header'),
+            onConfirm: () => deleteUser(row.id),
         });
     };
 
@@ -87,52 +85,32 @@ export const UsersList = () => {
 
     const actionsTemplate = (row: UserList) => (
         <div className="flex items-center gap-2">
-            <Button
-                icon="pi pi-pencil"
-                rounded text severity="info"
-                tooltip={t('actions.edit')}
-                tooltipOptions={{ position: 'top' }}
+            <FormButton
+                label={t('actions.edit')}
+                variant="ghost"
+                size="sm"
+                iconLeft="pi pi-pencil"
+                ariaLabel={t('actions.edit')}
                 onClick={() => navigate(`/users/edit/${row.id}`)}
             />
-            <Button
-                icon="pi pi-trash"
-                rounded text severity="danger"
-                tooltip={t('actions.delete')}
-                tooltipOptions={{ position: 'top' }}
-                onClick={() => confirmDelete(row)}
+            <FormButton
+                label={t('actions.delete')}
+                variant="danger"
+                size="sm"
+                iconLeft="pi pi-trash"
+                ariaLabel={t('actions.delete')}
+                onClick={() => handleDelete(row)}
             />
         </div>
     );
 
     // ── Column definitions ───────────────────────────────────────────────────
     const columns: TableColumn<UserList>[] = [
-        {
-            header:    t('columns.name'),
-            body:      nameTemplate,
-            sortable:  true,
-            sortField: 'first_name',
-        },
-        {
-            header: t('columns.mobile'),
-            field:  'mobile_number',
-        },
-        {
-            header:    t('columns.role'),
-            body:      roleTemplate,
-            sortable:  true,
-            sortField: 'role_name',
-        },
-        {
-            header:    t('columns.status'),
-            body:      statusTemplate,
-            sortable:  true,
-            sortField: 'is_active',
-        },
-        {
-            header: t('columns.actions'),
-            body:   actionsTemplate,
-            style:  { width: '8rem' },
-        },
+        { header: t('columns.name'),    body: nameTemplate,    sortable: true, sortField: 'first_name' },
+        { header: t('columns.mobile'),  field: 'mobile_number' },
+        { header: t('columns.role'),    body: roleTemplate,    sortable: true, sortField: 'role_name' },
+        { header: t('columns.status'),  body: statusTemplate,  sortable: true, sortField: 'is_active' },
+        { header: t('columns.actions'), body: actionsTemplate, style: { width: '10rem' } },
     ];
 
     // ── Table header slot ────────────────────────────────────────────────────
@@ -140,29 +118,11 @@ export const UsersList = () => {
         <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">{t('title')}</h2>
             <div className="flex items-center gap-3">
-                {/* Language toggle */}
-                <div className="flex items-center gap-1 border border-gray-200 rounded-lg p-1 bg-gray-50">
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                        <button
-                            key={lang.code}
-                            onClick={() => changeLanguage(lang.code)}
-                            className={`
-                                px-3 py-1 rounded-md text-xs font-semibold transition-all duration-150
-                                ${currentLang === lang.code
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-gray-500 hover:bg-gray-200'
-                                }
-                            `}
-                        >
-                            {lang.flag} {lang.code.toUpperCase()}
-                        </button>
-                    ))}
-                </div>
 
-                <Button
+                <FormButton
                     label={t('add_user')}
-                    icon="pi pi-plus"
-                    className="bg-blue-600 border-none"
+                    variant="primary"
+                    iconLeft="pi pi-plus"
                     onClick={() => navigate('/users/add')}
                 />
             </div>
@@ -178,7 +138,8 @@ export const UsersList = () => {
 
     return (
         <>
-            <ConfirmDialog />
+            {/* Renders the ConfirmDialog portal — required once per page */}
+            <DeleteModalPopup.Host />
             <div className="p-4">
                 <PrimeTable<UserList>
                     data={data}
