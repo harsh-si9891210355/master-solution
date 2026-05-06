@@ -1,10 +1,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "primereact/button";
 import { useNavigate } from "react-router";
 import { signupSchema, type SignupFormValues } from "./types/index";
 import { FormInput } from "@/components/ui/FormInput";
+import { FormButton } from "../../components/ui/FormButton.tsx";
 import { authService } from "./api/authService";
 
 export const SignupForm = () => {
@@ -34,7 +34,7 @@ export const SignupForm = () => {
   const { mutate: signupMutation, isPending } = useMutation({
     mutationFn: authService.signup,
     onSuccess: () => {
-      navigate("/"); // ✅ Redirect to login after success
+      navigate("/");
     },
     onError: (error: any) => {
       console.error("Signup Error:", error.response?.data?.message);
@@ -42,7 +42,7 @@ export const SignupForm = () => {
   });
 
   const onSubmit = (data: SignupFormValues) => {
-    const { confirmPassword, ...payload } = data; // ✅ Strip confirmPassword
+    const { confirmPassword, ...payload } = data;
     signupMutation(payload);
   };
 
@@ -92,14 +92,15 @@ export const SignupForm = () => {
         error={errors.confirmPassword?.message}
       />
 
-      <Button
+      <FormButton
         type="submit"
         label="Register"
+        variant="success"
+        fullWidth
         loading={isPending}
-        className="w-full mt-4 p-3 bg-green-600 border-none"
+        className="mt-4"
       />
 
-      {/* ✅ Route back to Login */}
       <div className="mt-4 text-center text-sm text-gray-500">
         Already have an account?{" "}
         <button
