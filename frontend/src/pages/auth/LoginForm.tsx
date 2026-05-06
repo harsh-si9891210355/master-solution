@@ -8,7 +8,7 @@ import { FormInput } from "../../components/ui/FormInput";
 import { loginSchema, type LoginFormValues } from "./types/index";
 import { authService } from "./api/authService";
 import { SUPPORTED_LANGUAGES } from "../../languages/index";
-import { useNsTranslation } from "../../hooks/Usenstranslation";
+import { useNsTranslation } from "../../hooks/Usetranslation";
 
 export const LoginForm = () => {
   const { t, i18n, currentLang } = useNsTranslation("auth");

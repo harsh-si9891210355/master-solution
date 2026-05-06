@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { userService } from './api/UserService';
 import type { UserList } from './types';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
-import { useNsTranslation } from '../../hooks/Usenstranslation';
+import { useNsTranslation } from '../../hooks/Usetranslation';
 import { SUPPORTED_LANGUAGES } from '../../languages/index';
 import { FormButton } from '../../components/ui/FormButton';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';

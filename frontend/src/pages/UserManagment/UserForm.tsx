@@ -7,7 +7,7 @@ import { roleService } from "./api/RoleService";
 import type { AddUserValues } from "./types";
 import { FormInput } from "../../components/ui/FormInput";
 import { FormButton } from "../../components/ui/FormButton";
-import { useNsTranslation } from "../../hooks/Usenstranslation";
+import { useNsTranslation } from "../../hooks/Usetranslation";
 import { SUPPORTED_LANGUAGES } from "../../languages/index";
 
 export const UserForm = () => {

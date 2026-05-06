@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { useAuthStore } from '@/store/authStore';
-import { useNsTranslation } from '@/hooks/Usenstranslation';
+import { useNsTranslation } from '@/hooks/Usetranslation';
 import { SUPPORTED_LANGUAGES } from '@/languages/index';
 
 export const AppLayout = () => {
