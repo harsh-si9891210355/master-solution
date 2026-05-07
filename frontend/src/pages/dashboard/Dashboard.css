@@ -1,0 +1,581 @@
+
+
+/* ── CSS Variables (design tokens) ─────────────────────────── */
+:root {
+    --bg-page:         #060F1E;
+    --bg-card:         #0B1629;
+    --bg-card-inner:   #0F172A;
+    --bg-surface:      #1E293B;
+    --border-default:  #1E293B;
+    --border-subtle:   #334155;
+  
+    --text-primary:    #F8FAFC;
+    --text-heading:    #F1F5F9;
+    --text-muted:      #94A3B8;
+    --text-dim:        #64748B;
+    --text-dimmer:     #475569;
+  
+    --accent-amber:    #F59E0B;
+    --accent-blue:     #3B82F6;
+    --accent-green:    #10B981;
+    --accent-purple:   #8B5CF6;
+    --accent-violet:   #A78BFA;
+    --accent-red:      #EF4444;
+    --accent-emerald:  #22C55E;
+  
+    --font-mono: monospace;
+    --font-main: 'Sora', 'Segoe UI', sans-serif;
+    --radius-sm:  8px;
+    --radius-md: 12px;
+    --radius-lg: 14px;
+    --radius-xl: 16px;
+  }
+  
+  /* ── Page wrapper ────────────────────────────────────────────── */
+  .db-page {
+    min-height: 100vh;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    padding: 24px 28px;
+  }
+  
+  /* ── Page header ─────────────────────────────────────────────── */
+  .db-header {
+    margin-bottom: 20px;
+  }
+  .db-header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-heading);
+    margin: 0;
+  }
+  .db-header p {
+    color: var(--text-dimmer);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  
+  /* ── AI Insight banner ───────────────────────────────────────── */
+  .db-ai-banner {
+    background: linear-gradient(135deg, #0F172A 60%, #1E1030);
+    border-radius: var(--radius-xl);
+    padding: 20px 22px;
+    border: 1px solid #7C3AED44;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .db-ai-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #7C3AED, #3B82F6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .db-ai-label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .db-ai-label {
+    color: var(--accent-violet);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .db-ai-badge {
+    background: #7C3AED33;
+    color: var(--accent-violet);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .db-ai-text {
+    color: #CBD5E1;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+  }
+  
+  /* ── Generic grid layouts ────────────────────────────────────── */
+  .db-grid-4  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .db-grid-3  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  .db-grid-2  { display: grid; grid-template-columns: 1fr 1fr;         gap: 12px; margin-bottom: 14px; }
+  .db-grid-21 { display: grid; grid-template-columns: 2fr 1fr;         gap: 12px; margin-bottom: 14px; }
+  
+  /* ── KPI Cards ───────────────────────────────────────────────── */
+  .db-kpi-card {
+    background: var(--bg-card-inner);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .db-kpi-orb {
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .db-kpi-label {
+    color: var(--text-dim);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 0 0 6px;
+  }
+  .db-kpi-value {
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    margin: 0;
+  }
+  .db-kpi-sub {
+    font-size: 11px;
+    margin: 4px 0 0;
+  }
+  
+  /* ── Comparison Cards ────────────────────────────────────────── */
+  .db-cmp-card {
+    background: var(--bg-card-inner);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .db-cmp-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .db-cmp-title {
+    color: var(--text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 0 0 14px;
+  }
+  .db-cmp-period-label {
+    color: var(--text-dim);
+    font-size: 10px;
+    margin: 0 0 3px;
+  }
+  .db-cmp-cur-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .db-cmp-cur-val {
+    color: var(--text-primary);
+    font-size: 30px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    line-height: 1;
+  }
+  .db-cmp-pct-badge {
+    color: var(--accent-emerald);
+    background: #16A34A22;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .db-cmp-bars {
+    margin-bottom: 10px;
+  }
+  .db-cmp-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+  .db-cmp-bar-row:last-child {
+    margin-bottom: 0;
+  }
+  .db-cmp-bar-period {
+    color: var(--text-muted);
+    font-size: 10px;
+    width: 72px;
+    flex-shrink: 0;
+  }
+  .db-cmp-bar-period.dim {
+    color: var(--text-dim);
+  }
+  .db-cmp-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-surface);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .db-cmp-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+  }
+  .db-cmp-bar-fill.current {
+    width: 100%;
+  }
+  .db-cmp-bar-fill.previous {
+    background: #334155;
+  }
+  .db-cmp-bar-num {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    width: 38px;
+    text-align: right;
+  }
+  .db-cmp-bar-num.bright {
+    color: var(--text-heading);
+    font-weight: 700;
+  }
+  .db-cmp-bar-num.dim {
+    color: var(--text-muted);
+  }
+  .db-cmp-diff {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin: 0;
+    border-top: 1px solid var(--border-default);
+    padding-top: 8px;
+  }
+  
+  /* ── Section panel (chart containers) ───────────────────────── */
+  .db-panel {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 20px 22px;
+    border: 1px solid var(--border-default);
+  }
+  .db-panel-title {
+    color: var(--text-heading);
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .db-panel-sub {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin: 0 0 14px;
+  }
+  
+  /* ── Monthly trend panel ─────────────────────────────────────── */
+  .db-trend-panel {
+    margin-bottom: 14px;
+  }
+  
+  /* ── Peak hours legend ───────────────────────────────────────── */
+  .db-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+  }
+  .db-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .db-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  
+  /* ── Event type donut legend ─────────────────────────────────── */
+  .db-donut-wrap {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .db-donut-legend {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .db-donut-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .db-donut-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .db-donut-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    flex: 1;
+  }
+  .db-donut-pct {
+    color: var(--text-heading);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+  
+  /* ── Tooltip (Recharts custom) ───────────────────────────────── */
+  .db-tooltip {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+  }
+  .db-tooltip-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  .db-tooltip-val {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  
+  /* ── Top Cameras panel ───────────────────────────────────────── */
+  .db-cam-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .db-cam-summary-card {
+    background: var(--bg-card-inner);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .db-cam-summary-val {
+    font-size: 18px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    margin: 0 0 2px;
+  }
+  .db-cam-summary-label {
+    color: var(--text-dim);
+    font-size: 10px;
+    margin: 0;
+  }
+  
+  .db-cam-row {
+    background: var(--bg-card-inner);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-default);
+  }
+  .db-cam-row:last-child {
+    margin-bottom: 0;
+  }
+  .db-cam-row.is-top {
+    border-color: #F59E0B44;
+  }
+  .db-cam-row.is-offline {
+    border-color: #EF444433;
+  }
+  
+  .db-cam-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .db-cam-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .db-cam-rank {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .db-cam-rank.is-top {
+    background: #F59E0B22;
+    color: var(--accent-amber);
+  }
+  .db-cam-id {
+    color: var(--text-heading);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    margin: 0;
+  }
+  .db-cam-top-badge {
+    background: #F59E0B22;
+    color: var(--accent-amber);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 6px;
+    font-family: var(--font-main);
+    font-weight: 600;
+  }
+  .db-cam-location {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin: 0;
+  }
+  
+  .db-cam-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .db-cam-status {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .db-cam-status.online {
+    background: #16A34A22;
+    color: var(--accent-emerald);
+  }
+  .db-cam-status.offline {
+    background: #EF444422;
+    color: var(--accent-red);
+  }
+  .db-cam-events-val {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    margin: 0;
+    text-align: right;
+  }
+  .db-cam-events-label {
+    color: var(--text-dim);
+    font-size: 10px;
+    margin: 0;
+  }
+  
+  .db-cam-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .db-cam-bar-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 99px;
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  .db-cam-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+  }
+  .db-cam-share {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    flex-shrink: 0;
+  }
+  
+  /* ── Camera Status panel ─────────────────────────────────────── */
+  .db-status-card {
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .db-status-card.online {
+    background: #16A34A18;
+    border: 1px solid #16A34A33;
+  }
+  .db-status-card.offline {
+    background: #EF444418;
+    border: 1px solid #EF444433;
+    margin-bottom: 0;
+  }
+  .db-status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .db-status-icon.online { background: #16A34A22; }
+  .db-status-icon.offline { background: #EF444422; }
+  .db-status-num {
+    font-size: 26px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    margin: 0;
+  }
+  .db-status-num.online  { color: var(--accent-emerald); }
+  .db-status-num.offline { color: var(--accent-red); }
+  .db-status-text {
+    color: var(--text-dim);
+    font-size: 12px;
+    margin: 0;
+  }
+  
+  .db-ratio-section { margin-top: 14px; }
+  .db-ratio-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .db-ratio-label {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+  .db-ratio-pct {
+    color: var(--accent-emerald);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .db-ratio-track {
+    height: 6px;
+    border-radius: 99px;
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+  .db-ratio-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #22C55E, #16A34A);
+  }
+  
+  /* ── Footer ──────────────────────────────────────────────────── */
+  .db-footer {
+    text-align: center;
+    padding: 24px 0 8px;
+    color: #334155;
+    font-size: 12px;
+  }

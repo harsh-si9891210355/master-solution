@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import { SignupForm } from "@/pages/auth/SignUpForm";
 import { UsersList } from "@/pages/UserManagment/UserList";
 import { UserForm } from "@/pages/UserManagment/UserForm";
+import{Dashboard} from "@/pages/dashboard/Dashboard";
 
 export const router = createBrowserRouter([
   // Public Routes
@@ -17,10 +18,10 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: "/dashboard", element: <div>Dashboard</div> },
           { path: "/events", element: <div>Events List</div> },
           { path: "/cameras", element: <div>Camera Management</div> },
           { path: "/users", element: <UsersList /> },
+          { path: '/dashboard', element: <Dashboard /> },
           { path: "/users/add", element: <UserForm /> },
           { path: "/users/edit/:id", element: <UserForm /> },
         ],
