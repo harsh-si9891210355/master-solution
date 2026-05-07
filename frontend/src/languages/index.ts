@@ -16,8 +16,6 @@ export const SUPPORTED_LANGUAGES = [
 ] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
-
-
 export type AppNamespace = "auth" | "user_management" | "layout" | "camera";
 
 const resources = {
@@ -43,11 +41,9 @@ i18n
         defaultNS: "auth",
         ns: ["auth", "user_management", "layout", "camera"] satisfies AppNamespace[],
         detection: {
-            // localStorage only — prevents OS navigator locale from overriding
-            // fallbackLng on first visit (e.g. Spanish OS → app boots in ES).
             order: ["localStorage"],
             caches: ["localStorage"],
-            lookupLocalStorage: "visionx_language",
+            lookupLocalStorage: "i18nextLng",
         },
         interpolation: { escapeValue: false },
         react: { useSuspense: false },
