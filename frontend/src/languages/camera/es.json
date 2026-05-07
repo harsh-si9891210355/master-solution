@@ -1,0 +1,91 @@
+{
+  "camera": {
+    "title": "Gestión de Cámaras",
+    "add_camera": "Agregar Cámara",
+    "columns": {
+      "name": "Nombre",
+      "location": "Ubicación",
+      "codec": "Códec",
+      "resolution": "Resolución",
+      "fps": "FPS",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "delete_dialog": {
+      "message": "¿Está seguro de que desea eliminar la cámara \"{{name}}\"?",
+      "header": "Eliminar Cámara"
+    },
+    "empty_message": "No se encontraron cámaras.",
+    "error_message": "Error al cargar las cámaras.",
+    "form": {
+      "add_title": "Agregar Cámara",
+      "edit_title": "Editar Cámara",
+      "add_subtitle": "Complete los detalles para registrar una nueva cámara",
+      "edit_subtitle": "Actualizar los detalles de la cámara existente",
+      "loading": "Cargando cámara...",
+      "back": "Volver",
+      "cancel": "Cancelar",
+      "add_submit": "Agregar Cámara",
+      "edit_submit": "Actualizar Cámara",
+      "section_name": "Nombre de Cámara",
+      "section_technical": "Detalles Técnicos",
+      "section_location": "Ubicación",
+      "section_usecases": "Casos de Uso",
+      "add_usecase": "Agregar Caso de Uso",
+      "no_usecases": "Aún no se han agregado casos de uso.",
+      "remove_usecase": "Eliminar caso de uso",
+      "fields": {
+        "name_en": "Inglés *",
+        "name_es": "Español",
+        "name_fr": "Francés",
+        "location_id": "Ubicación *",
+        "codec": "Códec *",
+        "resolution": "Resolución *",
+        "height": "Altura (px)",
+        "fps": "FPS *",
+        "rtsp_url": "URL RTSP *",
+        "status": "Estado",
+        "usecase_id": "ID de Caso de Uso",
+        "usecase_is_active": "Activo"
+      },
+      "placeholders": {
+        "name_en": "Front Gate",
+        "name_es": "Puerta Delantera",
+        "name_fr": "Porte Avant",
+        "location_id": "Seleccionar ubicación",
+        "location_id_loading": "Cargando ubicaciones...",
+        "codec": "ej. H.264",
+        "resolution": "ej. 1920x1080",
+        "height": "ej. 1080",
+        "fps": "ej. 30",
+        "rtsp_url": "rtsp://...",
+        "status": "Seleccionar estado",
+        "usecase_id": "Ingrese ID del caso de uso",
+        "usecase_is_active": "Seleccionar estado"
+      },
+      "validation": {
+        "name_en_required": "El nombre en inglés es obligatorio",
+        "location_required": "La ubicación es obligatoria",
+        "location_invalid": "Ingrese un ID de ubicación válido",
+        "codec_required": "El códec es obligatorio",
+        "resolution_required": "La resolución es obligatoria",
+        "fps_required": "FPS es obligatorio",
+        "rtsp_required": "La URL RTSP es obligatoria",
+        "usecase_id_required": "El ID del caso de uso es obligatorio",
+        "usecase_id_invalid": "Ingrese un ID de caso de uso válido"
+      },
+      "options": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "camera": {
+    "title": "Camera Management",
+    "add_camera": "Add Camera",
+    "columns": {
+      "name": "Name",
+      "location": "Location",
+      "codec": "Codec",
+      "resolution": "Resolution",
+      "fps": "FPS",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "delete_dialog": {
+      "message": "Are you sure you want to delete camera \"{{name}}\"?",
+      "header": "Delete Camera"
+    },
+    "empty_message": "No cameras found.",
+    "error_message": "Failed to load cameras.",
+    "form": {
+      "add_title": "Add Camera",
+      "edit_title": "Edit Camera",
+      "add_subtitle": "Fill in details to register a new camera",
+      "edit_subtitle": "Update existing camera details",
+      "loading": "Loading camera...",
+      "back": "Back",
+      "cancel": "Cancel",
+      "add_submit": "Add Camera",
+      "edit_submit": "Update Camera",
+      "section_name": "Camera Name",
+      "section_technical": "Technical Details",
+      "section_location": "Location",
+      "section_usecases": "Usecases",
+      "add_usecase": "Add Usecase",
+      "no_usecases": "No usecases added yet.",
+      "remove_usecase": "Remove usecase",
+      "fields": {
+        "name_en": "English *",
+        "name_es": "Spanish",
+        "name_fr": "French",
+        "location_id": "Location *",
+        "codec": "Codec *",
+        "resolution": "Resolution *",
+        "height": "Height (px)",
+        "fps": "FPS *",
+        "rtsp_url": "RTSP URL *",
+        "status": "Status",
+        "usecase_id": "Usecase ID",
+        "usecase_is_active": "Active"
+      },
+      "placeholders": {
+        "name_en": "Front Gate",
+        "name_es": "Puerta Delantera",
+        "name_fr": "Porte Avant",
+        "location_id": "Select location",
+        "location_id_loading": "Loading locations...",
+        "codec": "e.g. H.264",
+        "resolution": "e.g. 1920x1080",
+        "height": "e.g. 1080",
+        "fps": "e.g. 30",
+        "rtsp_url": "rtsp://...",
+        "status": "Select status",
+        "usecase_id": "Enter usecase ID",
+        "usecase_is_active": "Select status"
+      },
+      "validation": {
+        "name_en_required": "English name is required",
+        "location_required": "Location is required",
+        "location_invalid": "Enter a valid location ID",
+        "codec_required": "Codec is required",
+        "resolution_required": "Resolution is required",
+        "fps_required": "FPS is required",
+        "rtsp_required": "RTSP URL is required",
+        "usecase_id_required": "Usecase ID is required",
+        "usecase_id_invalid": "Enter a valid usecase ID"
+      },
+      "options": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    }
+  }
+}

@@ -13,7 +13,7 @@ interface FormInputProps<T extends FieldValues> {
     name: Path<T>;
     control: Control<T>;
     label: string;
-    type?: 'text' | 'password' | 'dropdown';
+    type?: 'text' | 'password' | 'dropdown' | 'number';
     error?: string;
     placeholder?: string;
     rules?: object;
