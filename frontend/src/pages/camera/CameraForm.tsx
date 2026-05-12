@@ -208,7 +208,6 @@ export const AddCameraForm = () => {
                                 name="codec"
                                 control={control}
                                 label={t('form.fields.codec')}
-                                type="dropdown"
                                 placeholder={t('form.placeholders.codec')}
                                 rules={{ required: t('form.validation.codec_required') }}
                                 error={errors.codec?.message}
@@ -217,7 +216,6 @@ export const AddCameraForm = () => {
                                 name="resolution"
                                 control={control}
                                 label={t('form.fields.resolution')}
-                                type="dropdown"
                                 placeholder={t('form.placeholders.resolution')}
                                 rules={{ required: t('form.validation.resolution_required') }}
                                 error={errors.resolution?.message}
