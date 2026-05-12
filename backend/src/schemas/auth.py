@@ -11,7 +11,7 @@ class UserCreate(BaseModel):
     last_name_fr: str = Field(min_length=1, max_length=255)
     mobile_number: str | None = Field(default=None, min_length=7, max_length=20)
     role_code: str = Field(default="user", min_length=2, max_length=50)
-    password: str = Field(min_length=8, max_length=128)
+    password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class UserLogin(BaseModel):
