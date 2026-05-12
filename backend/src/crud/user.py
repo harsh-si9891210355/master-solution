@@ -20,15 +20,16 @@ def create_user(
     *,
     email: str,
     first_name_en: str,
-    first_name_es: str,
-    first_name_fr: str,
+    first_name_es: str | None,
+    first_name_fr: str | None,
     last_name_en: str,
-    last_name_es: str,
-    last_name_fr: str,
+    last_name_es: str | None,
+    last_name_fr: str | None,
     mobile_number: str | None,
     role_id: int,
     hashed_password: str,
     status: bool = True,
+    is_active: bool = True,
 ) -> User:
     user = User(
         email=email,
@@ -42,6 +43,7 @@ def create_user(
         role_id=role_id,
         hashed_password=hashed_password,
         status=status,
+        is_active=is_active,
     )
     db.add(user)
     db.commit()
