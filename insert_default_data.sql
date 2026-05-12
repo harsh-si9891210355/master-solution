@@ -1,5 +1,6 @@
 INSERT INTO roles (code, name_en, name_es, name_fr)
 VALUES
+    ('super_admin', 'Super Admin', 'Super Administrador', 'Super Administrateur'),
     ('admin', 'Administrator', 'Administrador', 'Administrateur'),
     ('manager', 'Manager', 'Gerente', 'Gestionnaire'),
     ('user', 'User', 'Usuario', 'Utilisateur')
@@ -24,6 +25,37 @@ VALUES
     ('resource', true, NULL, NULL),
     ('scope', true, NULL, NULL)
 ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO users (
+    email,
+    first_name_en,
+    first_name_es,
+    first_name_fr,
+    last_name_en,
+    last_name_es,
+    last_name_fr,
+    mobile_number,
+    role_id,
+    hashed_password,
+    is_active,
+    status
+)
+SELECT
+    'superadmin@visionx.com',
+    'Super',
+    'Super',
+    'Super',
+    'Admin',
+    'Administrador',
+    'Administrateur',
+    NULL,
+    r.id,
+    'pbkdf2_sha256$100000$YA34Bw+AP/ZbhoATW3MBNQ==$1ldUU7biZpjMELofOv2WJy9Ci9Pd20hMD93F09KzVmc=', -- Password = SuperAdmin@123
+    true,
+    true
+FROM roles r
+WHERE r.code = 'super_admin'
+ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO usecases (
     code,
@@ -121,7 +153,9 @@ VALUES
 ON CONFLICT (name_en) DO NOTHING;
 
 INSERT INTO cameras (
-    name,
+    name_en,
+    name_es,
+    name_fr,
     locationid,
     codec,
     resolution,
@@ -132,6 +166,8 @@ INSERT INTO cameras (
     last_modified_at
 )
 SELECT
+    seed.name,
+    seed.name,
     seed.name,
     l.id,
     seed.codec,
@@ -158,7 +194,7 @@ CROSS JOIN LATERAL (
 WHERE NOT EXISTS (
     SELECT 1
     FROM cameras c
-    WHERE c.name = seed.name
+    WHERE c.name_en = seed.name
 );
 
 INSERT INTO camera_usecase (cameraid, usecaseid, is_active)
@@ -177,9 +213,23 @@ FROM (
         ('Loading Bay Camera 01', 'goods_obstructing_the_working_zone', true),
         ('Parking Area Camera 01', 'speeding', true)
 ) AS seed(camera_name, usecase_code, is_active)
-JOIN cameras c ON c.name = seed.camera_name
+JOIN cameras c ON c.name_en = seed.camera_name
 JOIN usecases uc ON uc.code = seed.usecase_code
 ON CONFLICT (cameraid, usecaseid) DO NOTHING;
+
+-- Super Admin role: Full access to all resources with all scopes (create, read, update, delete)
+INSERT INTO role_permissions (role_id, resource_id, scope_id, created_by, updated_by)
+SELECT
+    r.id,
+    res.id,
+    s.id,
+    NULL,
+    NULL
+FROM roles r
+CROSS JOIN resources res
+CROSS JOIN scopes s
+WHERE r.code = 'super_admin'
+ON CONFLICT (role_id, resource_id, scope_id) DO NOTHING;
 
 -- Admin role: Full access to all resources with all scopes (create, read, update, delete)
 INSERT INTO role_permissions (role_id, resource_id, scope_id, created_by, updated_by)
