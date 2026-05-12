@@ -4,7 +4,7 @@ from fastapi import HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from src.crud.role import get_role_by_code
-from src.crud.user import create_user, get_user_by_email, update_user_password
+from src.crud.user import create_user, get_user_by_email, update_user_password, update_user
 from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
@@ -225,4 +225,37 @@ def build_user_response(user: User, language: str) -> UserResponse:
         role_name=role_name,
         is_active=user.is_active,
         status=user.status,
+    )
+
+def set_password(
+    db: Session,
+    token: str,
+    password: str,
+):
+    email = Authentication.verify_token(token)
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token",
+        )
+
+    user = get_user_by_email(db, email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    update_user_password(
+        db,
+        user=user,
+        hashed_password=Hasher.get_hashed_password(password),
+    )
+
+    revoke_all_user_tokens(db, userid=user.id)
+
+    return MessageResponse(
+        message="Password set successfully"
     )
