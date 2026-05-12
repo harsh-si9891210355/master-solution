@@ -67,3 +67,7 @@ class LoginSignupResponse(BaseModel):
     token_type: str = "bearer"
     user: UserResponse
     permissions: list[str]
+
+class SetPasswordRequest(BaseModel):
+    token: str
+    password: str = Field(min_length=8, max_length=128)

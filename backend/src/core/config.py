@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     access_token_expire_minutes: int = 60
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = "harsh.si9891210355@gmail.com"
+    smtp_password: str = "nzpb hkub mhlz djkk"
 
     model_config = SettingsConfigDict(
         env_file=".env",
