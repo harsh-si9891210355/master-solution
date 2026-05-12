@@ -93,6 +93,14 @@ def login_user(db: Session, payload: UserLogin, request: Request, language: str)
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+    
+    # Check if account is active
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
+        )
+ 
 
     # Check if user has an active, non-expired token
     active_token = get_any_active_user_token(
@@ -253,6 +261,13 @@ def set_password(
         user=user,
         hashed_password=Hasher.get_hashed_password(password),
     )
+
+    # Activate user after password setup
+    user.is_active = True
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 
     revoke_all_user_tokens(db, userid=user.id)
 

@@ -68,7 +68,8 @@ def create_user_details(db: Session, payload: UserCreate, language: str) -> User
         last_name_fr=payload.last_name_fr,
         mobile_number=payload.mobile_number,
         role_id=role.id,
-        hashed_password = Hasher.get_hashed_password("Temp@123")  # no password yet
+        hashed_password = Hasher.get_hashed_password("Temp@123"),  # no password yet
+        is_active=False,
     )
 
     token = Authentication.create_access_token({Authentication.EMAIL_KEY: payload.email})
