@@ -14,7 +14,7 @@ export const SignupForm = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormValues>({
+  } = useForm({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
@@ -33,84 +33,85 @@ export const SignupForm = () => {
 
   const { mutate: signupMutation, isPending } = useMutation({
     mutationFn: authService.signup,
-    onSuccess: () => {
-      navigate("/");
-    },
+    onSuccess: () => navigate("/"),
     onError: (error: any) => {
       console.error("Signup Error:", error.response?.data?.message);
     },
   });
 
-  const onSubmit = (data: SignupFormValues) => {
+  const onSubmit = (data: any) => {
     const { confirmPassword, ...payload } = data;
     signupMutation(payload);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-md mx-auto p-6 bg-white shadow-lg rounded-xl"
-    >
-      <h2 className="text-2xl font-bold mb-6">Create Account</h2>
+    <div className="auth-page">
+      <div className="auth-orb auth-orb--tr" />
+      <div className="auth-orb auth-orb--bl" />
 
-      <FormInput
-        name="first_name_en"
-        label="First Name"
-        control={control}
-        error={errors.first_name_en?.message}
-      />
-      <FormInput
-        name="last_name_en"
-        label="Last Name"
-        control={control}
-        error={errors.last_name_en?.message}
-      />
-      <FormInput
-        name="email"
-        label="Email"
-        control={control}
-        error={errors.email?.message}
-      />
-      <FormInput
-        name="mobile_number"
-        label="Mobile Number"
-        control={control}
-        error={errors.mobile_number?.message}
-      />
-      <FormInput
-        name="password"
-        label="Password"
-        type="password"
-        control={control}
-        error={errors.password?.message}
-      />
-      <FormInput
-        name="confirmPassword"
-        label="Confirm Password"
-        type="password"
-        control={control}
-        error={errors.confirmPassword?.message}
-      />
+      <div className="auth-card auth-card--wide">
+        <div className="auth-card__accent" />
 
-      <FormButton
-        type="submit"
-        label="Register"
-        variant="success"
-        fullWidth
-        loading={isPending}
-        className="mt-4"
-      />
+        <div className="auth-card__body">
+          {/* Header */}
+          <div className="auth-header">
+            <div className="auth-icon-badge">
+              <i className="pi pi-shield" />
+            </div>
+            <div className="auth-header__text">
+              <h2>Create Account</h2>
+              <p>Fill in the details to register</p>
+            </div>
+          </div>
 
-      <div className="mt-4 text-center text-sm text-gray-500">
-        Already have an account?{" "}
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="text-blue-600 hover:underline font-medium"
-        >
-          Sign in
-        </button>
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
+            <div className="auth-grid-2">
+              <FormInput name="first_name_en" label="First Name" control={control} error={errors.first_name_en?.message} />
+              <FormInput name="last_name_en"  label="Last Name"  control={control} error={errors.last_name_en?.message}  />
+            </div>
+
+            <FormInput
+              name="email"
+              label="Email"
+              control={control}
+              error={errors.email?.message}
+              placeholder="you@example.com"
+            />
+
+            <FormInput
+              name="mobile_number"
+              label="Mobile Number"
+              control={control}
+              error={errors.mobile_number?.message}
+              placeholder="+1 234 567 8900"
+            />
+
+            <div className="auth-grid-2">
+              <FormInput name="password"        label="Password"         type="password" control={control} error={errors.password?.message}        />
+              <FormInput name="confirmPassword" label="Confirm Password" type="password" control={control} error={errors.confirmPassword?.message} />
+            </div>
+
+            <div className="auth-form__submit-row">
+              <FormButton
+                type="submit"
+                label="Create Account"
+                variant="primary"
+                fullWidth
+                loading={isPending}
+                iconLeft="pi pi-user-plus"
+              />
+
+              <p className="auth-form-footer">
+                Already have an account?{" "}
+                <button type="button" onClick={() => navigate("/")}>
+                  Sign in
+                </button>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
-    </form>
+    </div>
   );
 };

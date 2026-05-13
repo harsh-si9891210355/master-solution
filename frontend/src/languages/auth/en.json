@@ -1,13 +1,25 @@
-    {
-        "auth": {
-            "login": {
-                "title": "Welcome To Master Solution",
-                "subtitle": "Sign in to your Master Solution account"
-            },
-            "register": {},
-            "forgotPassword": {},
-            "validation": {},
-            "errors": {},
-            "success": {}
-        }
+{
+    "auth": {
+        "login": {
+            "title": "Welcome To Master Solution",
+            "subtitle": "Sign in to your Master Solution account",
+            "email": "Email Address",
+            "emailPlaceholder": "you@example.com",
+            "password": "Password",
+            "forgot": "Forgot password?",
+            "submit": "Sign In",
+            "noAccount": "Don't have an account?",
+            "createOne": "Create one",
+            "features": {
+                "camera": "Camera",
+                "events": "Events",
+                "security": "Security"
+            }
+        },
+        "register": {},
+        "forgotPassword": {},
+        "validation": {},
+        "errors": {},
+        "success": {}
     }
+}

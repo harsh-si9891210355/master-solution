@@ -4,9 +4,12 @@ import { RouterProvider } from 'react-router';
 import { router } from '../src/routes/index'
 import { PrimeReactProvider } from 'primereact/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import '../src/assets/Style/index.css';
+import '../src/assets/Style/auth.css';
+import '../src/assets/Style/layout.css';
 
 // Styles
-import './index.css';
+// import './index.css';
 import 'primereact/resources/themes/lara-light-blue/theme.css'; // PrimeReact Theme
 import 'primereact/resources/primereact.min.css';           // PrimeReact Core
 import 'primeicons/primeicons.css';                         // Icons

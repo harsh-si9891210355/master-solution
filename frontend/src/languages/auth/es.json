@@ -1,0 +1,25 @@
+{
+    "auth": {
+        "login": {
+            "title": "Bienvenido a Master Solution",
+            "subtitle": "Inicia sesión en tu cuenta de Master Solution",
+            "email": "Correo Electrónico",
+            "emailPlaceholder": "tu@ejemplo.com",
+            "password": "Contraseña",
+            "forgot": "¿Olvidaste tu contraseña?",
+            "submit": "Iniciar Sesión",
+            "noAccount": "¿No tienes una cuenta?",
+            "createOne": "Crear una",
+            "features": {
+                "camera": "Cámara",
+                "events": "Eventos",
+                "security": "Seguridad"
+            }
+        },
+        "register": {},
+        "forgotPassword": {},
+        "validation": {},
+        "errors": {},
+        "success": {}
+    }
+}

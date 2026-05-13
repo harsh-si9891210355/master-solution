@@ -1,17 +1,27 @@
 import { useAuthStore } from "@/store/authStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "primereact/button";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { FormInput } from "../../components/ui/FormInput";
+import { FormInput } from "@/components/ui/FormInput";
+import { FormButton } from "@/components/ui/FormButton";
 import { loginSchema, type LoginFormValues } from "./types/index";
 import { authService } from "./api/authService";
 import { SUPPORTED_LANGUAGES } from "../../languages/index";
 import { useNsTranslation } from "../../hooks/Usetranslation";
 
+
+
 export const LoginForm = () => {
-  const { t, i18n, currentLang } = useNsTranslation("auth");
+  const { t, i18n, currentLang, changeLanguage } = useNsTranslation("auth");
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const FEATURES = [
+    { icon: "pi pi-video", label: t("login.features.camera") },
+    { icon: "pi pi-eye",   label: t("login.features.events") },
+    { icon: "pi pi-lock",  label: t("login.features.security") },
+  ];
 
   const {
     control,
@@ -21,9 +31,6 @@ export const LoginForm = () => {
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
-
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { mutate: loginMutation, isPending } = useMutation({
     mutationFn: authService.login,
@@ -39,59 +46,94 @@ export const LoginForm = () => {
   const onSubmit = (data: LoginFormValues) => loginMutation(data);
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-md mx-auto p-6 bg-white shadow-lg rounded-xl"
-    >
-      <h3 className="text-2xl font-bold mb-6">{t("login.title")}</h3>
+    <div className="auth-page">
+      <div className="auth-orb auth-orb--tr" />
+      <div className="auth-orb auth-orb--bl" />
 
-      <FormInput
-        name="email"
-        label="Email Address"
-        control={control}
-        error={errors.email?.message}
-        placeholder="you@example.com"
-      />
-      <FormInput
-        name="password"
-        label="Password"
-        type="password"
-        control={control}
-        error={errors.password?.message}
-      />
+      <div className="auth-card auth-card--wide">
+        <div className="auth-card__accent" />
 
-      <Button
-        type="submit"
-        loading={isPending}
-        label="Sign In"
-        className="w-full mt-4 p-3 bg-blue-600 hover:bg-blue-700 border-none"
-      />
+        <div className="auth-card__body">
 
-      <div className="mt-4 text-center text-sm text-gray-500">
-        Don't have an account?{" "}
-        <button
-          type="button"
-          onClick={() => navigate("/signup")}
-          className="text-blue-600 hover:underline font-medium"
-        >
-          Create one
-        </button>
-      </div>
+        {/* ── Branding ──────────────────────────────────────────────────── */}
+        <div className="lcb-brand">
+          <div className="lcb-brand__icon">
+            <i className="pi pi-shield" />
+          </div>
+          <div>
+            <h1 className="lcb-brand__name">Master Solution</h1>
+            <p className="lcb-brand__tagline">Secure · Smart · Scalable</p>
+          </div>
+        </div>
 
-      <div className="mt-4 flex gap-2 flex-wrap">
-        {SUPPORTED_LANGUAGES.map((l) => (
-          <button
-            key={l.code}
-            type="button"
-            className={`vx-lang-btn ${currentLang === l.code ? "active" : ""}`}
-            onClick={() => i18n.changeLanguage(l.code)}
-            aria-pressed={currentLang === l.code}
-            title={l.label}
-          >
-            {l.flag} {l.code.toUpperCase()}
+        {/* ── Feature icon grid ─────────────────────────────────────────── */}
+        <div className="lcb-features">
+          {FEATURES.map((f) => (
+            <div key={f.label} className="lcb-feature-card">
+              <i className={f.icon} />
+              <span>{f.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Form ──────────────────────────────────────────────────────── */}
+        <form onSubmit={handleSubmit(onSubmit)} className="lcb-form">
+          <FormInput<LoginFormValues>
+            name="email"
+            label={t("login.email")}
+            control={control}
+            error={errors.email?.message}
+            placeholder={t("login.emailPlaceholder")}
+          />
+          <FormInput<LoginFormValues>
+            name="password"
+            label={t("login.password")}
+            type="password"
+            control={control}
+            error={errors.password?.message}
+          />
+
+          <div className="lcb-forgot">
+            <button type="button" onClick={() => navigate("/forgotpassword")}>
+              {t("login.forgot")}
+            </button>
+          </div>
+
+          <FormButton
+            label={t("login.submit")}
+            variant="primary"
+            type="submit"
+            fullWidth
+            loading={isPending}
+          />
+        </form>
+
+        {/* ── Footer ────────────────────────────────────────────────────── */}
+        <p className="lcb-footer">
+          {t("login.noAccount")}{" "}
+          <button type="button" onClick={() => navigate("/signup")}>
+            {t("login.createOne")}
           </button>
-        ))}
+        </p>
+
+        {/* ── Language row ──────────────────────────────────────────────── */}
+        {/* {SUPPORTED_LANGUAGES.length > 1 && ( */}
+           <div className="app-header__lang-switcher">
+                        {SUPPORTED_LANGUAGES.map((lang) => (
+                            <button
+                                key={lang.code}
+                                type="button"
+                                onClick={() => changeLanguage(lang.code)}
+                                className={`app-header__lang-btn ${currentLang === lang.code ? 'app-header__lang-btn--active' : ''}`}
+                            >
+                                <span>{lang.flag}</span>
+                                <span>{lang.code.toUpperCase()}</span>
+                            </button>
+                        ))}
+                    </div>
+        {/* )} */}
       </div>
-    </form>
+      </div>
+    </div>
   );
 };
