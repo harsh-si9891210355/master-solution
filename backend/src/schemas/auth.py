@@ -3,12 +3,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class UserCreate(BaseModel):
     email: EmailStr
-    first_name_en: str = Field(min_length=2, max_length=255)
-    first_name_es: str | None = Field(default=None, min_length=2, max_length=255)
-    first_name_fr: str | None = Field(default=None, min_length=2, max_length=255)
-    last_name_en: str = Field(min_length=1, max_length=255)
-    last_name_es: str | None = Field(default=None, min_length=1, max_length=255)
-    last_name_fr: str | None = Field(default=None, min_length=1, max_length=255)
+    first_name: str = Field(..., min_length=2, max_length=255)
+    last_name: str = Field(..., min_length=1, max_length=255)
     mobile_number: str | None = Field(default=None, min_length=7, max_length=20)
     role_code: str = Field(default="user", min_length=2, max_length=50)
     password: str | None = Field(default=None, min_length=8, max_length=128)
