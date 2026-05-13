@@ -60,12 +60,8 @@ def create_user_details(db: Session, payload: UserCreate, language: str) -> User
     user = create_user(
         db,
         email=payload.email,
-        first_name_en=payload.first_name_en,
-        first_name_es=payload.first_name_es,
-        first_name_fr=payload.first_name_fr,
-        last_name_en=payload.last_name_en,
-        last_name_es=payload.last_name_es,
-        last_name_fr=payload.last_name_fr,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         mobile_number=payload.mobile_number,
         role_id=role.id,
         hashed_password = Hasher.get_hashed_password("Temp@123"),  # no password yet
@@ -115,16 +111,12 @@ def update_user_details(db: Session, user_id: int, payload: UserUpdate, language
     updated_user = update_user(
         db,
         user=user,
-        first_name_en=payload.first_name_en,
-        first_name_es=payload.first_name_es,
-        first_name_fr=payload.first_name_fr,
-        last_name_en=payload.last_name_en,
-        last_name_es=payload.last_name_es,
-        last_name_fr=payload.last_name_fr,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         mobile_number=payload.mobile_number,
         role_id=role_id,
-        is_active=payload.is_active,
-        status=payload.status,
+        is_active=getattr(payload, "is_active", None),
+        status=getattr(payload, "status", None),
     )
     return build_user_response(updated_user, language)
 

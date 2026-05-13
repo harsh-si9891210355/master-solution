@@ -28,12 +28,8 @@ ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (
     email,
-    first_name_en,
-    first_name_es,
-    first_name_fr,
-    last_name_en,
-    last_name_es,
-    last_name_fr,
+    first_name,
+    last_name,
     mobile_number,
     role_id,
     hashed_password,
