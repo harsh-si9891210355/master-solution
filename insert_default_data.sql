@@ -39,11 +39,7 @@ INSERT INTO users (
 SELECT
     'superadmin@visionx.com',
     'Super',
-    'Super',
-    'Super',
     'Admin',
-    'Administrador',
-    'Administrateur',
     NULL,
     r.id,
     'pbkdf2_sha256$100000$YA34Bw+AP/ZbhoATW3MBNQ==$1ldUU7biZpjMELofOv2WJy9Ci9Pd20hMD93F09KzVmc=', -- Password = SuperAdmin@123
