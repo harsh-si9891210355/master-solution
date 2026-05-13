@@ -129,3 +129,26 @@ def delete_user_details(db: Session, user_id: int) -> None:
             detail="User not found",
         )
     delete_user(db, user=user)
+
+
+def change_user_status_details(
+    db: Session,
+    user_id: int,
+    is_active: bool,
+    language: str,
+) -> UserResponse:
+    user = get_user_by_id(db, user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    user.is_active = is_active
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return build_user_response(user, language)

@@ -11,6 +11,7 @@ from src.services.v1.user_services import (
     get_all_user_details,
     get_user_details,
     update_user_details,
+    change_user_status_details
 )
 from src.utils.auth.auth import require_permission
 
@@ -82,10 +83,10 @@ def change_user_status(
     request: Request,
     db: Session = Depends(get_db),
 ) -> UserResponse:
-    return update_user_details(
+    return change_user_status_details(
         db=db,
         user_id=user_id,
-        payload=UserUpdate(is_active=payload.is_active),
+        is_active=payload.is_active,
         language=request.state.lang,
     )
 
