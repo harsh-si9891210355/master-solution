@@ -10,8 +10,8 @@ class CameraUseCaseAssignment(BaseModel):
 
 class CameraCreate(BaseModel):
     name_en: str = Field(min_length=2, max_length=255)
-    name_es: str = Field(min_length=2, max_length=255)
-    name_fr: str = Field(min_length=2, max_length=255)
+    name_es: str | None = Field(default=None, min_length=2, max_length=255)
+    name_fr: str | None = Field(default=None, min_length=2, max_length=255)
     location_id: int
     codec: str = Field(min_length=1, max_length=255)
     resolution: str = Field(min_length=1, max_length=255)
