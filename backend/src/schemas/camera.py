@@ -46,8 +46,8 @@ class CameraUseCaseResponse(BaseModel):
 class CameraResponse(BaseModel):
     id: int
     name_en: str
-    name_es: str
-    name_fr: str
+    name_es: str | None = None
+    name_fr: str | None = None
     name: str
     location_id: int
     location_name: str
