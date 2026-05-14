@@ -12,7 +12,7 @@ def get_user_by_email(db: Session, email: str) -> User | None:
 
 
 def get_all_users(db: Session) -> list[User]:
-    return db.query(User).order_by(User.id.asc()).all()
+    return db.query(User).order_by(User.id.desc()).all()
 
 
 def create_user(

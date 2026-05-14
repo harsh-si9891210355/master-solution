@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS users_token (
 CREATE TABLE IF NOT EXISTS cameras (
     id SERIAL PRIMARY KEY,
     name_en VARCHAR(255) NOT NULL,
-    name_es VARCHAR(255) NOT NULL,
-    name_fr VARCHAR(255) NOT NULL,
+    name_es VARCHAR(255),
+    name_fr VARCHAR(255),
     locationid INTEGER NOT NULL REFERENCES locations(id),
     codec VARCHAR(255) NOT NULL,
     resolution VARCHAR(255) NOT NULL,
