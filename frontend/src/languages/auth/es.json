@@ -1,25 +1,111 @@
 {
-    "auth": {
-        "login": {
-            "title": "Bienvenido a Master Solution",
-            "subtitle": "Inicia sesión en tu cuenta de Master Solution",
-            "email": "Correo Electrónico",
-            "emailPlaceholder": "tu@ejemplo.com",
-            "password": "Contraseña",
-            "forgot": "¿Olvidaste tu contraseña?",
-            "submit": "Iniciar Sesión",
-            "noAccount": "¿No tienes una cuenta?",
-            "createOne": "Crear una",
-            "features": {
-                "camera": "Cámara",
-                "events": "Eventos",
-                "security": "Seguridad"
-            }
-        },
-        "register": {},
-        "forgotPassword": {},
-        "validation": {},
-        "errors": {},
-        "success": {}
-    }
+  "auth": {
+    "login": {
+      "title": "Bienvenido a Master Solution",
+      "subtitle": "Inicia sesión en tu cuenta de Master Solution",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "password": "Contraseña",
+      "forgot": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar Sesión",
+      "noAccount": "¿No tienes una cuenta?",
+      "createOne": "Crear una",
+      "features": {
+        "camera": "Cámara",
+        "events": "Eventos",
+        "security": "Seguridad"
+      },
+      "toast": {
+        "error_title": "Error de Inicio de Sesión",
+        "error_detail": "Correo o contraseña incorrectos. Por favor inténtalo de nuevo."
+      }
+    },
+    "signup": {
+      "title": "Crear Cuenta",
+      "subtitle": "Completa los datos para registrarte",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "email": "Correo Electrónico",
+      "mobilePlaceholder": "+1 234 567 8900",
+      "mobile": "Número de Móvil",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "submit": "Crear Cuenta",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar sesión",
+      "toast": {
+        "success_title": "Cuenta Creada",
+        "success_detail": "Tu cuenta ha sido creada exitosamente. ¡Bienvenido!",
+        "error_title": "Error de Registro",
+        "error_detail": "No se pudo crear tu cuenta. Verifica los datos e inténtalo de nuevo."
+      }
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu Contraseña?",
+      "subtitle": "Te enviaremos un enlace de restablecimiento",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "submit": "Enviar Enlace",
+      "backToSignIn": "Volver al Inicio de Sesión",
+      "footerNote": "¿No recibiste el correo? Revisa el spam o",
+      "footerLink": "prueba con otro correo",
+      "validation": {
+        "email_required": "El correo es obligatorio",
+        "email_invalid": "Por favor ingresa un correo electrónico válido"
+      },
+      "error_banner": "Algo salió mal. Por favor inténtalo de nuevo.",
+      "toast": {
+        "success_title": "Enlace Enviado",
+        "success_detail": "Se ha enviado un enlace de restablecimiento a tu correo. Revisa tu bandeja de entrada.",
+        "error_title": "Error en la Solicitud",
+        "error_detail": "No se pudo enviar el correo. Verifica la dirección e inténtalo de nuevo."
+      }
+    },
+    "setPassword": {
+      "invalid_link_title": "Enlace Inválido",
+      "invalid_link_subtitle": "Este enlace es inválido o ha expirado. Contacta a tu administrador para obtener uno nuevo.",
+      "back_to_sign_in": "Volver al Inicio de Sesión",
+      "success": {
+        "reset_title": "¡Contraseña Restablecida!",
+        "set_title": "¡Todo Listo!",
+        "reset_subtitle": "Tu contraseña ha sido restablecida. Inicia sesión con tu nueva contraseña.",
+        "set_subtitle": "Tu cuenta está lista. Inicia sesión con tu correo y nueva contraseña para comenzar.",
+        "go_to_sign_in": "Ir al Inicio de Sesión"
+      },
+      "form": {
+        "reset_title": "Restablecer Contraseña",
+        "set_title": "Crear Contraseña",
+        "reset_subtitle": "Ingresa tu nueva contraseña.",
+        "set_subtitle": "Tu cuenta fue creada por un administrador.",
+        "password": "Nueva Contraseña",
+        "confirmPassword": "Confirmar Contraseña",
+        "reset_submit": "Restablecer Contraseña",
+        "set_submit": "Crear Contraseña",
+        "back_to_sign_in": "Volver al Inicio de Sesión",
+        "info_banner": "La contraseña debe tener al menos 8 caracteres, una letra mayúscula y un número.",
+        "error_banner": "Algo salió mal. Por favor inténtalo de nuevo.",
+        "footer_reset": "¿Enlace expirado?",
+        "footer_reset_link": "Solicitar uno nuevo.",
+        "footer_set_link": "Contacta a tu administrador."
+      },
+      "validation": {
+        "password_min": "La contraseña debe tener al menos 8 caracteres",
+        "password_uppercase": "Debe contener al menos una letra mayúscula",
+        "password_number": "Debe contener al menos un número",
+        "confirm_mismatch": "Las contraseñas no coinciden"
+      },
+      "toast": {
+        "reset_success_title": "Contraseña Restablecida",
+        "reset_success_detail": "Tu contraseña ha sido restablecida. Ya puedes iniciar sesión.",
+        "set_success_title": "Contraseña Creada",
+        "set_success_detail": "Tu contraseña ha sido establecida. Ya puedes iniciar sesión con tus credenciales.",
+        "error_title": "Acción Fallida",
+        "error_detail": "No se pudo actualizar tu contraseña. El enlace puede haber expirado."
+      }
+    },
+    "register": {},
+    "validation": {},
+    "errors": {},
+    "success": {}
+  }
 }

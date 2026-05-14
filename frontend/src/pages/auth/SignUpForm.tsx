@@ -6,9 +6,14 @@ import { signupSchema, type SignupFormValues } from "./types/index";
 import { FormInput } from "@/components/ui/FormInput";
 import { FormButton } from "../../components/ui/FormButton.tsx";
 import { authService } from "./api/authService";
+import { useNsTranslation } from "@/hooks/Usetranslation";
+import { useToast } from "../../components/ui/ToastProvider";
+
 
 export const SignupForm = () => {
   const navigate = useNavigate();
+  const { t } = useNsTranslation("auth"); 
+  const toast = useToast(); 
 
   const {
     control,
@@ -27,11 +32,15 @@ export const SignupForm = () => {
     },
   });
 
-  const { mutate: signupMutation, isPending } = useMutation({
+ const { mutate: signupMutation, isPending } = useMutation({
     mutationFn: authService.signup,
     onSuccess: () => navigate("/"),
     onError: (error: any) => {
       console.error("Signup Error:", error.response?.data?.message);
+      toast.error(            
+        t("signup.toast.error_title"),
+        error.response?.data?.message || t("signup.toast.error_detail")
+      );
     },
   });
 
@@ -40,7 +49,7 @@ export const SignupForm = () => {
     signupMutation(payload);
   };
 
-  return (
+   return (
     <div className="auth-page">
       <div className="auth-orb auth-orb--tr" />
       <div className="auth-orb auth-orb--bl" />
@@ -55,21 +64,21 @@ export const SignupForm = () => {
               <i className="pi pi-shield" />
             </div>
             <div className="auth-header__text">
-              <h2>Create Account</h2>
-              <p>Fill in the details to register</p>
+              <h2>{t("signup.title")}</h2>
+              <p>{t("signup.subtitle")}</p>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
             <div className="auth-grid-2">
-              <FormInput name="first_name" label="First Name" control={control} error={errors.first_name?.message} />
-              <FormInput name="last_name"  label="Last Name"  control={control} error={errors.last_name?.message}  />
+              <FormInput name="first_name" label={t("signup.first_name")} control={control} error={errors.first_name?.message} />
+              <FormInput name="last_name"  label={t("signup.last_name")}  control={control} error={errors.last_name?.message}  />
             </div>
 
             <FormInput
               name="email"
-              label="Email"
+              label={t("signup.email")}
               control={control}
               error={errors.email?.message}
               placeholder="you@example.com"
@@ -77,21 +86,21 @@ export const SignupForm = () => {
 
             <FormInput
               name="mobile_number"
-              label="Mobile Number"
+              label={t("signup.mobile")}
               control={control}
               error={errors.mobile_number?.message}
-              placeholder="+1 234 567 8900"
+              placeholder={t("signup.mobilePlaceholder")}
             />
 
             <div className="auth-grid-2">
-              <FormInput name="password"        label="Password"         type="password" control={control} error={errors.password?.message}        />
-              <FormInput name="confirmPassword" label="Confirm Password" type="password" control={control} error={errors.confirmPassword?.message} />
+              <FormInput name="password"        label={t("signup.password")}        type="password" control={control} error={errors.password?.message}        />
+              <FormInput name="confirmPassword" label={t("signup.confirmPassword")} type="password" control={control} error={errors.confirmPassword?.message} />
             </div>
 
             <div className="auth-form__submit-row">
               <FormButton
                 type="submit"
-                label="Create Account"
+                label={t("signup.submit")}
                 variant="primary"
                 fullWidth
                 loading={isPending}
@@ -99,9 +108,9 @@ export const SignupForm = () => {
               />
 
               <p className="auth-form-footer">
-                Already have an account?{" "}
+                {t("signup.hasAccount")}{" "}
                 <button type="button" onClick={() => navigate("/")}>
-                  Sign in
+                  {t("signup.signIn")}
                 </button>
               </p>
             </div>

@@ -478,3 +478,17 @@
 .status-toggle--on .status-toggle__label {
   color: #7c3aed;
 }
+
+label .required,
+label sup,
+.form-label span.required,
+.p-float-label label::after,
+label[data-required="true"]::after {
+  content: " *";
+  color: #ef4444;
+}
+
+label > .asterisk,
+label > span[aria-hidden="true"] {
+  color: #ef4444;
+}

@@ -7,6 +7,8 @@ import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { FormButton } from '../../components/ui/FormButton';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
+import { useToast } from '../../components/ui/ToastProvider';
+
 
 interface StatusToggleCellProps {
     row: UserList;
@@ -25,7 +27,7 @@ const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusT
         try {
             await onToggle(row.id, !row.is_active);
         } finally {
-            setIsToggling(false); // always resets — success or error
+            setIsToggling(false); 
         }
     };
 
@@ -41,13 +43,6 @@ const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusT
             <span className="status-toggle__track">
                 <span className="status-toggle__thumb" />
             </span>
-            <span className="status-toggle__label">
-                {isToggling
-                    ? '…'
-                    : row.is_active
-                        ? labelActive
-                        : labelInactive}
-            </span>
         </button>
     );
 };
@@ -58,6 +53,7 @@ export const UsersList = () => {
     const { t } = useNsTranslation('user_management');
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const toast = useToast();
 
     // ── Data ─────────────────────────────────────────────────────────────────
     const { data, isLoading, isError } = useQuery({
@@ -69,8 +65,17 @@ export const UsersList = () => {
     // ── Delete mutation ───────────────────────────────────────────────────────
     const { mutate: deleteUser } = useMutation({
         mutationFn: (id: number) => userService.deleteUser(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-        onError: (err: any) => console.error('Delete failed:', err.response?.data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            toast.success(
+                t('toast.user_deleted_title'),
+                t('toast.user_deleted_detail')
+            );
+        },
+        onError: (err: any) => {
+            const detail = err?.response?.data?.detail || t('toast.user_delete_error_detail');
+            toast.error(t('toast.user_delete_error_title'), detail);
+        },
     });
 
     // ── Toggle mutation (mutateAsync so StatusToggleCell can await it) ────────
@@ -87,8 +92,21 @@ export const UsersList = () => {
             return { previous };
         },
 
-        onError: (_err, _vars, ctx) => {
+        onSuccess: (_data, { is_active }) => {
+            toast.success(
+                is_active
+                    ? t('toast.status_activated_title')
+                    : t('toast.status_deactivated_title'),
+                is_active
+                    ? t('toast.status_activated_detail')
+                    : t('toast.status_deactivated_detail')
+            );
+        },
+
+        onError: (err: any, _vars, ctx) => {
             queryClient.setQueryData(['users'], ctx?.previous);
+            const detail = err?.response?.data?.detail || t('toast.status_error_detail');
+            toast.error(t('toast.status_error_title'), detail);
         },
 
         onSettled: () => {
@@ -96,18 +114,16 @@ export const UsersList = () => {
         },
     });
 
-    // ── Toggle handler passed to each cell ───────────────────────────────────
     const handleToggle = async (id: number, is_active: boolean) => {
         await toggleStatusAsync({ id, is_active });
     };
 
-    // ── Localised name helpers ───────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────────────
     const getName = (row: UserList) => ({
         first: row.first_name ?? '',
         last:  row.last_name  ?? '',
     });
 
-    // ── Delete handler ───────────────────────────────────────────────────────
     const handleDelete = (row: UserList) => {
         const { first, last } = getName(row);
         DeleteModalPopup.show({
@@ -126,9 +142,7 @@ export const UsersList = () => {
         const { first, last } = getName(row);
         return (
             <div className="flex items-center gap-3">
-                <div className="user-avatar">
-                    {first[0]}{last[0]}
-                </div>
+                <div className="user-avatar">{first[0]}{last[0]}</div>
                 <div>
                     <div className="font-medium text-gray-800">{first} {last}</div>
                     <div className="text-xs text-gray-400">{row.email}</div>
@@ -138,9 +152,7 @@ export const UsersList = () => {
     };
 
     const roleTemplate = (row: UserList) => (
-        <span className="role-badge">
-            {row.role_name}
-        </span>
+        <span className="role-badge">{row.role_name}</span>
     );
 
     const statusTemplate = (row: UserList) => (
@@ -152,40 +164,40 @@ export const UsersList = () => {
         />
     );
 
-    const actionsTemplate = (row: UserList) => (
-        <div
-            className="flex items-center gap-2"
-            onClick={(e) => e.stopPropagation()}
-        >
+const actionsTemplate = (row: UserList) => (
+    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <span title={t('actions.edit')}>
             <FormButton
-                label={t('actions.edit')}
+                label=""
                 variant="ghost"
                 size="sm"
                 iconLeft="pi pi-pencil"
                 ariaLabel={t('actions.edit')}
                 onClick={() => navigate(`/users/edit/${row.id}`)}
             />
+        </span>
+        <span title={t('actions.delete')}>
             <FormButton
-                label={t('actions.delete')}
+                label=""
                 variant="danger"
                 size="sm"
                 iconLeft="pi pi-trash"
                 ariaLabel={t('actions.delete')}
                 onClick={() => handleDelete(row)}
             />
-        </div>
-    );
+        </span>
+    </div>
+);
 
-    // ── Column definitions ───────────────────────────────────────────────────
+    // ── Columns ──────────────────────────────────────────────────────────────
     const columns: TableColumn<UserList>[] = [
         { header: t('columns.name'),    body: nameTemplate,    sortable: true, sortField: 'first_name' },
-        { header: t('columns.mobile'),  field: 'mobile_number' },
+        { header: t('columns.mobile'),  field: 'mobile_number'                                         },
         { header: t('columns.role'),    body: roleTemplate,    sortable: true, sortField: 'role_name'  },
         { header: t('columns.status'),  body: statusTemplate,  sortable: true, sortField: 'is_active'  },
         { header: t('columns.actions'), body: actionsTemplate, style: { width: '12rem' }               },
     ];
 
-    // ── Table header slot ────────────────────────────────────────────────────
     const tableHeader = (
         <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">{t('title')}</h2>

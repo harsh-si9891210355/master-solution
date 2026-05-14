@@ -9,13 +9,13 @@ import { loginSchema, type LoginFormValues } from "./types/index";
 import { authService } from "./api/authService";
 import { SUPPORTED_LANGUAGES } from "../../languages/index";
 import { useNsTranslation } from "../../hooks/Usetranslation";
-
-
+import { useToast } from "../../components/ui/ToastProvider";
 
 export const LoginForm = () => {
-  const { t, i18n, currentLang, changeLanguage } = useNsTranslation("auth");
+  const { t, currentLang, changeLanguage } = useNsTranslation("auth");
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const toast = useToast();
 
   const FEATURES = [
     { icon: "pi pi-video", label: t("login.features.camera") },
@@ -36,10 +36,19 @@ export const LoginForm = () => {
     mutationFn: authService.login,
     onSuccess: (response) => {
       setAuth(response.data.access_token, response.data.user);
+      toast.success(
+        t("toast.login_success_title") || "Welcome back!",
+        t("toast.login_success_detail") || "You have signed in successfully."
+      );
       navigate("/dashboard");
     },
     onError: (error: any) => {
-      console.error("Login Error", error.response?.data?.message);
+      const msg =
+        error?.response?.data?.detail ||
+        error?.response?.data?.message ||
+        t("toast.login_error_detail") ||
+        "Invalid email or password. Please try again.";
+      toast.error(t("toast.login_error_title") || "Sign in failed", msg);
     },
   });
 
@@ -55,84 +64,83 @@ export const LoginForm = () => {
 
         <div className="auth-card__body">
 
-        {/* ── Branding ──────────────────────────────────────────────────── */}
-        <div className="lcb-brand">
-          <div className="lcb-brand__icon">
-            <i className="pi pi-shield" />
-          </div>
-          <div>
-            <h1 className="lcb-brand__name">Master Solution</h1>
-            <p className="lcb-brand__tagline">Secure · Smart · Scalable</p>
-          </div>
-        </div>
-
-        {/* ── Feature icon grid ─────────────────────────────────────────── */}
-        <div className="lcb-features">
-          {FEATURES.map((f) => (
-            <div key={f.label} className="lcb-feature-card">
-              <i className={f.icon} />
-              <span>{f.label}</span>
+          {/* ── Branding ──────────────────────────────────────────────────── */}
+          <div className="lcb-brand">
+            <div className="lcb-brand__icon">
+              <i className="pi pi-shield" />
             </div>
-          ))}
-        </div>
-
-        {/* ── Form ──────────────────────────────────────────────────────── */}
-        <form onSubmit={handleSubmit(onSubmit)} className="lcb-form">
-          <FormInput<LoginFormValues>
-            name="email"
-            label={t("login.email")}
-            control={control}
-            error={errors.email?.message}
-            placeholder={t("login.emailPlaceholder")}
-          />
-          <FormInput<LoginFormValues>
-            name="password"
-            label={t("login.password")}
-            type="password"
-            control={control}
-            error={errors.password?.message}
-          />
-
-          <div className="lcb-forgot">
-            <button type="button" onClick={() => navigate("/forgotpassword")}>
-              {t("login.forgot")}
-            </button>
+            <div>
+              <h1 className="lcb-brand__name">Master Solution</h1>
+              <p className="lcb-brand__tagline">Secure · Smart · Scalable</p>
+            </div>
           </div>
 
-          <FormButton
-            label={t("login.submit")}
-            variant="primary"
-            type="submit"
-            fullWidth
-            loading={isPending}
-          />
-        </form>
+          {/* ── Feature icon grid ─────────────────────────────────────────── */}
+          <div className="lcb-features">
+            {FEATURES.map((f) => (
+              <div key={f.label} className="lcb-feature-card">
+                <i className={f.icon} />
+                <span>{f.label}</span>
+              </div>
+            ))}
+          </div>
 
-        {/* ── Footer ────────────────────────────────────────────────────── */}
-        <p className="lcb-footer">
-          {t("login.noAccount")}{" "}
-          <button type="button" onClick={() => navigate("/signup")}>
-            {t("login.createOne")}
-          </button>
-        </p>
+          {/* ── Form ──────────────────────────────────────────────────────── */}
+          <form onSubmit={handleSubmit(onSubmit)} className="lcb-form">
+            <FormInput<LoginFormValues>
+              name="email"
+              label={t("login.email")}
+              control={control}
+              error={errors.email?.message}
+              placeholder={t("login.emailPlaceholder")}
+            />
+            <FormInput<LoginFormValues>
+              name="password"
+              label={t("login.password")}
+              type="password"
+              control={control}
+              error={errors.password?.message}
+            />
 
-        {/* ── Language row ──────────────────────────────────────────────── */}
-        {/* {SUPPORTED_LANGUAGES.length > 1 && ( */}
-           <div className="app-header__lang-switcher">
-                        {SUPPORTED_LANGUAGES.map((lang) => (
-                            <button
-                                key={lang.code}
-                                type="button"
-                                onClick={() => changeLanguage(lang.code)}
-                                className={`app-header__lang-btn ${currentLang === lang.code ? 'app-header__lang-btn--active' : ''}`}
-                            >
-                                <span>{lang.flag}</span>
-                                <span>{lang.code.toUpperCase()}</span>
-                            </button>
-                        ))}
-                    </div>
-        {/* )} */}
-      </div>
+            <div className="lcb-forgot">
+              <button type="button" onClick={() => navigate("/forgotpassword")}>
+                {t("login.forgot")}
+              </button>
+            </div>
+
+            <FormButton
+              label={t("login.submit")}
+              variant="primary"
+              type="submit"
+              fullWidth
+              loading={isPending}
+            />
+          </form>
+
+          {/* ── Footer ────────────────────────────────────────────────────── */}
+          <p className="lcb-footer">
+            {t("login.noAccount")}{" "}
+            <button type="button" onClick={() => navigate("/signup")}>
+              {t("login.createOne")}
+            </button>
+          </p>
+
+          {/* ── Language switcher ─────────────────────────────────────────── */}
+          <div className="app-header__lang-switcher" style={{ marginTop: "20px", justifyContent: "center" }}>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => changeLanguage(lang.code)}
+                className={`app-header__lang-btn ${currentLang === lang.code ? "app-header__lang-btn--active" : ""}`}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.code.toUpperCase()}</span>
+              </button>
+            ))}
+          </div>
+
+        </div>
       </div>
     </div>
   );

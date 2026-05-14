@@ -6,28 +6,34 @@ import { z } from "zod";
 import { FormInput } from "@/components/ui/FormInput";
 import { FormButton } from "@/components/ui/FormButton";
 import { authService } from "./api/authService";
-
-const setPasswordSchema = z
-    .object({
-        password: z
-            .string()
-            .min(8, "Password must be at least 8 characters")
-            .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-            .regex(/[0-9]/, "Must contain at least one number"),
-        confirmPassword: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
-    });
-
-type SetPasswordValues = z.infer<typeof setPasswordSchema>;
+import { useNsTranslation } from "@/hooks/Usetranslation";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export const SetPassword = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { t } = useNsTranslation("auth");
+    const toast = useToast();
+
     const token = searchParams.get("token");
-    const isResetMode = searchParams.get("mode") === "reset"; // ← came from ForgotPassword
+    const isResetMode = searchParams.get("mode") === "reset";
+
+ 
+    const setPasswordSchema = z
+        .object({
+            password: z
+                .string()
+                .min(8, t("setPassword.validation.password_min"))
+                .regex(/[A-Z]/, t("setPassword.validation.password_uppercase"))
+                .regex(/[0-9]/, t("setPassword.validation.password_number")),
+            confirmPassword: z.string(),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+            message: t("setPassword.validation.confirm_mismatch"),
+            path: ["confirmPassword"],
+        });
+
+    type SetPasswordValues = z.infer<typeof setPasswordSchema>;
 
     const {
         control,
@@ -41,16 +47,29 @@ export const SetPassword = () => {
     const { mutate: submitPassword, isPending, isSuccess, isError, error } = useMutation({
         mutationFn: (data: SetPasswordValues) =>
             isResetMode
-                ? authService.resetPassword(token ?? "", data.password)   // POST /auth/reset-password
-                : authService.setPassword(token ?? "", data.password),    // POST /auth/set-password
-        onError: (error: any) => {
-            console.error("Set password error:", error.response?.data?.message);
+                ? authService.resetPassword(token ?? "", data.password)
+                : authService.setPassword(token ?? "", data.password),
+        onSuccess: () => {
+            toast.success(
+                isResetMode
+                    ? t("setPassword.toast.reset_success_title")
+                    : t("setPassword.toast.set_success_title"),
+                isResetMode
+                    ? t("setPassword.toast.reset_success_detail")
+                    : t("setPassword.toast.set_success_detail")
+            );
+        },
+        onError: (err: any) => {
+            const detail =
+                err?.response?.data?.message ||
+                t("setPassword.toast.error_detail");
+            toast.error(t("setPassword.toast.error_title"), detail);
         },
     });
 
     const onSubmit = (data: SetPasswordValues) => submitPassword(data);
 
-    // ── Invalid / missing token ───────────────────────────────────────────────
+    // ── Invalid / missing token ──────────────────────────────────────────────
     if (!token) {
         return (
             <div className="auth-page">
@@ -62,12 +81,14 @@ export const SetPassword = () => {
                         <div className="auth-status-circle auth-status-circle--error">
                             <i className="pi pi-times" />
                         </div>
-                        <h2 className="auth-title-center">Invalid Link</h2>
+                        <h2 className="auth-title-center">
+                            {t("setPassword.invalid_link_title")}
+                        </h2>
                         <p className="auth-subtitle-center">
-                            This link is invalid or has expired. Please contact your administrator for a new one.
+                            {t("setPassword.invalid_link_subtitle")}
                         </p>
                         <FormButton
-                            label="Back to Sign In"
+                            label={t("setPassword.back_to_sign_in")}
                             variant="primary"
                             fullWidth
                             iconLeft="pi pi-arrow-left"
@@ -79,7 +100,7 @@ export const SetPassword = () => {
         );
     }
 
-    // ── Success state ─────────────────────────────────────────────────────────
+    // ── Success state ────────────────────────────────────────────────────────
     if (isSuccess) {
         return (
             <div className="auth-page">
@@ -92,15 +113,17 @@ export const SetPassword = () => {
                             <i className="pi pi-check" />
                         </div>
                         <h2 className="auth-title-center">
-                            {isResetMode ? "Password reset!" : "You're all set!"}
+                            {isResetMode
+                                ? t("setPassword.success.reset_title")
+                                : t("setPassword.success.set_title")}
                         </h2>
                         <p className="auth-subtitle-center">
                             {isResetMode
-                                ? "Your password has been reset. Sign in with your new password."
-                                : "Your account is ready. Sign in with your email and new password to get started."}
+                                ? t("setPassword.success.reset_subtitle")
+                                : t("setPassword.success.set_subtitle")}
                         </p>
                         <FormButton
-                            label="Go to Sign In"
+                            label={t("setPassword.success.go_to_sign_in")}
                             variant="primary"
                             fullWidth
                             iconLeft="pi pi-arrow-right"
@@ -112,7 +135,7 @@ export const SetPassword = () => {
         );
     }
 
-    // ── Form ──────────────────────────────────────────────────────────────────
+    // ── Form ─────────────────────────────────────────────────────────────────
     return (
         <div className="auth-page">
             <div className="auth-orb auth-orb--tr" />
@@ -127,11 +150,15 @@ export const SetPassword = () => {
                             <i className="pi pi-lock" />
                         </div>
                         <div className="auth-header__text">
-                            <h2>{isResetMode ? "Reset your password" : "Create your password"}</h2>
+                            <h2>
+                                {isResetMode
+                                    ? t("setPassword.form.reset_title")
+                                    : t("setPassword.form.set_title")}
+                            </h2>
                             <p>
                                 {isResetMode
-                                    ? "Enter your new password below."
-                                    : "Your account was created by an administrator."}
+                                    ? t("setPassword.form.reset_subtitle")
+                                    : t("setPassword.form.set_subtitle")}
                             </p>
                         </div>
                     </div>
@@ -141,23 +168,21 @@ export const SetPassword = () => {
                             <i className="pi pi-exclamation-circle" />
                             <p>
                                 {(error as any)?.response?.data?.message ??
-                                    "Something went wrong. Please try again."}
+                                    t("setPassword.form.error_banner")}
                             </p>
                         </div>
                     )}
 
                     <div className="auth-banner auth-banner--info">
                         <i className="pi pi-info-circle" />
-                        <p>
-                            Password must be at least 8 characters and contain an uppercase letter and a number.
-                        </p>
+                        <p>{t("setPassword.form.info_banner")}</p>
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
                         <FormInput<SetPasswordValues>
                             name="password"
                             control={control}
-                            label="New Password"
+                            label={t("setPassword.form.password")}
                             type="password"
                             placeholder="••••••••"
                             error={errors.password?.message}
@@ -165,14 +190,18 @@ export const SetPassword = () => {
                         <FormInput<SetPasswordValues>
                             name="confirmPassword"
                             control={control}
-                            label="Confirm Password"
+                            label={t("setPassword.form.confirmPassword")}
                             type="password"
                             placeholder="••••••••"
                             error={errors.confirmPassword?.message}
                         />
                         <div className="auth-form__submit-row">
                             <FormButton
-                                label={isResetMode ? "Reset Password" : "Create Password"}
+                                label={
+                                    isResetMode
+                                        ? t("setPassword.form.reset_submit")
+                                        : t("setPassword.form.set_submit")
+                                }
                                 variant="primary"
                                 type="submit"
                                 fullWidth
@@ -183,27 +212,27 @@ export const SetPassword = () => {
                     </form>
 
                     <div className="auth-back-link-wrapper">
-                        <button type="button" onClick={() => navigate("/")} className="auth-back-link">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/")}
+                            className="auth-back-link"
+                        >
                             <i className="pi pi-arrow-left" />
-                            Back to Sign In
+                            {t("setPassword.form.back_to_sign_in")}
                         </button>
                     </div>
 
-                    {isResetMode ? (
-                        <p className="auth-footer-note">
-                            Link expired?{" "}
-                            <button type="button" onClick={() => navigate("/forgotpassword")}>
-                                Request a new one.
-                            </button>
-                        </p>
-                    ) : (
-                        <p className="auth-footer-note">
-                            Link expired?{" "}
-                            <button type="button" onClick={() => navigate("/forgotpassword")}>
-                                Contact your administrator.
-                            </button>
-                        </p>
-                    )}
+                    <p className="auth-footer-note">
+                        {t("setPassword.form.footer_reset")}{" "}
+                        <button
+                            type="button"
+                            onClick={() => navigate("/forgotpassword")}
+                        >
+                            {isResetMode
+                                ? t("setPassword.form.footer_reset_link")
+                                : t("setPassword.form.footer_set_link")}
+                        </button>
+                    </p>
                 </div>
             </div>
         </div>
