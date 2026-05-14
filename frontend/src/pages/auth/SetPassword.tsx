@@ -27,6 +27,7 @@ export const SetPassword = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
+    const isResetMode = searchParams.get("mode") === "reset"; // ← came from ForgotPassword
 
     const {
         control,
@@ -37,15 +38,17 @@ export const SetPassword = () => {
         defaultValues: { password: "", confirmPassword: "" },
     });
 
-    const { mutate: setPassword, isPending, isSuccess, isError, error } = useMutation({
+    const { mutate: submitPassword, isPending, isSuccess, isError, error } = useMutation({
         mutationFn: (data: SetPasswordValues) =>
-            authService.setPassword(token ?? "", data.password),
+            isResetMode
+                ? authService.resetPassword(token ?? "", data.password)   // POST /auth/reset-password
+                : authService.setPassword(token ?? "", data.password),    // POST /auth/set-password
         onError: (error: any) => {
             console.error("Set password error:", error.response?.data?.message);
         },
     });
 
-    const onSubmit = (data: SetPasswordValues) => setPassword(data);
+    const onSubmit = (data: SetPasswordValues) => submitPassword(data);
 
     // ── Invalid / missing token ───────────────────────────────────────────────
     if (!token) {
@@ -59,9 +62,9 @@ export const SetPassword = () => {
                         <div className="auth-status-circle auth-status-circle--error">
                             <i className="pi pi-times" />
                         </div>
-                        <h2 className="auth-title-center">Invalid Invite Link</h2>
+                        <h2 className="auth-title-center">Invalid Link</h2>
                         <p className="auth-subtitle-center">
-                            This invite link is invalid or has expired. Please contact your administrator for a new one.
+                            This link is invalid or has expired. Please contact your administrator for a new one.
                         </p>
                         <FormButton
                             label="Back to Sign In"
@@ -88,9 +91,13 @@ export const SetPassword = () => {
                         <div className="auth-status-circle auth-status-circle--success">
                             <i className="pi pi-check" />
                         </div>
-                        <h2 className="auth-title-center">You're all set!</h2>
+                        <h2 className="auth-title-center">
+                            {isResetMode ? "Password reset!" : "You're all set!"}
+                        </h2>
                         <p className="auth-subtitle-center">
-                            Your account is ready. Sign in with your email and new password to get started.
+                            {isResetMode
+                                ? "Your password has been reset. Sign in with your new password."
+                                : "Your account is ready. Sign in with your email and new password to get started."}
                         </p>
                         <FormButton
                             label="Go to Sign In"
@@ -120,8 +127,12 @@ export const SetPassword = () => {
                             <i className="pi pi-lock" />
                         </div>
                         <div className="auth-header__text">
-                            <h2>Create your password</h2>
-                            <p>Your account was created by an administrator.</p>
+                            <h2>{isResetMode ? "Reset your password" : "Create your password"}</h2>
+                            <p>
+                                {isResetMode
+                                    ? "Enter your new password below."
+                                    : "Your account was created by an administrator."}
+                            </p>
                         </div>
                     </div>
 
@@ -130,7 +141,7 @@ export const SetPassword = () => {
                             <i className="pi pi-exclamation-circle" />
                             <p>
                                 {(error as any)?.response?.data?.message ??
-                                    "Something went wrong. Please contact your administrator."}
+                                    "Something went wrong. Please try again."}
                             </p>
                         </div>
                     )}
@@ -161,7 +172,7 @@ export const SetPassword = () => {
                         />
                         <div className="auth-form__submit-row">
                             <FormButton
-                                label="Create Password"
+                                label={isResetMode ? "Reset Password" : "Create Password"}
                                 variant="primary"
                                 type="submit"
                                 fullWidth
@@ -178,12 +189,21 @@ export const SetPassword = () => {
                         </button>
                     </div>
 
-                    <p className="auth-footer-note">
-                        Link expired?{" "}
-                        <button type="button" onClick={() => navigate("/forgotpassword")}>
-                            Contact your administrator.
-                        </button>
-                    </p>
+                    {isResetMode ? (
+                        <p className="auth-footer-note">
+                            Link expired?{" "}
+                            <button type="button" onClick={() => navigate("/forgotpassword")}>
+                                Request a new one.
+                            </button>
+                        </p>
+                    ) : (
+                        <p className="auth-footer-note">
+                            Link expired?{" "}
+                            <button type="button" onClick={() => navigate("/forgotpassword")}>
+                                Contact your administrator.
+                            </button>
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

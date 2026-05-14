@@ -1,52 +1,120 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Tag } from 'primereact/tag';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { userService } from './api/UserService';
 import type { UserList } from './types';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usetranslation';
-import { SUPPORTED_LANGUAGES } from '../../languages/index';
 import { FormButton } from '../../components/ui/FormButton';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 
+interface StatusToggleCellProps {
+    row: UserList;
+    onToggle: (id: number, is_active: boolean) => Promise<void>;
+    labelActive: string;
+    labelInactive: string;
+}
+
+const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusToggleCellProps) => {
+    const [isToggling, setIsToggling] = useState(false);
+
+    const handleClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isToggling) return;
+        setIsToggling(true);
+        try {
+            await onToggle(row.id, !row.is_active);
+        } finally {
+            setIsToggling(false); // always resets — success or error
+        }
+    };
+
+    return (
+        <button
+            type="button"
+            className={`status-toggle ${row.is_active ? 'status-toggle--on' : 'status-toggle--off'}`}
+            onClick={handleClick}
+            disabled={isToggling}
+            title={row.is_active ? labelActive : labelInactive}
+            aria-label={`Toggle status for ${row.first_name}`}
+        >
+            <span className="status-toggle__track">
+                <span className="status-toggle__thumb" />
+            </span>
+            <span className="status-toggle__label">
+                {isToggling
+                    ? '…'
+                    : row.is_active
+                        ? labelActive
+                        : labelInactive}
+            </span>
+        </button>
+    );
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+
 export const UsersList = () => {
-    const { t, currentLang, changeLanguage } = useNsTranslation('user_management');
+    const { t } = useNsTranslation('user_management');
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
-    // ── Mutations ────────────────────────────────────────────────────────────
+    // ── Data ─────────────────────────────────────────────────────────────────
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => userService.getUsers().then(res => res.data.users),
+        placeholderData: (previousData) => previousData,
+    });
+
+    // ── Delete mutation ───────────────────────────────────────────────────────
     const { mutate: deleteUser } = useMutation({
         mutationFn: (id: number) => userService.deleteUser(id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
         onError: (err: any) => console.error('Delete failed:', err.response?.data),
     });
 
-    // ── Data ─────────────────────────────────────────────────────────────────
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['users'],
-        queryFn: () => userService.getUsers().then(res => res.data.users),
+    // ── Toggle mutation (mutateAsync so StatusToggleCell can await it) ────────
+    const { mutateAsync: toggleStatusAsync } = useMutation({
+        mutationFn: ({ id, is_active }: { id: number; is_active: boolean }) =>
+            userService.updateUserStatus(id, is_active),
+
+        onMutate: async ({ id, is_active }) => {
+            await queryClient.cancelQueries({ queryKey: ['users'] });
+            const previous = queryClient.getQueryData(['users']);
+            queryClient.setQueryData(['users'], (old: UserList[] | undefined) =>
+                old?.map(u => u.id === id ? { ...u, is_active } : u)
+            );
+            return { previous };
+        },
+
+        onError: (_err, _vars, ctx) => {
+            queryClient.setQueryData(['users'], ctx?.previous);
+        },
+
+        onSettled: () => {
+            queryClient.refetchQueries({ queryKey: ['users'] });
+        },
     });
 
-    // ── Localised name helpers ───────────────────────────────────────────────
-    const getLocalizedFirstName = (row: UserList): string => {
-        if (currentLang === 'es') return row.first_name ?? row.first_name;
-        return row.first_name ?? row.first_name;
+    // ── Toggle handler passed to each cell ───────────────────────────────────
+    const handleToggle = async (id: number, is_active: boolean) => {
+        await toggleStatusAsync({ id, is_active });
     };
 
-    const getLocalizedLastName = (row: UserList): string => {
-        if (currentLang === 'es') return row.last_name ?? row.last_name;
-        return row.last_name ?? row.last_name;
-    };
+    // ── Localised name helpers ───────────────────────────────────────────────
+    const getName = (row: UserList) => ({
+        first: row.first_name ?? '',
+        last:  row.last_name  ?? '',
+    });
 
     // ── Delete handler ───────────────────────────────────────────────────────
     const handleDelete = (row: UserList) => {
-        const firstName = getLocalizedFirstName(row);
-        const lastName  = getLocalizedLastName(row);
+        const { first, last } = getName(row);
         DeleteModalPopup.show({
             message: t('delete_dialog.message', {
-                firstName,
-                lastName,
-                defaultValue: `Are you sure you want to delete ${firstName} ${lastName}?`,
+                firstName: first,
+                lastName: last,
+                defaultValue: `Are you sure you want to delete ${first} ${last}?`,
             }),
             header:    t('delete_dialog.header'),
             onConfirm: () => deleteUser(row.id),
@@ -55,15 +123,14 @@ export const UsersList = () => {
 
     // ── Column templates ─────────────────────────────────────────────────────
     const nameTemplate = (row: UserList) => {
-        const firstName = getLocalizedFirstName(row);
-        const lastName  = getLocalizedLastName(row);
+        const { first, last } = getName(row);
         return (
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold text-sm">
-                    {firstName[0]}{lastName[0]}
+                <div className="user-avatar">
+                    {first[0]}{last[0]}
                 </div>
                 <div>
-                    <div className="font-medium text-gray-800">{firstName} {lastName}</div>
+                    <div className="font-medium text-gray-800">{first} {last}</div>
                     <div className="text-xs text-gray-400">{row.email}</div>
                 </div>
             </div>
@@ -71,20 +138,25 @@ export const UsersList = () => {
     };
 
     const roleTemplate = (row: UserList) => (
-        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
+        <span className="role-badge">
             {row.role_name}
         </span>
     );
 
     const statusTemplate = (row: UserList) => (
-        <Tag
-            value={row.is_active ? t('status.active') : t('status.inactive')}
-            severity={row.is_active ? 'success' : 'danger'}
+        <StatusToggleCell
+            row={row}
+            onToggle={handleToggle}
+            labelActive={t('status.active')}
+            labelInactive={t('status.inactive')}
         />
     );
 
     const actionsTemplate = (row: UserList) => (
-        <div className="flex items-center gap-2">
+        <div
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+        >
             <FormButton
                 label={t('actions.edit')}
                 variant="ghost"
@@ -108,28 +180,24 @@ export const UsersList = () => {
     const columns: TableColumn<UserList>[] = [
         { header: t('columns.name'),    body: nameTemplate,    sortable: true, sortField: 'first_name' },
         { header: t('columns.mobile'),  field: 'mobile_number' },
-        { header: t('columns.role'),    body: roleTemplate,    sortable: true, sortField: 'role_name' },
-        { header: t('columns.status'),  body: statusTemplate,  sortable: true, sortField: 'is_active' },
-        { header: t('columns.actions'), body: actionsTemplate, style: { width: '10rem' } },
+        { header: t('columns.role'),    body: roleTemplate,    sortable: true, sortField: 'role_name'  },
+        { header: t('columns.status'),  body: statusTemplate,  sortable: true, sortField: 'is_active'  },
+        { header: t('columns.actions'), body: actionsTemplate, style: { width: '12rem' }               },
     ];
 
     // ── Table header slot ────────────────────────────────────────────────────
     const tableHeader = (
         <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">{t('title')}</h2>
-            <div className="flex items-center gap-3">
-
-                <FormButton
-                    label={t('add_user')}
-                    variant="primary"
-                    iconLeft="pi pi-plus"
-                    onClick={() => navigate('/users/add')}
-                />
-            </div>
+            <FormButton
+                label={t('add_user')}
+                variant="primary"
+                iconLeft="pi pi-plus"
+                onClick={() => navigate('/users/add')}
+            />
         </div>
     );
 
-    // ── Error state ──────────────────────────────────────────────────────────
     if (isError) return (
         <div className="flex items-center justify-center h-64 text-red-500">
             <i className="pi pi-exclamation-triangle mr-2" /> {t('error_message')}
@@ -138,7 +206,6 @@ export const UsersList = () => {
 
     return (
         <>
-            {/* Renders the ConfirmDialog portal — required once per page */}
             <DeleteModalPopup.Host />
             <div className="p-4">
                 <PrimeTable<UserList>

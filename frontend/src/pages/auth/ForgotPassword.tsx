@@ -19,15 +19,19 @@ export const ForgotPassword = () => {
     const {
         control,
         handleSubmit,
-        formState: { errors, isSubmitSuccessful },
+        formState: { errors },
     } = useForm<ForgotPasswordValues>({
         resolver: zodResolver(forgotPasswordSchema),
         defaultValues: { email: "" },
     });
 
-    const { mutate: sendReset, isPending, isSuccess } = useMutation({
+    const { mutate: sendReset, isPending, isError, error } = useMutation({
         mutationFn: (data: ForgotPasswordValues) =>
             authService.forgotPassword(data.email),
+        onSuccess: (response) => {
+            const resetToken = response.data.reset_token;
+            navigate(`/set-password?token=${resetToken}&mode=reset`);
+        },
         onError: (error: any) => {
             console.error("Forgot password error:", error.response?.data?.message);
         },
@@ -35,37 +39,6 @@ export const ForgotPassword = () => {
 
     const onSubmit = (data: ForgotPasswordValues) => sendReset(data);
 
-    // ── Success state ─────────────────────────────────────────────────────────
-    if (isSuccess || isSubmitSuccessful) {
-        return (
-            <div className="auth-page">
-                <div className="auth-orb auth-orb--tr" />
-                <div className="auth-orb auth-orb--bl" />
-
-                <div className="auth-card">
-                    <div className="auth-card__accent auth-card__accent--green" />
-                    <div className="auth-card__body" style={{ textAlign: 'center' }}>
-                        <div className="auth-status-circle auth-status-circle--success">
-                            <i className="pi pi-check" />
-                        </div>
-                        <h2 className="auth-title-center">Check your inbox</h2>
-                        <p className="auth-subtitle-center">
-                            We've sent a password reset link to your email. It may take a few minutes to arrive.
-                        </p>
-                        <FormButton
-                            label="Back to Sign In"
-                            variant="primary"
-                            fullWidth
-                            iconLeft="pi pi-arrow-left"
-                            onClick={() => navigate("/")}
-                        />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // ── Form state ────────────────────────────────────────────────────────────
     return (
         <div className="auth-page">
             <div className="auth-orb auth-orb--tr" />
@@ -85,6 +58,17 @@ export const ForgotPassword = () => {
                             <p>We'll send you a reset link</p>
                         </div>
                     </div>
+
+                    {/* Error banner */}
+                    {isError && (
+                        <div className="auth-banner auth-banner--error">
+                            <i className="pi pi-exclamation-circle" />
+                            <p>
+                                {(error as any)?.response?.data?.message ??
+                                    "Something went wrong. Please try again."}
+                            </p>
+                        </div>
+                    )}
 
                     {/* Form */}
                     <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
@@ -120,7 +104,6 @@ export const ForgotPassword = () => {
                         </button>
                     </div>
 
-                    {/* Footer note */}
                     <p className="auth-footer-note">
                         Didn't get the email? Check spam or{" "}
                         <button type="button" onClick={() => navigate("/")}>

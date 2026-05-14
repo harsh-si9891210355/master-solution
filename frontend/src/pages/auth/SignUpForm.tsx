@@ -18,12 +18,8 @@ export const SignupForm = () => {
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
-      first_name_en: "",
-      first_name_es: "string",
-      first_name_fr: "string",
-      last_name_en: "",
-      last_name_es: "string",
-      last_name_fr: "string",
+      first_name: "",
+      last_name: "",
       mobile_number: "",
       role_code: "user",
       password: "",
@@ -67,8 +63,8 @@ export const SignupForm = () => {
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
             <div className="auth-grid-2">
-              <FormInput name="first_name_en" label="First Name" control={control} error={errors.first_name_en?.message} />
-              <FormInput name="last_name_en"  label="Last Name"  control={control} error={errors.last_name_en?.message}  />
+              <FormInput name="first_name" label="First Name" control={control} error={errors.first_name?.message} />
+              <FormInput name="last_name"  label="Last Name"  control={control} error={errors.last_name?.message}  />
             </div>
 
             <FormInput
