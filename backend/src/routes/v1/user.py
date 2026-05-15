@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, Request, Query, status
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
@@ -19,26 +19,39 @@ from src.utils.auth.auth import require_permission
 router = APIRouter()
 
 
-@router.post( "",
+@router.post(
+    "",
     response_model=UserResponse,
-    dependencies=[
-    Depends(require_permission("user:create")),
-    Depends(require_permission("user:update")),
-]
+    dependencies=[Depends(require_permission("user:create"))],
+)
+@router.post(
+    "/{user_id}",
+    response_model=UserResponse,
+    dependencies=[Depends(require_permission("user:update"))],
 )
 def create_or_update_user(
-    payload: UserCreate,
     request: Request,
+    payload: UserCreate,
     db: Session = Depends(get_db),
+    user_id: int | None = None,
 ) -> UserResponse:
+
+    # UPDATE
+    if user_id is not None:
+        return update_user_details(
+            db=db,
+            user_id=user_id,
+            payload=payload,
+            language=request.state.lang,
+        )
+
+    # CREATE
     existing_user = get_user_by_email(db, payload.email)
 
     if existing_user:
-        return update_user_details(
-            db=db,
-            user_id=existing_user.id,
-            payload=payload,
-            language=request.state.lang,
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already exists",
         )
 
     return create_user_details(

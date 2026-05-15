@@ -11,8 +11,8 @@ class Camera(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name_en: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    name_es: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    name_fr: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    name_es: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
+    name_fr: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
     location_id: Mapped[int] = mapped_column("locationid", ForeignKey("locations.id"), nullable=False, index=True)
     codec: Mapped[str] = mapped_column(String(255), nullable=False)
     resolution: Mapped[str] = mapped_column(String(255), nullable=False)
