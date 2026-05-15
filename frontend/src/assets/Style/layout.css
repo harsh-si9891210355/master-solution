@@ -479,16 +479,127 @@
   color: #7c3aed;
 }
 
-label .required,
-label sup,
-.form-label span.required,
-.p-float-label label::after,
-label[data-required="true"]::after {
-  content: " *";
-  color: #ef4444;
+.sidebar__nav-btn.p-button {
+  background: transparent !important;
+  border: none !important;
+  border-left: 3px solid transparent;
+  border-radius: 10px !important;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 14px !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
 }
 
-label > .asterisk,
-label > span[aria-hidden="true"] {
-  color: #ef4444;
+.sidebar__nav-btn.p-button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #e2e8f0 !important;
+  transform: none !important;
+}
+
+.sidebar__nav-btn--active.p-button {
+  background: linear-gradient(90deg, rgba(37,99,235,0.25) 0%, rgba(37,99,235,0.08) 100%) !important;
+  border-left-color: #2563eb !important;
+  color: #93c5fd !important;
+  font-weight: 600 !important;
+}
+
+/* Logout button */
+.sidebar__logout-btn.p-button {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 10px !important;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 14px !important;
+  color: #f87171 !important;
+  box-shadow: none !important;
+}
+
+.sidebar__logout-btn.p-button:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  transform: none !important;
+}
+
+/* Language switcher pills */
+.app-header__lang-btn.p-button {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+}
+
+.app-header__lang-btn--active.p-button {
+  background: var(--primary) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px var(--primary-glow) !important;
+}
+
+.status-toggle.p-button {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: 36px !important;
+  width: 36px !important;
+  height: 20px !important;
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 99px !important;
+}
+
+.status-toggle.p-button:hover,
+.status-toggle.p-button:focus {
+  background: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Hide the empty PrimeReact label span */
+.status-toggle.p-button .p-button-label {
+  display: none !important;
+}
+
+/* Track — built with ::before */
+.status-toggle.p-button::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 20px;
+  border-radius: 99px;
+  background: #e2e8f0;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.status-toggle--on.p-button::before {
+  background: #7c3aed;
+}
+
+/* Thumb — built with ::after */
+.status-toggle.p-button::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.status-toggle--on.p-button::after {
+  transform: translateX(16px);
+}
+
+/* Disabled state */
+.status-toggle.p-button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
 }

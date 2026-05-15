@@ -108,25 +108,26 @@ export const ForgotPassword = () => {
                         </div>
                     </form>
 
-                    {/* Back link */}
-                    <div style={{ textAlign: "center" }}>
-                        <button
-                            type="button"
+                    {/* Back to sign in */}
+                    <div className="auth-back-link-wrapper">
+                        <FormButton
+                            label={t("forgotPassword.backToSignIn")}
+                            variant="ghost"
+                            iconLeft="pi pi-arrow-left"
                             onClick={() => navigate("/")}
-                            className="auth-back-link"
-                        >
-                            <i className="pi pi-arrow-left" />
-                            {t("forgotPassword.backToSignIn")}
-                        </button>
+                        />
                     </div>
 
+                    {/* Footer note */}
                     <p className="auth-footer-note">
                         {t("forgotPassword.footerNote")}{" "}
-                        <button type="button" onClick={() => navigate("/")}>
-                            {t("forgotPassword.footerLink")}
-                        </button>
-                        .
+                        <FormButton
+                            label={t("forgotPassword.footerLink")}
+                            variant="ghost"
+                            onClick={() => navigate("/")}
+                        />
                     </p>
+
                 </div>
             </div>
         </div>

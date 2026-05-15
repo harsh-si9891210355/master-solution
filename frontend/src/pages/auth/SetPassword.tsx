@@ -18,7 +18,6 @@ export const SetPassword = () => {
     const token = searchParams.get("token");
     const isResetMode = searchParams.get("mode") === "reset";
 
- 
     const setPasswordSchema = z
         .object({
             password: z
@@ -163,6 +162,7 @@ export const SetPassword = () => {
                         </div>
                     </div>
 
+                    {/* API error banner */}
                     {isError && (
                         <div className="auth-banner auth-banner--error">
                             <i className="pi pi-exclamation-circle" />
@@ -173,6 +173,7 @@ export const SetPassword = () => {
                         </div>
                     )}
 
+                    {/* Password rules info */}
                     <div className="auth-banner auth-banner--info">
                         <i className="pi pi-info-circle" />
                         <p>{t("setPassword.form.info_banner")}</p>
@@ -211,28 +212,30 @@ export const SetPassword = () => {
                         </div>
                     </form>
 
+                    {/* Back to sign in */}
                     <div className="auth-back-link-wrapper">
-                        <button
-                            type="button"
+                        <FormButton
+                            label={t("setPassword.form.back_to_sign_in")}
+                            variant="ghost"
+                            iconLeft="pi pi-arrow-left"
                             onClick={() => navigate("/")}
-                            className="auth-back-link"
-                        >
-                            <i className="pi pi-arrow-left" />
-                            {t("setPassword.form.back_to_sign_in")}
-                        </button>
+                        />
                     </div>
 
+                    {/* Footer note */}
                     <p className="auth-footer-note">
                         {t("setPassword.form.footer_reset")}{" "}
-                        <button
-                            type="button"
+                        <FormButton
+                            label={
+                                isResetMode
+                                    ? t("setPassword.form.footer_reset_link")
+                                    : t("setPassword.form.footer_set_link")
+                            }
+                            variant="ghost"
                             onClick={() => navigate("/forgotpassword")}
-                        >
-                            {isResetMode
-                                ? t("setPassword.form.footer_reset_link")
-                                : t("setPassword.form.footer_set_link")}
-                        </button>
+                        />
                     </p>
+
                 </div>
             </div>
         </div>

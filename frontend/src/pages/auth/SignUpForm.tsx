@@ -9,11 +9,10 @@ import { authService } from "./api/authService";
 import { useNsTranslation } from "@/hooks/Usetranslation";
 import { useToast } from "../../components/ui/ToastProvider";
 
-
 export const SignupForm = () => {
   const navigate = useNavigate();
-  const { t } = useNsTranslation("auth"); 
-  const toast = useToast(); 
+  const { t } = useNsTranslation("auth");
+  const toast = useToast();
 
   const {
     control,
@@ -32,14 +31,21 @@ export const SignupForm = () => {
     },
   });
 
- const { mutate: signupMutation, isPending } = useMutation({
+  const { mutate: signupMutation, isPending } = useMutation({
     mutationFn: authService.signup,
-    onSuccess: () => navigate("/"),
+    onSuccess: () => {
+      toast.success(
+        t("signup.toast.success_title"),
+        t("signup.toast.success_detail"),
+      );
+
+      navigate("/");
+    },
     onError: (error: any) => {
       console.error("Signup Error:", error.response?.data?.message);
-      toast.error(            
+      toast.error(
         t("signup.toast.error_title"),
-        error.response?.data?.message || t("signup.toast.error_detail")
+        error.response?.data?.message || t("signup.toast.error_detail"),
       );
     },
   });
@@ -49,7 +55,7 @@ export const SignupForm = () => {
     signupMutation(payload);
   };
 
-   return (
+  return (
     <div className="auth-page">
       <div className="auth-orb auth-orb--tr" />
       <div className="auth-orb auth-orb--bl" />
@@ -72,8 +78,18 @@ export const SignupForm = () => {
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
             <div className="auth-grid-2">
-              <FormInput name="first_name" label={t("signup.first_name")} control={control} error={errors.first_name?.message} />
-              <FormInput name="last_name"  label={t("signup.last_name")}  control={control} error={errors.last_name?.message}  />
+              <FormInput
+                name="first_name"
+                label={t("signup.first_name")}
+                control={control}
+                error={errors.first_name?.message}
+              />
+              <FormInput
+                name="last_name"
+                label={t("signup.last_name")}
+                control={control}
+                error={errors.last_name?.message}
+              />
             </div>
 
             <FormInput
@@ -93,8 +109,20 @@ export const SignupForm = () => {
             />
 
             <div className="auth-grid-2">
-              <FormInput name="password"        label={t("signup.password")}        type="password" control={control} error={errors.password?.message}        />
-              <FormInput name="confirmPassword" label={t("signup.confirmPassword")} type="password" control={control} error={errors.confirmPassword?.message} />
+              <FormInput
+                name="password"
+                label={t("signup.password")}
+                type="password"
+                control={control}
+                error={errors.password?.message}
+              />
+              <FormInput
+                name="confirmPassword"
+                label={t("signup.confirmPassword")}
+                type="password"
+                control={control}
+                error={errors.confirmPassword?.message}
+              />
             </div>
 
             <div className="auth-form__submit-row">
@@ -109,9 +137,12 @@ export const SignupForm = () => {
 
               <p className="auth-form-footer">
                 {t("signup.hasAccount")}{" "}
-                <button type="button" onClick={() => navigate("/")}>
-                  {t("signup.signIn")}
-                </button>
+                <FormButton
+                  type="button"
+                  variant="ghost"
+                  label={t("signup.signIn")}
+                  onClick={() => navigate("/")}
+                />
               </p>
             </div>
           </form>

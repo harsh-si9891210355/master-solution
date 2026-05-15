@@ -20,30 +20,28 @@ interface StatusToggleCellProps {
 const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusToggleCellProps) => {
     const [isToggling, setIsToggling] = useState(false);
 
-    const handleClick = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isToggling) return;
-        setIsToggling(true);
-        try {
-            await onToggle(row.id, !row.is_active);
-        } finally {
-            setIsToggling(false); 
-        }
-    };
+    const handleClick = async () => {
+    if (isToggling) return;
+    setIsToggling(true);
+    try {
+        await onToggle(row.id, !row.is_active);
+    } finally {
+        setIsToggling(false);
+    }
+};
 
     return (
-        <button
-            type="button"
-            className={`status-toggle ${row.is_active ? 'status-toggle--on' : 'status-toggle--off'}`}
-            onClick={handleClick}
-            disabled={isToggling}
-            title={row.is_active ? labelActive : labelInactive}
-            aria-label={`Toggle status for ${row.first_name}`}
-        >
-            <span className="status-toggle__track">
-                <span className="status-toggle__thumb" />
-            </span>
-        </button>
+        <span title={row.is_active ? labelActive : labelInactive} className="inline-block">
+             <FormButton
+                type="button"
+                variant="ghost"
+                label=""
+                className={`status-toggle ${row.is_active ? 'status-toggle--on' : 'status-toggle--off'}`}
+                onClick={handleClick}
+                disabled={isToggling}
+                ariaLabel={`Toggle status for ${row.first_name}`}
+            />
+        </span>
     );
 };
 

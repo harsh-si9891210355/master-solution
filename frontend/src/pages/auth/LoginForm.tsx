@@ -19,8 +19,8 @@ export const LoginForm = () => {
 
   const FEATURES = [
     { icon: "pi pi-video", label: t("login.features.camera") },
-    { icon: "pi pi-eye",   label: t("login.features.events") },
-    { icon: "pi pi-lock",  label: t("login.features.security") },
+    { icon: "pi pi-eye", label: t("login.features.events") },
+    { icon: "pi pi-lock", label: t("login.features.security") },
   ];
 
   const {
@@ -37,8 +37,8 @@ export const LoginForm = () => {
     onSuccess: (response) => {
       setAuth(response.data.access_token, response.data.user);
       toast.success(
-        t("toast.login_success_title") || "Welcome back!",
-        t("toast.login_success_detail") || "You have signed in successfully."
+       t("login.toast.success_title"),
+       t("login.toast.success_detail")
       );
       navigate("/dashboard");
     },
@@ -46,8 +46,7 @@ export const LoginForm = () => {
       const msg =
         error?.response?.data?.detail ||
         error?.response?.data?.message ||
-        t("toast.login_error_detail") ||
-        "Invalid email or password. Please try again.";
+        t("login.toast.error_title")
       toast.error(t("toast.login_error_title") || "Sign in failed", msg);
     },
   });
@@ -63,7 +62,6 @@ export const LoginForm = () => {
         <div className="auth-card__accent" />
 
         <div className="auth-card__body">
-
           {/* ── Branding ──────────────────────────────────────────────────── */}
           <div className="lcb-brand">
             <div className="lcb-brand__icon">
@@ -103,9 +101,12 @@ export const LoginForm = () => {
             />
 
             <div className="lcb-forgot">
-              <button type="button" onClick={() => navigate("/forgotpassword")}>
-                {t("login.forgot")}
-              </button>
+              <FormButton
+                type="button"
+                variant="ghost"
+                label={t("login.forgot")}
+                onClick={() => navigate("/forgotpassword")}
+              />
             </div>
 
             <FormButton
@@ -120,26 +121,30 @@ export const LoginForm = () => {
           {/* ── Footer ────────────────────────────────────────────────────── */}
           <p className="lcb-footer">
             {t("login.noAccount")}{" "}
-            <button type="button" onClick={() => navigate("/signup")}>
-              {t("login.createOne")}
-            </button>
+            <FormButton
+              type="button"
+              variant="ghost"
+              label={t("login.createOne")}
+              onClick={() => navigate("/signup")}
+            />
           </p>
 
           {/* ── Language switcher ─────────────────────────────────────────── */}
-          <div className="app-header__lang-switcher" style={{ marginTop: "20px", justifyContent: "center" }}>
+          <div
+            className="app-header__lang-switcher"
+            style={{ marginTop: "20px", justifyContent: "center" }}
+          >
             {SUPPORTED_LANGUAGES.map((lang) => (
-              <button
+              <FormButton
                 key={lang.code}
                 type="button"
-                onClick={() => changeLanguage(lang.code)}
+                label={`${lang.flag} ${lang.code.toUpperCase()}`}
+                variant="ghost"
                 className={`app-header__lang-btn ${currentLang === lang.code ? "app-header__lang-btn--active" : ""}`}
-              >
-                <span>{lang.flag}</span>
-                <span>{lang.code.toUpperCase()}</span>
-              </button>
+                onClick={() => changeLanguage(lang.code)}
+              />
             ))}
           </div>
-
         </div>
       </div>
     </div>
