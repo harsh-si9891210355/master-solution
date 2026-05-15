@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cameraService } from './api/cameraService';
 import { locationService } from '../location/api/locationService';
+import { translationService } from '../../utils/translationService';
 import type { CameraFormValues } from './types/index';
 import { FormInput } from '../../components/ui/FormInput';
 import { FormButton } from '../../components/ui/FormButton';
@@ -22,6 +23,7 @@ export const AddCameraForm = () => {
         control,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors },
     } = useForm<CameraFormValues>({
         defaultValues: {
@@ -35,6 +37,11 @@ export const AddCameraForm = () => {
             usecases: [],
         },
     });
+    const shouldSkipTranslateRef = useRef(false);
+    const translationRequestIdRef = useRef(0);
+    const translationSourceRef = useRef<'name_en' | 'name_es' | null>(null);
+    const watchedNameEn = useWatch({ control, name: 'name_en' });
+    const watchedNameEs = useWatch({ control, name: 'name_es' });
 
     const { data: cameraData, isLoading: isFetching } = useQuery({
         queryKey: ['camera', id],
@@ -49,6 +56,7 @@ export const AddCameraForm = () => {
 
     useEffect(() => {
         if (cameraData) {
+            shouldSkipTranslateRef.current = true;
             reset({
                 name_en:             cameraData.name_en,
                 name_es:             cameraData.name_es ?? '',
@@ -65,6 +73,88 @@ export const AddCameraForm = () => {
             });
         }
     }, [cameraData, reset]);
+
+    useEffect(() => {
+        if (shouldSkipTranslateRef.current || translationSourceRef.current === 'name_es') {
+            shouldSkipTranslateRef.current = false;
+            translationSourceRef.current = null;
+            return;
+        }
+
+        const trimmedNameEn = watchedNameEn?.trim() ?? '';
+
+        if (!trimmedNameEn) {
+            translationSourceRef.current = 'name_en';
+            setValue('name_es', '', { shouldDirty: true });
+            return;
+        }
+
+        const requestId = ++translationRequestIdRef.current;
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const response = await translationService.translateText({
+                    text: trimmedNameEn,
+                    source_language: 'en',
+                    target_languages: ['es'],
+                });
+
+                if (translationRequestIdRef.current !== requestId) return;
+
+                translationSourceRef.current = 'name_en';
+                setValue('name_es', response.data.translations.es ?? '', {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                });
+            } catch (error) {
+                console.error('Translation failed:', error);
+            }
+        }, 400);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [setValue, watchedNameEn]);
+
+    useEffect(() => {
+        if (shouldSkipTranslateRef.current || translationSourceRef.current === 'name_en') {
+            shouldSkipTranslateRef.current = false;
+            translationSourceRef.current = null;
+            return;
+        }
+
+        const trimmedNameEs = watchedNameEs?.trim() ?? '';
+
+        if (!trimmedNameEs) {
+            translationSourceRef.current = 'name_es';
+            setValue('name_en', '', { shouldDirty: true });
+            return;
+        }
+
+        const requestId = ++translationRequestIdRef.current;
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const response = await translationService.translateText({
+                    text: trimmedNameEs,
+                    source_language: 'es',
+                    target_languages: ['en'],
+                });
+
+                if (translationRequestIdRef.current !== requestId) return;
+
+                translationSourceRef.current = 'name_es';
+                setValue('name_en', response.data.translations.en ?? '', {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                });
+            } catch (error) {
+                console.error('Translation failed:', error);
+            }
+        }, 400);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [setValue, watchedNameEs]);
 
     const { mutate: createCamera, isPending: isCreating } = useMutation({
         mutationFn: (data: CameraFormValues) => cameraService.createCamera(data),
