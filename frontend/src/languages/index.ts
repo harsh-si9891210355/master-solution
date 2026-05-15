@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 import enAuth           from "../languages/auth/en.json";
+import esAuth           from "../languages/auth/es.json"; 
 import enUserManagement from "./UserManagment/en.json";
 import esUserManagement from "./UserManagment/es.json";
 import enLayout         from "./Layout/en.json";
@@ -16,6 +17,8 @@ export const SUPPORTED_LANGUAGES = [
 ] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
+
+
 export type AppNamespace = "auth" | "user_management" | "layout" | "camera";
 
 const resources = {
@@ -26,6 +29,7 @@ const resources = {
         camera:          enCamera.camera,
     },
     es: {
+        auth:            esAuth.auth, 
         user_management: esUserManagement.user_management,
         layout:          esLayout.layout,
         camera:          esCamera.camera,
@@ -43,7 +47,7 @@ i18n
         detection: {
             order: ["localStorage"],
             caches: ["localStorage"],
-            lookupLocalStorage: "i18nextLng",
+            lookupLocalStorage: "visionx_language",
         },
         interpolation: { escapeValue: false },
         react: { useSuspense: false },

@@ -20,18 +20,18 @@ interface FormButtonProps {
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-    primary:   'bg-blue-600 hover:bg-blue-700 border-blue-600 text-white',
-    secondary: 'bg-gray-100 hover:bg-gray-200 border-gray-200 text-gray-800',
-    danger:    'bg-red-600 hover:bg-red-700 border-red-600 text-white',
-    success:   'bg-green-600 hover:bg-green-700 border-green-600 text-white',
-    ghost:     'bg-transparent hover:bg-gray-100 border border-gray-300 text-gray-700',
-    link:      'bg-transparent border-none text-blue-600 hover:underline shadow-none p-0',
+    primary: 'btn-primary',
+    secondary: 'btn-secondary',
+    danger: 'btn-danger',
+    success: 'btn-success',
+    ghost: 'btn-ghost',
+    link: 'btn-link',
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-    sm: 'text-sm px-3 py-1.5',
-    md: 'text-base px-4 py-2.5',
-    lg: 'text-lg px-5 py-3',
+    sm: 'btn-sm',
+    md: 'btn-md',
+    lg: 'btn-lg',
 };
 
 export const FormButton = ({
@@ -64,10 +64,7 @@ export const FormButton = ({
             className={classNames(
                 VARIANT_CLASSES[variant],
                 SIZE_CLASSES[size],
-                {
-                    'w-full': fullWidth,
-                    'opacity-60 cursor-not-allowed': disabled || loading,
-                },
+                { 'w-full': fullWidth, 'btn-disabled': disabled || loading },
                 className
             )}
         />
