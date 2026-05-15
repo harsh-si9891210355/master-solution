@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from src.db.db_connection import get_db
 from src.schemas.auth import UserCreate, UserResponse
 from src.schemas.user import UserDeleteResponse, UserUpdate, UsersResponse, UserStatusUpdate
-from src.crud.user import get_user_by_email
+from src.crud.user import get_user_by_email, get_user_by_id
 from src.services.v1.user_services import (
     create_user_details,
     delete_user_details,
@@ -38,6 +38,22 @@ def create_or_update_user(
 
     # UPDATE
     if user_id is not None:
+
+        user = get_user_by_id(db, user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        # email does not belong to this user_id
+        if user.email != payload.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Provided email does not match the selected user",
+            )
+
         return update_user_details(
             db=db,
             user_id=user_id,

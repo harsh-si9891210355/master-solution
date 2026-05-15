@@ -225,3 +225,25 @@ def delete_camera_details(db: Session, camera_id: int) -> None:
             detail="Camera not found",
         )
     delete_camera(db, camera=camera)
+
+def update_camera_status(
+    db: Session,
+    camera_id: int,
+    status: bool,
+    language: str,
+) -> CameraResponse:
+
+    camera = get_camera_by_id(db, camera_id)
+
+    if not camera:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Camera not found",
+        )
+
+    camera.status = status
+
+    db.commit()
+    db.refresh(camera)
+
+    return build_camera_response(camera, language)
