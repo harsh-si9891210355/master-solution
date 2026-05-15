@@ -11,28 +11,18 @@ from src.utils.translation import resolve_translation
 
 
 def _build_usecase_response(usecase: UseCase, language: str) -> UseCaseResponse:
-    name_translation = resolve_translation(
-        [
-            type("UseCaseTranslation", (), {"language": "en", "value": usecase.name_en})(),
-            type("UseCaseTranslation", (), {"language": "es", "value": usecase.name_es})(),
-            type("UseCaseTranslation", (), {"language": "fr", "value": usecase.name_fr})(),
-        ],
-        language,
-    )
-    description_translation = resolve_translation(
-        [
-            type("UseCaseTranslation", (), {"language": "en", "value": usecase.description_en})(),
-            type("UseCaseTranslation", (), {"language": "es", "value": usecase.description_es})(),
-            type("UseCaseTranslation", (), {"language": "fr", "value": usecase.description_fr})(),
-        ],
-        language,
-    )
+    translation = resolve_translation(usecase.translations, language)
+    fallback_translation = resolve_translation(usecase.translations, "en")
 
     return UseCaseResponse(
         id=usecase.id,
         code=usecase.code,
-        name=name_translation.value if name_translation else usecase.name_en,
-        description=description_translation.value if description_translation else usecase.description_en,
+        name=translation.name if translation else (fallback_translation.name if fallback_translation else usecase.code),
+        description=(
+            translation.description
+            if translation
+            else (fallback_translation.description if fallback_translation else None)
+        ),
         status=usecase.status,
     )
 
@@ -50,4 +40,3 @@ def get_usecase_details(db: Session, usecase_id: int, language: str) -> UseCaseR
 def get_all_usecase_details(db: Session, language: str) -> list[UseCaseResponse]:
     usecases = get_all_usecases(db)
     return [_build_usecase_response(usecase, language) for usecase in usecases]
-
