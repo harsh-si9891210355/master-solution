@@ -1,13 +1,121 @@
-    {
-        "auth": {
-            "login": {
-                "title": "Welcome To Master Solution",
-                "subtitle": "Sign in to your Master Solution account"
-            },
-            "register": {},
-            "forgotPassword": {},
-            "validation": {},
-            "errors": {},
-            "success": {}
-        }
-    }
+{
+  "auth": {
+    "login": {
+      "title": "Welcome to Master Solution",
+      "subtitle": "Sign in to access your Master Solution account",
+      "email": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "forgot": "Forgot Password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "createOne": "Create One",
+      "features": {
+        "camera": "Camera",
+        "events": "Events",
+        "security": "Security"
+      },
+      "toast": {
+        "success_title": "Sign-In Successful",
+        "success_detail": "You have successfully signed in to your account.",
+        "error_title": "Sign-In Failed",
+        "error_detail": "Invalid email address or password. Please try again."
+      }
+    },
+
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Complete the form below to create your account",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email Address",
+      "mobilePlaceholder": "+1 234 567 8900",
+      "mobile": "Mobile Number",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "toast": {
+        "success_title": "Account Created Successfully",
+        "success_detail": "Your account has been created successfully. You can now sign in.",
+        "error_title": "Account Creation Failed",
+        "error_detail": "Unable to create your account. Please verify your details and try again."
+      }
+    },
+
+    "forgotPassword": {
+      "title": "Forgot Your Password?",
+      "subtitle": "We'll send a password reset link to your email",
+      "email": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send Reset Link",
+      "backToSignIn": "Back to Sign In",
+      "footerNote": "Didn't receive the email? Check your spam folder or",
+      "footerLink": "try another email address",
+      "validation": {
+        "email_required": "Email address is required",
+        "email_invalid": "Please enter a valid email address"
+      },
+      "error_banner": "Something went wrong. Please try again.",
+      "toast": {
+        "success_title": "Reset Link Sent",
+        "success_detail": "A password reset link has been sent to your email address.",
+        "error_title": "Request Failed",
+        "error_detail": "Unable to send the reset email. Please verify the email address and try again."
+      }
+    },
+
+    "setPassword": {
+      "invalid_link_title": "Invalid Link",
+      "invalid_link_subtitle": "This link is invalid or has expired. Please contact your administrator to request a new one.",
+      "back_to_sign_in": "Back to Sign In",
+
+      "success": {
+        "reset_title": "Password Reset Successful",
+        "set_title": "Account Setup Complete",
+        "reset_subtitle": "Your password has been reset successfully. You can now sign in using your new password.",
+        "set_subtitle": "Your account setup is complete. Sign in using your email address and password.",
+        "go_to_sign_in": "Go to Sign In"
+      },
+
+      "form": {
+        "reset_title": "Reset Password",
+        "set_title": "Create Password",
+        "reset_subtitle": "Enter your new password below.",
+        "set_subtitle": "Your account has been created by an administrator.",
+        "password": "New Password",
+        "confirmPassword": "Confirm Password",
+        "reset_submit": "Reset Password",
+        "set_submit": "Create Password",
+        "back_to_sign_in": "Back to Sign In",
+        "info_banner": "Password must contain at least 8 characters, one uppercase letter, and one number.",
+        "error_banner": "Something went wrong. Please try again.",
+        "footer_reset": "Link expired?",
+        "footer_reset_link": "Request a new link.",
+        "footer_set_link": "Contact your administrator."
+      },
+
+      "validation": {
+        "password_min": "Password must be at least 8 characters long",
+        "password_uppercase": "Password must contain at least one uppercase letter",
+        "password_number": "Password must contain at least one number",
+        "confirm_mismatch": "Passwords do not match"
+      },
+
+      "toast": {
+        "reset_success_title": "Password Reset Successful",
+        "reset_success_detail": "Your password has been updated successfully. You may now sign in.",
+        "set_success_title": "Password Created Successfully",
+        "set_success_detail": "Your password has been created successfully. You may now sign in.",
+        "error_title": "Operation Failed",
+        "error_detail": "Unable to update your password. The link may have expired."
+      }
+    },
+
+    "register": {},
+    "validation": {},
+    "errors": {},
+    "success": {}
+  }
+}

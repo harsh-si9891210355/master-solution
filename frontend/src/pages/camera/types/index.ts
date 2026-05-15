@@ -6,8 +6,8 @@ export interface CameraUsecase {
 export interface Camera {
     id:                 number;
     name_en:            string;
-    name_es:            string;
-    name_fr:            string;
+    name_es:            string | null;
+    name_fr:            string | null;
     name:               string;       
     location_id:        number;
     location_name:      string;
@@ -15,7 +15,7 @@ export interface Camera {
     resolution:         string;
     height:             number;
     fps:                string;
-    rtsp_url:           string;
+    rtsp_url:           string | null;
     status:             boolean;
     status_modified_by: number;
     usecases:           CameraUsecase[];
@@ -25,14 +25,14 @@ export interface Camera {
 
 export interface CameraFormValues {
     name_en:            string;
-    name_es:            string;
-    name_fr:            string;
+    name_es:            string | null;
+    name_fr:            string | null;
     location_id:        number | null;
     codec:              string;
     resolution:         string;
     height:             number;
     fps:                string;
-    rtsp_url:           string;
+    rtsp_url:           string | null;
     status:             boolean;
     status_modified_by: number;
     usecases:           CameraUsecase[];

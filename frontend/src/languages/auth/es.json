@@ -1,0 +1,69 @@
+{
+  "auth": {
+    "login": {
+      "title": "Bienvenido a Master Solution",
+      "subtitle": "Inicia sesión para acceder a tu cuenta de Master Solution",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "password": "Contraseña",
+      "forgot": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar Sesión",
+      "noAccount": "¿No tienes una cuenta?",
+      "createOne": "Crear una",
+      "features": {
+        "camera": "Cámara",
+        "events": "Eventos",
+        "security": "Seguridad"
+      },
+      "toast": {
+        "success_title": "Inicio de Sesión Exitoso",
+        "success_detail": "Has iniciado sesión correctamente en tu cuenta.",
+        "error_title": "Error de Inicio de Sesión",
+        "error_detail": "El correo electrónico o la contraseña son incorrectos. Inténtalo nuevamente."
+      }
+    },
+
+    "signup": {
+      "title": "Crear Cuenta",
+      "subtitle": "Completa el formulario para crear tu cuenta",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "email": "Correo Electrónico",
+      "mobilePlaceholder": "+1 234 567 8900",
+      "mobile": "Número de Móvil",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "submit": "Crear Cuenta",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar Sesión",
+      "toast": {
+        "success_title": "Cuenta Creada Exitosamente",
+        "success_detail": "Tu cuenta ha sido creada correctamente. Ya puedes iniciar sesión.",
+        "error_title": "Error al Crear la Cuenta",
+        "error_detail": "No fue posible crear tu cuenta. Verifica la información e inténtalo nuevamente."
+      }
+    },
+
+    "forgotPassword": {
+      "title": "¿Olvidaste tu Contraseña?",
+      "subtitle": "Te enviaremos un enlace para restablecer tu contraseña",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "submit": "Enviar Enlace",
+      "backToSignIn": "Volver al Inicio de Sesión",
+      "footerNote": "¿No recibiste el correo? Revisa la carpeta de spam o",
+      "footerLink": "prueba con otro correo electrónico",
+      "validation": {
+        "email_required": "El correo electrónico es obligatorio",
+        "email_invalid": "Por favor ingresa un correo electrónico válido"
+      },
+      "error_banner": "Algo salió mal. Por favor, inténtalo nuevamente.",
+      "toast": {
+        "success_title": "Enlace Enviado",
+        "success_detail": "Se ha enviado un enlace de restablecimiento a tu correo electrónico.",
+        "error_title": "Error en la Solicitud",
+        "error_detail": "No fue posible enviar el correo de restablecimiento. Verifica el correo e inténtalo nuevamente."
+      }
+    }
+  }
+}

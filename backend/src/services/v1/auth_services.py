@@ -69,12 +69,8 @@ def signup_user(db: Session, payload: UserCreate, request: Request, language: st
     user = create_user(
         db,
         email=payload.email,
-        first_name_en=payload.first_name_en,
-        first_name_es=payload.first_name_es,
-        first_name_fr=payload.first_name_fr,
-        last_name_en=payload.last_name_en,
-        last_name_es=payload.last_name_es,
-        last_name_fr=payload.last_name_fr,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         mobile_number=payload.mobile_number,
         role_id=role.id,
         hashed_password=Hasher.get_hashed_password(payload.password),
@@ -98,7 +94,7 @@ def login_user(db: Session, payload: UserLogin, request: Request, language: str)
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
+            detail="Your account is currently inactive. Please contact the Super Admin for account activation or further assistance.",
         )
  
 
@@ -206,28 +202,12 @@ def build_user_response(user: User, language: str) -> UserResponse:
         language,
     )
     role_name = role_translation.value if role_translation else user.role.name_en
-    first_name_translation = resolve_translation(
-        [
-            type("UserTranslation", (), {"language": "en", "value": user.first_name_en})(),
-            type("UserTranslation", (), {"language": "es", "value": user.first_name_es})(),
-            type("UserTranslation", (), {"language": "fr", "value": user.first_name_fr})(),
-        ],
-        language,
-    )
-    last_name_translation = resolve_translation(
-        [
-            type("UserTranslation", (), {"language": "en", "value": user.last_name_en})(),
-            type("UserTranslation", (), {"language": "es", "value": user.last_name_es})(),
-            type("UserTranslation", (), {"language": "fr", "value": user.last_name_fr})(),
-        ],
-        language,
-    )
 
     return UserResponse(
         id=user.id,
         email=user.email,
-        first_name=first_name_translation.value if first_name_translation else user.first_name_en,
-        last_name=last_name_translation.value if last_name_translation else user.last_name_en,
+        first_name= user.first_name,
+        last_name= user.last_name,
         mobile_number=user.mobile_number,
         role_code=user.role.code,
         role_name=role_name,

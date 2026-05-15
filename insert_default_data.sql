@@ -28,12 +28,8 @@ ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (
     email,
-    first_name_en,
-    first_name_es,
-    first_name_fr,
-    last_name_en,
-    last_name_es,
-    last_name_fr,
+    first_name,
+    last_name,
     mobile_number,
     role_id,
     hashed_password,
@@ -43,11 +39,7 @@ INSERT INTO users (
 SELECT
     'superadmin@visionx.com',
     'Super',
-    'Super',
-    'Super',
     'Admin',
-    'Administrador',
-    'Administrateur',
     NULL,
     r.id,
     'pbkdf2_sha256$100000$YA34Bw+AP/ZbhoATW3MBNQ==$1ldUU7biZpjMELofOv2WJy9Ci9Pd20hMD93F09KzVmc=', -- Password = SuperAdmin@123

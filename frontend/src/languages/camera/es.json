@@ -17,7 +17,8 @@
     },
     "actions": {
       "edit": "Editar",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "usecases": "Casos de Uso"
     },
     "delete_dialog": {
       "message": "¿Está seguro de que desea eliminar la cámara \"{{name}}\"?",
@@ -62,8 +63,8 @@
         "name_fr": "Porte Avant",
         "location_id": "Seleccionar ubicación",
         "location_id_loading": "Cargando ubicaciones...",
-        "codec": "ej. H.264",
-        "resolution": "ej. 1920x1080",
+        "codec": "Seleccionar códec",
+        "resolution": "Seleccionar resolución",
         "height": "ej. 1080",
         "fps": "ej. 30",
         "rtsp_url": "rtsp://...",
