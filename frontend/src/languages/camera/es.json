@@ -26,6 +26,28 @@
     },
     "empty_message": "No se encontraron cámaras.",
     "error_message": "Error al cargar las cámaras.",
+    "toast": {
+      "status_activated_title": "Cámara Activada",
+      "status_activated_detail": "La cámara ha sido activada.",
+      "status_deactivated_title": "Cámara Desactivada",
+      "status_deactivated_detail": "La cámara ha sido desactivada.",
+      "status_error_title": "Error al Actualizar Estado",
+      "status_error_detail": "No se pudo actualizar el estado de la cámara. Intente de nuevo."
+    },
+    "toast_actions": {
+      "camera_created_title": "Cámara Creada",
+      "camera_created_detail": "La nueva cámara se ha agregado correctamente.",
+      "camera_create_error_title": "Error al Crear",
+      "camera_create_error_detail": "No se pudo crear la cámara. Verifique los datos e intente de nuevo.",
+      "camera_updated_title": "Cámara Actualizada",
+      "camera_updated_detail": "Los datos de la cámara se han guardado correctamente.",
+      "camera_update_error_title": "Error al Actualizar",
+      "camera_update_error_detail": "No se pudo actualizar la cámara. Intente de nuevo.",
+      "camera_deleted_title": "Cámara Eliminada",
+      "camera_deleted_detail": "La cámara ha sido eliminada correctamente.",
+      "camera_delete_error_title": "Error al Eliminar",
+      "camera_delete_error_detail": "No se pudo eliminar la cámara. Intente de nuevo."
+    },
     "form": {
       "add_title": "Agregar Cámara",
       "edit_title": "Editar Cámara",
