@@ -24,7 +24,7 @@ router = APIRouter()
     response_model=UserResponse,
     dependencies=[Depends(require_permission("user:create"))],
 )
-@router.put(
+@router.post(
     "/{user_id}",
     response_model=UserResponse,
     dependencies=[Depends(require_permission("user:update"))],
