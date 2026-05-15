@@ -17,7 +17,8 @@
     },
     "actions": {
       "edit": "Editar",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "usecases": "Casos de Uso"
     },
     "delete_dialog": {
       "message": "¿Está seguro de que desea eliminar la cámara \"{{name}}\"?",
@@ -44,8 +45,8 @@
       "remove_usecase": "Eliminar caso de uso",
       "fields": {
         "name_en": "Inglés *",
-        "name_es": "Español",
-        "name_fr": "Francés",
+        "name_es": "Español *",
+        "name_fr": "Francés *",
         "location_id": "Ubicación *",
         "codec": "Códec *",
         "resolution": "Resolución *",
@@ -62,8 +63,8 @@
         "name_fr": "Porte Avant",
         "location_id": "Seleccionar ubicación",
         "location_id_loading": "Cargando ubicaciones...",
-        "codec": "ej. H.264",
-        "resolution": "ej. 1920x1080",
+        "codec": "Seleccionar códec",
+        "resolution": "Seleccionar resolución",
         "height": "ej. 1080",
         "fps": "ej. 30",
         "rtsp_url": "rtsp://...",
@@ -73,6 +74,8 @@
       },
       "validation": {
         "name_en_required": "El nombre en inglés es obligatorio",
+        "name_es_required": "El nombre en español es obligatorio",
+        "name_fr_required": "El nombre en francés es obligatorio",
         "location_required": "La ubicación es obligatoria",
         "location_invalid": "Ingrese un ID de ubicación válido",
         "codec_required": "El códec es obligatorio",

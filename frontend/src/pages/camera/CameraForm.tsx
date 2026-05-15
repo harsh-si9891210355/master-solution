@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cameraService } from './api/cameraService';
+import { locationService } from '../location/api/locationService';
 import type { CameraFormValues } from './types/index';
 import { FormInput } from '../../components/ui/FormInput';
 import { FormButton } from '../../components/ui/FormButton';
@@ -35,13 +36,15 @@ export const AddCameraForm = () => {
         },
     });
 
-    const { fields: usecaseFields, append: appendUsecase, remove: removeUsecase } =
-        useFieldArray({ control, name: 'usecases' });
-
     const { data: cameraData, isLoading: isFetching } = useQuery({
         queryKey: ['camera', id],
         queryFn:  () => cameraService.getCameraById(Number(id)).then(r => r.data),
         enabled: isEdit,
+    });
+
+    const { data: locationsData, isLoading: isLoadingLocations } = useQuery({
+        queryKey: ['locations'],
+        queryFn: () => locationService.getLocations().then((r) => r.data.locations),
     });
 
     useEffect(() => {
@@ -85,10 +88,24 @@ export const AddCameraForm = () => {
         isEdit ? updateCamera(payload) : createCamera(payload);
     };
 
-    const STATUS_OPTIONS = [
-        { label: t('form.options.active'),   value: true  },
-        { label: t('form.options.inactive'), value: false },
+    const CODEC_OPTIONS = [
+        { label: 'H.264', value: 'H.264' },
+        { label: 'H.265', value: 'H.265' },
+        { label: 'MJPEG', value: 'MJPEG' },
+        { label: 'MPEG-4', value: 'MPEG-4' },
     ];
+
+    const RESOLUTION_OPTIONS = [
+        { label: '1280x720', value: '1280x720' },
+        { label: '1920x1080', value: '1920x1080' },
+        { label: '2560x1440', value: '2560x1440' },
+        { label: '3840x2160', value: '3840x2160' },
+    ];
+
+    const LOCATION_OPTIONS = (locationsData ?? []).map((location) => ({
+        label: location.name,
+        value: location.id,
+    }));
 
     if (isEdit && isFetching) {
         return (
@@ -144,12 +161,14 @@ export const AddCameraForm = () => {
                                 name="name_es" control={control}
                                 label={t('form.fields.name_es')}
                                 placeholder={t('form.placeholders.name_es')}
+                                rules={{ required: t('form.validation.name_es_required') }}
                                 error={errors.name_es?.message}
                             />
                             <FormInput<CameraFormValues>
                                 name="name_fr" control={control}
                                 label={t('form.fields.name_fr')}
                                 placeholder={t('form.placeholders.name_fr')}
+                                rules={{ required: t('form.validation.name_fr_required') }}
                                 error={errors.name_fr?.message}
                             />
                         </div>
@@ -165,13 +184,24 @@ export const AddCameraForm = () => {
                             <FormInput<CameraFormValues>
                                 name="location_id" control={control}
                                 label={t('form.fields.location_id')}
-                                placeholder={t('form.placeholders.location_id')}
-                                type="number"
+                                placeholder={
+                                    isLoadingLocations
+                                        ? t('form.placeholders.location_id_loading')
+                                        : t('form.placeholders.location_id')
+                                }
+                                type="dropdown"
+                                options={LOCATION_OPTIONS}
                                 rules={{
                                     required: t('form.validation.location_required'),
-                                    min: { value: 1, message: t('form.validation.location_invalid') },
                                 }}
                                 error={errors.location_id?.message}
+                            />
+                            <FormInput<CameraFormValues>
+                                name="rtsp_url" control={control}
+                                label={t('form.fields.rtsp_url')}
+                                placeholder={t('form.placeholders.rtsp_url')}
+                                rules={{ required: t('form.validation.rtsp_required') }}
+                                error={errors.rtsp_url?.message}
                             />
                         </div>
                     </div>
@@ -187,6 +217,8 @@ export const AddCameraForm = () => {
                                 name="codec" control={control}
                                 label={t('form.fields.codec')}
                                 placeholder={t('form.placeholders.codec')}
+                                type="dropdown"
+                                options={CODEC_OPTIONS}
                                 rules={{ required: t('form.validation.codec_required') }}
                                 error={errors.codec?.message}
                             />
@@ -194,6 +226,8 @@ export const AddCameraForm = () => {
                                 name="resolution" control={control}
                                 label={t('form.fields.resolution')}
                                 placeholder={t('form.placeholders.resolution')}
+                                type="dropdown"
+                                options={RESOLUTION_OPTIONS}
                                 rules={{ required: t('form.validation.resolution_required') }}
                                 error={errors.resolution?.message}
                             />
@@ -211,94 +245,6 @@ export const AddCameraForm = () => {
                                 error={errors.height?.message}
                             />
                         </div>
-                    </div>
-
-                    {/* RTSP URL */}
-                    <div className="form-section">
-                        <FormInput<CameraFormValues>
-                            name="rtsp_url" control={control}
-                            label={t('form.fields.rtsp_url')}
-                            placeholder={t('form.placeholders.rtsp_url')}
-                            rules={{ required: t('form.validation.rtsp_required') }}
-                            error={errors.rtsp_url?.message}
-                        />
-                    </div>
-
-                    {/* Status */}
-                    <div className="form-section">
-                        <div className="form-grid-2">
-                            <FormInput<CameraFormValues>
-                                name="status" control={control}
-                                label={t('form.fields.status')}
-                                type="dropdown"
-                                placeholder={t('form.placeholders.status')}
-                                options={STATUS_OPTIONS}
-                                error={errors.status?.message}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Usecases */}
-                    <div className="form-section" style={{ paddingBottom: '4px' }}>
-                        <div className="usecase-header">
-                            <div className="usecase-header__left">
-                                <span className="form-section__label-row" style={{ margin: 0 }}>
-                                    {t('form.section_usecases')}
-                                </span>
-                                <div className="form-section__divider" />
-                            </div>
-                            <FormButton
-                                label={t('form.add_usecase')}
-                                variant="ghost"
-                                size="sm"
-                                type="button"
-                                iconLeft="pi pi-plus"
-                                onClick={() => appendUsecase({ usecase_id: 0, is_active: true })}
-                            />
-                        </div>
-
-                        {usecaseFields.length === 0 && (
-                            <p className="form-empty-note">{t('form.no_usecases')}</p>
-                        )}
-
-                        {usecaseFields.map((field, index) => (
-                            <div key={field.id} className="usecase-row">
-                                <div className="usecase-row__field">
-                                    <FormInput<CameraFormValues>
-                                        name={`usecases.${index}.usecase_id`}
-                                        control={control}
-                                        label={t('form.fields.usecase_id')}
-                                        placeholder={t('form.placeholders.usecase_id')}
-                                        type="number"
-                                        rules={{
-                                            required: t('form.validation.usecase_id_required'),
-                                            min: { value: 1, message: t('form.validation.usecase_id_invalid') },
-                                        }}
-                                        error={(errors.usecases?.[index] as any)?.usecase_id?.message}
-                                    />
-                                </div>
-                                <div className="usecase-row__field">
-                                    <FormInput<CameraFormValues>
-                                        name={`usecases.${index}.is_active`}
-                                        control={control}
-                                        label={t('form.fields.usecase_is_active')}
-                                        type="dropdown"
-                                        placeholder={t('form.placeholders.usecase_is_active')}
-                                        options={STATUS_OPTIONS}
-                                        error={(errors.usecases?.[index] as any)?.is_active?.message}
-                                    />
-                                </div>
-                                <FormButton
-                                    label=""
-                                    variant="ghost"
-                                    size="sm"
-                                    type="button"
-                                    iconLeft="pi pi-trash"
-                                    ariaLabel={t('form.remove_usecase')}
-                                    onClick={() => removeUsecase(index)}
-                                />
-                            </div>
-                        ))}
                     </div>
 
                     {/* Actions */}

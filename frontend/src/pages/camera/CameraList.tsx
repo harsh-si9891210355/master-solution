@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tag } from 'primereact/tag';
 import { useNavigate } from 'react-router';
 import { cameraService } from './api/cameraService';
 import type { Camera } from './types/index';
+import { SelectUsecaseModal } from '../usecase/SelectUsecaseModal';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { FormButton } from '../../components/ui/FormButton';
@@ -12,6 +14,8 @@ export const CameraList = () => {
     const { t, currentLang } = useNsTranslation('camera');
     const queryClient = useQueryClient();
     const navigate    = useNavigate();
+    const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+    const [isUsecaseModalVisible, setIsUsecaseModalVisible] = useState(false);
 
     // ── Data ─────────────────────────────────────────────────────────────────
     const { data, isLoading, isError } = useQuery({
@@ -45,6 +49,11 @@ export const CameraList = () => {
         });
     };
 
+    const handleOpenUsecaseModal = (row: Camera) => {
+        setSelectedCamera(row);
+        setIsUsecaseModalVisible(true);
+    };
+
     // ── Column templates ──────────────────────────────────────────────────────
     const nameTemplate = (row: Camera) => {
         const name = getLocalizedName(row);
@@ -71,7 +80,7 @@ export const CameraList = () => {
     const actionsTemplate = (row: Camera) => (
         <div className="flex items-center gap-2">
             <FormButton
-                label={t('actions.edit')}
+                label=""
                 variant="ghost"
                 size="sm"
                 iconLeft="pi pi-pencil"
@@ -79,7 +88,15 @@ export const CameraList = () => {
                 onClick={() => navigate(`/cameras/edit/${row.id}`)}
             />
             <FormButton
-                label={t('actions.delete')}
+                label=""
+                variant="secondary"
+                size="sm"
+                iconLeft="pi pi-sitemap"
+                ariaLabel={t('actions.usecases')}
+                onClick={() => handleOpenUsecaseModal(row)}
+            />
+            <FormButton
+                label=""
                 variant="danger"
                 size="sm"
                 iconLeft="pi pi-trash"
@@ -97,7 +114,7 @@ export const CameraList = () => {
         { header: t('columns.resolution'), field: 'resolution'                  },
         { header: t('columns.fps'),        field: 'fps'                         },
         { header: t('columns.status'),     body: statusTemplate,                sortable: true, sortField: 'status' },
-        { header: t('columns.actions'),    body: actionsTemplate, style: { width: '10rem' } },
+        { header: t('columns.actions'),    body: actionsTemplate, style: { width: '8rem' } },
     ];
 
     // ── Table header slot ─────────────────────────────────────────────────────
@@ -122,6 +139,14 @@ export const CameraList = () => {
     return (
         <>
             <DeleteModalPopup.Host />
+            <SelectUsecaseModal
+                camera={selectedCamera}
+                visible={isUsecaseModalVisible}
+                onHide={() => {
+                    setIsUsecaseModalVisible(false);
+                    setSelectedCamera(null);
+                }}
+            />
             <div className="p-4">
                 <PrimeTable<Camera>
                     data={data}
