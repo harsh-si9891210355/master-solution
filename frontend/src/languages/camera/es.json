@@ -45,8 +45,8 @@
       "remove_usecase": "Eliminar caso de uso",
       "fields": {
         "name_en": "Inglés *",
-        "name_es": "Español *",
-        "name_fr": "Francés *",
+        "name_es": "Español",
+        "name_fr": "Francés",
         "location_id": "Ubicación *",
         "codec": "Códec *",
         "resolution": "Resolución *",
@@ -74,8 +74,6 @@
       },
       "validation": {
         "name_en_required": "El nombre en inglés es obligatorio",
-        "name_es_required": "El nombre en español es obligatorio",
-        "name_fr_required": "El nombre en francés es obligatorio",
         "location_required": "La ubicación es obligatoria",
         "location_invalid": "Ingrese un ID de ubicación válido",
         "codec_required": "El códec es obligatorio",

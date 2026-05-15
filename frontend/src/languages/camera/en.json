@@ -45,8 +45,8 @@
       "remove_usecase": "Remove usecase",
       "fields": {
         "name_en": "English *",
-        "name_es": "Spanish *",
-        "name_fr": "French *",
+        "name_es": "Spanish",
+        "name_fr": "French",
         "location_id": "Location *",
         "codec": "Codec *",
         "resolution": "Resolution *",
@@ -74,8 +74,6 @@
       },
       "validation": {
         "name_en_required": "English name is required",
-        "name_es_required": "Spanish name is required",
-        "name_fr_required": "French name is required",
         "location_required": "Location is required",
         "location_invalid": "Enter a valid location ID",
         "codec_required": "Codec is required",

@@ -51,14 +51,14 @@ export const AddCameraForm = () => {
         if (cameraData) {
             reset({
                 name_en:             cameraData.name_en,
-                name_es:             cameraData.name_es,
-                name_fr:             cameraData.name_fr,
+                name_es:             cameraData.name_es ?? '',
+                name_fr:             cameraData.name_fr ?? '',
                 location_id:         cameraData.location_id,
                 codec:               cameraData.codec,
                 resolution:          cameraData.resolution,
                 height:              cameraData.height,
                 fps:                 cameraData.fps,
-                rtsp_url:            cameraData.rtsp_url,
+                rtsp_url:            cameraData.rtsp_url ?? '',
                 status:              cameraData.status,
                 status_modified_by:  cameraData.status_modified_by,
                 usecases:            cameraData.usecases,
@@ -79,9 +79,17 @@ export const AddCameraForm = () => {
     });
 
     const onSubmit = (data: CameraFormValues) => {
+        const normalizeOptionalText = (value: string | null) => {
+            const trimmed = value?.trim();
+            return trimmed ? trimmed : null;
+        };
+
         const payload: CameraFormValues = {
             ...data,
+            name_es:            normalizeOptionalText(data.name_es),
+            name_fr:            normalizeOptionalText(data.name_fr),
             location_id:        data.location_id,
+            rtsp_url:           normalizeOptionalText(data.rtsp_url),
             status_modified_by: user?.id ?? 1,
             usecases:           data.usecases ?? [],
         };
@@ -149,7 +157,7 @@ export const AddCameraForm = () => {
                             <span>{t('form.section_name')}</span>
                             <div className="form-section__divider" />
                         </div>
-                        <div className="form-grid-3">
+                        <div className="form-grid-2">
                             <FormInput<CameraFormValues>
                                 name="name_en" control={control}
                                 label={t('form.fields.name_en')}
@@ -161,15 +169,7 @@ export const AddCameraForm = () => {
                                 name="name_es" control={control}
                                 label={t('form.fields.name_es')}
                                 placeholder={t('form.placeholders.name_es')}
-                                rules={{ required: t('form.validation.name_es_required') }}
                                 error={errors.name_es?.message}
-                            />
-                            <FormInput<CameraFormValues>
-                                name="name_fr" control={control}
-                                label={t('form.fields.name_fr')}
-                                placeholder={t('form.placeholders.name_fr')}
-                                rules={{ required: t('form.validation.name_fr_required') }}
-                                error={errors.name_fr?.message}
                             />
                         </div>
                     </div>
