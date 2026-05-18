@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
-from src.models.camera import Camera
+from sqlalchemy.orm import Session, selectinload
+
+from src.models.camera import Camera, CameraTranslation
 
 
 def get_camera_by_id(db: Session, camera_id: int) -> Camera | None:
@@ -8,6 +9,7 @@ def get_camera_by_id(db: Session, camera_id: int) -> Camera | None:
         db.query(Camera)
         .options(
             selectinload(Camera.location),
+            selectinload(Camera.translations),
             selectinload(Camera.camera_usecases),
         )
         .filter(Camera.id == camera_id)
@@ -21,16 +23,25 @@ def get_camera_by_name(
     name_es: str | None = None,
     name_fr: str | None = None
 ) -> Camera | None:
-
-    conditions = [Camera.name_en == name_en]
+    conditions = [CameraTranslation.name == name_en]
 
     if name_es:
-        conditions.append(Camera.name_es == name_es)
+        conditions.append(CameraTranslation.name == name_es)
 
     if name_fr:
-        conditions.append(Camera.name_fr == name_fr)
+        conditions.append(CameraTranslation.name == name_fr)
 
-    return db.query(Camera).filter(or_(*conditions)).first()
+    return (
+        db.query(Camera)
+        .join(Camera.translations)
+        .options(
+            selectinload(Camera.location),
+            selectinload(Camera.translations),
+            selectinload(Camera.camera_usecases),
+        )
+        .filter(or_(*conditions))
+        .first()
+    )
 
 
 def get_all_cameras(db: Session) -> list[Camera]:
@@ -38,6 +49,7 @@ def get_all_cameras(db: Session) -> list[Camera]:
         db.query(Camera)
         .options(
             selectinload(Camera.location),
+            selectinload(Camera.translations),
             selectinload(Camera.camera_usecases),
         )
         .order_by(Camera.id.desc())
@@ -61,9 +73,6 @@ def create_camera(
     status_modified_by: int,
 ) -> Camera:
     camera = Camera(
-        name_en=name_en,
-        name_es=name_es,
-        name_fr=name_fr,
         location_id=location_id,
         codec=codec,
         resolution=resolution,
@@ -95,12 +104,6 @@ def update_camera(
     status: bool | None = None,
     status_modified_by: int | None = None,
 ) -> Camera:
-    if name_en is not None:
-        camera.name_en = name_en
-    if name_es is not None:
-        camera.name_es = name_es
-    if name_fr is not None:
-        camera.name_fr = name_fr
     if location_id is not None:
         camera.location_id = location_id
     if codec is not None:

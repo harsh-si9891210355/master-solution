@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.db_connection import Base
@@ -10,9 +10,6 @@ class Camera(Base):
     __tablename__ = "cameras"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name_en: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    name_es: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
-    name_fr: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
     location_id: Mapped[int] = mapped_column("locationid", ForeignKey("locations.id"), nullable=False, index=True)
     codec: Mapped[str] = mapped_column(String(255), nullable=False)
     resolution: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -37,6 +34,23 @@ class Camera(Base):
     )
 
     location = relationship("Location", back_populates="cameras")
+    translations = relationship("CameraTranslation", back_populates="camera", cascade="all, delete-orphan")
     camera_usecases = relationship("CameraUsecase", back_populates="camera", cascade="all, delete-orphan")
     user = relationship("User", back_populates="cameras")
     events = relationship("Event", back_populates="camera")
+
+
+class CameraTranslation(Base):
+    __tablename__ = "camera_translations"
+    __table_args__ = (UniqueConstraint("camera_id", "language_code", name="uq_camera_translation_language"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    camera_id: Mapped[int] = mapped_column(ForeignKey("cameras.id", ondelete="CASCADE"), nullable=False, index=True)
+    language_code: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    camera = relationship("Camera", back_populates="translations")
+
+    @property
+    def language(self) -> str:
+        return self.language_code

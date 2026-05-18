@@ -12,7 +12,7 @@ from src.crud.camera import (
 from src.crud.location import get_location_by_id
 from src.crud.usecase import get_usecase_by_id
 from src.crud.user import get_user_by_id
-from src.models.camera import Camera
+from src.models.camera import Camera, CameraTranslation
 from src.models.camera_usecase import CameraUsecase
 from src.schemas.camera import (
     CameraCreate,
@@ -21,6 +21,58 @@ from src.schemas.camera import (
     CameraUseCaseResponse,
 )
 from src.utils.translation import resolve_translation
+
+
+def _camera_translation_map(camera: Camera) -> dict[str, CameraTranslation]:
+    return {translation.language_code.lower(): translation for translation in camera.translations}
+
+
+def _get_camera_name(camera: Camera, language_code: str, fallback: str | None = None) -> str | None:
+    translations = _camera_translation_map(camera)
+    normalized = language_code.lower()
+    if normalized in translations:
+        return translations[normalized].name
+    base = normalized.split("-", 1)[0]
+    if base in translations:
+        return translations[base].name
+    if fallback:
+        fallback_normalized = fallback.lower()
+        if fallback_normalized in translations:
+            return translations[fallback_normalized].name
+        fallback_base = fallback_normalized.split("-", 1)[0]
+        if fallback_base in translations:
+            return translations[fallback_base].name
+    return next(iter(translations.values())).name if translations else None
+
+
+def _sync_camera_translations(
+    camera: Camera,
+    *,
+    name_en: str,
+    name_es: str | None,
+    name_fr: str | None,
+) -> None:
+    translations_by_language = {translation.language_code.lower(): translation for translation in camera.translations}
+    desired_translations = {
+        "en": name_en,
+        "es": name_es,
+        "fr": name_fr,
+    }
+
+    camera.translations = [
+        translation
+        for translation in camera.translations
+        if translation.language_code.lower() not in desired_translations or desired_translations[translation.language_code.lower()]
+    ]
+    translations_by_language = {translation.language_code.lower(): translation for translation in camera.translations}
+
+    for language_code, name in desired_translations.items():
+        if not name:
+            continue
+        if language_code in translations_by_language:
+            translations_by_language[language_code].name = name
+        else:
+            camera.translations.append(CameraTranslation(language_code=language_code, name=name))
 
 
 def create_camera_details(db: Session, payload: CameraCreate, language: str = "en") -> CameraResponse:
@@ -67,6 +119,12 @@ def create_camera_details(db: Session, payload: CameraCreate, language: str = "e
         status=payload.status,
         status_modified_by=payload.status_modified_by,
     )
+    _sync_camera_translations(
+        camera,
+        name_en=payload.name_en,
+        name_es=payload.name_es,
+        name_fr=payload.name_fr,
+    )
     camera.camera_usecases = [
         CameraUsecase(
             usecase_id=usecase_assignment.usecase_id,
@@ -89,20 +147,14 @@ def build_camera_response(camera: Camera, language: str) -> CameraResponse:
         ],
         language,
     )
-    camera_name_translation = resolve_translation(
-        [
-            type("CameraTranslation", (), {"language": "en", "value": camera.name_en})(),
-            type("CameraTranslation", (), {"language": "es", "value": camera.name_es})(),
-            type("CameraTranslation", (), {"language": "fr", "value": camera.name_fr})(),
-        ],
-        language,
-    )
+    camera_name_translation = resolve_translation(camera.translations, language)
+    fallback_camera_name = _get_camera_name(camera, "en")
     return CameraResponse(
         id=camera.id,
-        name_en=camera.name_en,
-        name_es=camera.name_es,
-        name_fr=camera.name_fr,
-        name=camera_name_translation.value if camera_name_translation else camera.name_en,
+        name_en=_get_camera_name(camera, "en") or "",
+        name_es=_get_camera_name(camera, "es"),
+        name_fr=_get_camera_name(camera, "fr"),
+        name=camera_name_translation.name if camera_name_translation else (fallback_camera_name or str(camera.id)),
         location_id=camera.location_id,
         location_name=location_translation.value if location_translation else camera.location.name_en,
         codec=camera.codec,
@@ -150,12 +202,16 @@ def update_camera_details(
         )
 
     # Check if any of the localized names are being changed
+    current_name_en = _get_camera_name(camera, "en")
+    current_name_es = _get_camera_name(camera, "es")
+    current_name_fr = _get_camera_name(camera, "fr")
+
     if payload.name_en or payload.name_es or payload.name_fr:
         existing_camera = get_camera_by_name(
             db,
-            payload.name_en or camera.name_en,
-            payload.name_es or camera.name_es,
-            payload.name_fr or camera.name_fr,
+            payload.name_en or current_name_en or "",
+            payload.name_es if payload.name_es is not None else current_name_es,
+            payload.name_fr if payload.name_fr is not None else current_name_fr,
         )
         if existing_camera and existing_camera.id != camera.id:
             raise HTTPException(
@@ -203,6 +259,15 @@ def update_camera_details(
         status=payload.status,
         status_modified_by=payload.status_modified_by,
     )
+    should_persist_related_changes = False
+    if payload.name_en is not None or payload.name_es is not None or payload.name_fr is not None:
+        _sync_camera_translations(
+            updated_camera,
+            name_en=payload.name_en if payload.name_en is not None else (current_name_en or ""),
+            name_es=payload.name_es if payload.name_es is not None else current_name_es,
+            name_fr=payload.name_fr if payload.name_fr is not None else current_name_fr,
+        )
+        should_persist_related_changes = True
     if payload.usecases is not None:
         updated_camera.camera_usecases = [
             CameraUsecase(
@@ -211,6 +276,8 @@ def update_camera_details(
             )
             for usecase_assignment in payload.usecases
         ]
+        should_persist_related_changes = True
+    if should_persist_related_changes:
         db.add(updated_camera)
         db.commit()
         db.refresh(updated_camera)
