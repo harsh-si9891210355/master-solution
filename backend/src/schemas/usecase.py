@@ -10,7 +10,6 @@ class UseCaseCreate(BaseModel):
 
 class UseCaseResponse(BaseModel):
     id: int
-    code: str
     name: str
     description: str | None
     status: bool
