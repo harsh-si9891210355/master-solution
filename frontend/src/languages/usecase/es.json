@@ -1,0 +1,55 @@
+{
+    "usecase": {
+        "title": "Casos de Uso",
+        "add_usecase": "Agregar Caso de Uso",
+        "empty_message": "No se encontraron casos de uso.",
+        "error_message": "Error al cargar los casos de uso.",
+        "columns": {
+            "name":        "Nombre",
+            "description": "Descripción",
+            "status":      "Estado",
+            "actions":     "Acciones"
+        },
+        "status": {
+            "active":   "Activo",
+            "inactive": "Inactivo"
+        },
+        "actions": {
+            "edit":   "Editar",
+            "delete": "Eliminar"
+        },
+        "delete_dialog": {
+            "header":  "Eliminar Caso de Uso",
+            "message": "¿Estás seguro de que deseas eliminar el caso de uso \"{{name}}\"?"
+        },
+        "form": {
+            "add_title":       "Agregar Caso de Uso",
+            "edit_title":      "Editar Caso de Uso",
+            "add_subtitle":    "Complete los detalles para crear un nuevo caso de uso.",
+            "edit_subtitle":   "Actualiza los detalles del caso de uso a continuación.",
+            "back":            "Volver",
+            "cancel":          "Cancelar",
+            "add_submit":      "Agregar Caso de Uso",
+            "edit_submit":     "Actualizar Caso de Uso",
+            "section_details": "Detalles del Caso de Uso",
+            "fields": {
+                "name":        "Nombre",
+                "description": "Descripción",
+                "status":      "Estado"
+            },
+            "placeholders": {
+                "name":        "Ingrese el nombre del caso de uso",
+                "description": "Ingrese una breve descripción",
+                "status":      "Seleccionar estado"
+            },
+            "validation": {
+                "name_required":        "El nombre es obligatorio",
+                "description_required": "La descripción es obligatoria"
+            },
+            "options": {
+                "active":   "Activo",
+                "inactive": "Inactivo"
+            }
+        }
+    }
+}

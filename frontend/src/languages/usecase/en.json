@@ -1,0 +1,55 @@
+{
+    "usecase": {
+        "title": "Usecases",
+        "add_usecase": "Add Usecase",
+        "empty_message": "No usecases found.",
+        "error_message": "Failed to load usecases.",
+        "columns": {
+            "name":        "Name",
+            "description": "Description",
+            "status":      "Status",
+            "actions":     "Actions"
+        },
+        "status": {
+            "active":   "Active",
+            "inactive": "Inactive"
+        },
+        "actions": {
+            "edit":   "Edit",
+            "delete": "Delete"
+        },
+        "delete_dialog": {
+            "header":  "Delete Usecase",
+            "message": "Are you sure you want to delete usecase \"{{name}}\"?"
+        },
+        "form": {
+            "add_title":      "Add Usecase",
+            "edit_title":     "Edit Usecase",
+            "add_subtitle":   "Fill in the details to create a new usecase.",
+            "edit_subtitle":  "Update the usecase details below.",
+            "back":           "Back",
+            "cancel":         "Cancel",
+            "add_submit":     "Add Usecase",
+            "edit_submit":    "Update Usecase",
+            "section_details": "Usecase Details",
+            "fields": {
+                "name":        "Name",
+                "description": "Description",
+                "status":      "Status"
+            },
+            "placeholders": {
+                "name":        "Enter usecase name",
+                "description": "Enter a brief description",
+                "status":      "Select status"
+            },
+            "validation": {
+                "name_required":        "Name is required",
+                "description_required": "Description is required"
+            },
+            "options": {
+                "active":   "Active",
+                "inactive": "Inactive"
+            }
+        }
+    }
+}

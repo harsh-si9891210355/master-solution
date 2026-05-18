@@ -5,7 +5,8 @@
       "dashboard": "Dashboard",
       "events":    "Events",
       "cameras":   "Cameras",
-      "users":     "Users"
+      "users":     "Users",
+      "usecases": "Usecases"
     },
     "logout": "Logout"
   }
