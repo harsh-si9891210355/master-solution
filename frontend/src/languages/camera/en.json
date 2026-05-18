@@ -17,7 +17,8 @@
     },
     "actions": {
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "usecases": "Usecases"
     },
     "delete_dialog": {
       "message": "Are you sure you want to delete camera \"{{name}}\"?",
@@ -25,6 +26,28 @@
     },
     "empty_message": "No cameras found.",
     "error_message": "Failed to load cameras.",
+    "toast": {
+      "status_activated_title": "Camera Activated",
+      "status_activated_detail": "The camera has been activated.",
+      "status_deactivated_title": "Camera Deactivated",
+      "status_deactivated_detail": "The camera has been deactivated.",
+      "status_error_title": "Status Update Failed",
+      "status_error_detail": "Could not update camera status. Please try again."
+    },
+    "toast_actions": {
+      "camera_created_title": "Camera Created",
+      "camera_created_detail": "The new camera has been added successfully.",
+      "camera_create_error_title": "Create Failed",
+      "camera_create_error_detail": "Could not create camera. Please check the details and try again.",
+      "camera_updated_title": "Camera Updated",
+      "camera_updated_detail": "Camera details have been saved successfully.",
+      "camera_update_error_title": "Update Failed",
+      "camera_update_error_detail": "Could not update camera. Please try again.",
+      "camera_deleted_title": "Camera Deleted",
+      "camera_deleted_detail": "The camera has been removed successfully.",
+      "camera_delete_error_title": "Delete Failed",
+      "camera_delete_error_detail": "Could not delete camera. Please try again."
+    },
     "form": {
       "add_title": "Add Camera",
       "edit_title": "Edit Camera",
@@ -62,8 +85,8 @@
         "name_fr": "Porte Avant",
         "location_id": "Select location",
         "location_id_loading": "Loading locations...",
-        "codec": "e.g. H.264",
-        "resolution": "e.g. 1920x1080",
+        "codec": "Select codec",
+        "resolution": "Select resolution",
         "height": "e.g. 1080",
         "fps": "e.g. 30",
         "rtsp_url": "rtsp://...",
