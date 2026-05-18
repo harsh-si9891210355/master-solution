@@ -8,6 +8,7 @@ import type { CameraFormValues } from './types/index';
 import { FormInput } from '../../components/ui/FormInput';
 import { FormButton } from '../../components/ui/FormButton';
 import { useNsTranslation } from '../../hooks/Usetranslation';
+import { useToast } from '../../components/ui/ToastProvider';
 import { useAuthStore } from '@/store/authStore';
 
 export const AddCameraForm = () => {
@@ -15,7 +16,8 @@ export const AddCameraForm = () => {
     const isEdit = !!id;
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { t } = useNsTranslation('camera');
+    const { t, i18n } = useNsTranslation('camera');
+    const toast = useToast();
     const user = useAuthStore((s) => s.user);
 
     const {
@@ -68,14 +70,28 @@ export const AddCameraForm = () => {
 
     const { mutate: createCamera, isPending: isCreating } = useMutation({
         mutationFn: (data: CameraFormValues) => cameraService.createCamera(data),
-        onSuccess:  () => { queryClient.invalidateQueries({ queryKey: ['cameras'] }); navigate('/cameras'); },
-        onError:    (err: any) => console.error('Create failed:', err.response?.data),
+        onSuccess:  () => {
+            queryClient.invalidateQueries({ queryKey: ['cameras'] });
+            toast.success(i18n.t('camera:toast_actions.camera_created_title'), i18n.t('camera:toast_actions.camera_created_detail'));
+            navigate('/cameras');
+        },
+        onError:    (err: any) => {
+            const detail = err?.response?.data?.detail || i18n.t('camera:toast_actions.camera_create_error_detail');
+            toast.error(i18n.t('camera:toast_actions.camera_create_error_title'), detail);
+        },
     });
 
     const { mutate: updateCamera, isPending: isUpdating } = useMutation({
         mutationFn: (data: CameraFormValues) => cameraService.updateCamera(Number(id), data),
-        onSuccess:  () => { queryClient.invalidateQueries({ queryKey: ['cameras'] }); navigate('/cameras'); },
-        onError:    (err: any) => console.error('Update failed:', err.response?.data),
+        onSuccess:  () => {
+            queryClient.invalidateQueries({ queryKey: ['cameras'] });
+            toast.success(i18n.t('camera:toast_actions.camera_updated_title'), i18n.t('camera:toast_actions.camera_updated_detail'));
+            navigate('/cameras');
+        },
+        onError:    (err: any) => {
+            const detail = err?.response?.data?.detail || i18n.t('camera:toast_actions.camera_update_error_detail');
+            toast.error(i18n.t('camera:toast_actions.camera_update_error_title'), detail);
+        },
     });
 
     const onSubmit = (data: CameraFormValues) => {

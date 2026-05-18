@@ -69,3 +69,6 @@ class CamerasResponse(BaseModel):
 
 class CameraDeleteResponse(BaseModel):
     message: str
+
+class CameraStatusUpdate(BaseModel):
+    status: bool
