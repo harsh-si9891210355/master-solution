@@ -16,8 +16,7 @@ def _build_usecase_response(usecase: UseCase, language: str) -> UseCaseResponse:
 
     return UseCaseResponse(
         id=usecase.id,
-        code=usecase.code,
-        name=translation.name if translation else (fallback_translation.name if fallback_translation else usecase.code),
+        name=translation.name if translation else (fallback_translation.name if fallback_translation else str(usecase.id)),
         description=(
             translation.description
             if translation

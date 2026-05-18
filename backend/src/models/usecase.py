@@ -8,7 +8,6 @@ class UseCase(Base):
     __tablename__ = "usecases"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    code: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     status: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     translations = relationship("UseCaseTranslation", back_populates="usecase", cascade="all, delete-orphan")
