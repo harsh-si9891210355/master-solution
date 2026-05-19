@@ -2,16 +2,49 @@ from pydantic import BaseModel, Field
 
 
 class UseCaseCreate(BaseModel):
-    name: str = Field(min_length=2, max_length=255)
-    description: str | None = Field(default=None, max_length=1000)
-    language_code: str = Field(default="en", max_length=10)
+    name_en: str = Field(min_length=2, max_length=255)
+
+    name_es: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=255,
+    )
+
+    name_fr: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=255,
+    )
+
+    description_en: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    description_es: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    description_fr: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
     status: bool = True
 
 
 class UseCaseResponse(BaseModel):
     id: int
-    name: str
-    description: str | None
+
+    name_en: str | None
+    name_es: str | None
+    name_fr: str | None
+
+    description_en: str | None
+    description_es: str | None
+    description_fr: str | None
+
     status: bool
 
 

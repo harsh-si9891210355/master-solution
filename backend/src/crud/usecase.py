@@ -16,9 +16,9 @@ def get_all_usecases(db: Session) -> list[UseCase]:
 
 def create_usecase(
     db: Session,
-    *,
     status: bool,
-):
+) -> UseCase:
+
     usecase = UseCase(
         status=status,
     )
@@ -29,14 +29,28 @@ def create_usecase(
     return usecase
 
 
+def update_usecase(
+    db: Session,
+    usecase: UseCase,
+    status: bool,
+) -> UseCase:
+
+    usecase.status = status
+
+    db.add(usecase)
+    db.flush()
+
+    return usecase
+
+
 def create_usecase_translation(
     db: Session,
-    *,
     usecase_id: int,
     language_code: str,
     name: str,
-    description: str | None,
-):
+    description: str | None = None,
+) -> UseCaseTranslation:
+
     translation = UseCaseTranslation(
         usecase_id=usecase_id,
         language_code=language_code,
@@ -45,9 +59,9 @@ def create_usecase_translation(
     )
 
     db.add(translation)
+    db.flush()
 
     return translation
-
 def get_translation(
     db: Session,
     *,
