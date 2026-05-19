@@ -23,28 +23,6 @@ from src.schemas.camera import (
 from src.utils.translation import resolve_translation
 
 
-def _camera_translation_map(camera: Camera) -> dict[str, CameraTranslation]:
-    return {translation.language_code.lower(): translation for translation in camera.translations}
-
-
-def _get_camera_name(camera: Camera, language_code: str, fallback: str | None = None) -> str | None:
-    translations = _camera_translation_map(camera)
-    normalized = language_code.lower()
-    if normalized in translations:
-        return translations[normalized].name
-    base = normalized.split("-", 1)[0]
-    if base in translations:
-        return translations[base].name
-    if fallback:
-        fallback_normalized = fallback.lower()
-        if fallback_normalized in translations:
-            return translations[fallback_normalized].name
-        fallback_base = fallback_normalized.split("-", 1)[0]
-        if fallback_base in translations:
-            return translations[fallback_base].name
-    return next(iter(translations.values())).name if translations else None
-
-
 def _sync_camera_translations(
     camera: Camera,
     *,
@@ -148,12 +126,12 @@ def build_camera_response(camera: Camera, language: str) -> CameraResponse:
         language,
     )
     camera_name_translation = resolve_translation(camera.translations, language)
-    fallback_camera_name = _get_camera_name(camera, "en")
+    fallback_camera_name = resolve_translation(camera.translations, "en").name if resolve_translation(camera.translations, "en") else None
     return CameraResponse(
         id=camera.id,
-        name_en=_get_camera_name(camera, "en") or "",
-        name_es=_get_camera_name(camera, "es"),
-        name_fr=_get_camera_name(camera, "fr"),
+        name_en=resolve_translation(camera.translations, "en").name if resolve_translation(camera.translations, "en") else None,
+        name_es=resolve_translation(camera.translations, "es").name if resolve_translation(camera.translations, "es") else None,
+        name_fr=resolve_translation(camera.translations, "fr").name if resolve_translation(camera.translations, "fr") else None,
         name=camera_name_translation.name if camera_name_translation else (fallback_camera_name or str(camera.id)),
         location_id=camera.location_id,
         location_name=location_translation.value if location_translation else camera.location.name_en,
@@ -202,9 +180,9 @@ def update_camera_details(
         )
 
     # Check if any of the localized names are being changed
-    current_name_en = _get_camera_name(camera, "en")
-    current_name_es = _get_camera_name(camera, "es")
-    current_name_fr = _get_camera_name(camera, "fr")
+    current_name_en = resolve_translation(camera.translations, "en").name if resolve_translation(camera.translations, "en") else None
+    current_name_es = resolve_translation(camera.translations, "es").name if resolve_translation(camera.translations, "es") else None
+    current_name_fr = resolve_translation(camera.translations, "fr").name if resolve_translation(camera.translations, "fr") else None
 
     if payload.name_en or payload.name_es or payload.name_fr:
         existing_camera = get_camera_by_name(
