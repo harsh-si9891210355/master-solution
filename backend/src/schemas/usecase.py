@@ -40,11 +40,11 @@ class UseCaseResponse(BaseModel):
     name_en: str | None
     name_es: str | None
     name_fr: str | None
-
+    name: str | None
     description_en: str | None
     description_es: str | None
     description_fr: str | None
-
+    description: str | None
     status: bool
 
 
