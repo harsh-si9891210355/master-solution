@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS roles (
 
 CREATE TABLE IF NOT EXISTS usecases (
     id SERIAL PRIMARY KEY,
-    code VARCHAR(100) UNIQUE NOT NULL,
     status BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -161,7 +160,6 @@ CREATE TABLE IF NOT EXISTS incident_comments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_roles_code ON roles(code);
-CREATE INDEX IF NOT EXISTS idx_usecases_code ON usecases(code);
 CREATE INDEX IF NOT EXISTS idx_usecase_translations_usecase_id ON usecase_translations(usecase_id);
 CREATE INDEX IF NOT EXISTS idx_usecase_translations_language_code ON usecase_translations(language_code);
 CREATE INDEX IF NOT EXISTS idx_locations_name_en ON locations(name_en);

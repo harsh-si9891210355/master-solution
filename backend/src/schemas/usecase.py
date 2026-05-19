@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class UseCaseCreate(BaseModel):
     name_en: str = Field(min_length=2, max_length=255)
 
@@ -39,16 +40,17 @@ class UseCaseResponse(BaseModel):
     name_en: str | None
     name_es: str | None
     name_fr: str | None
-
+    name: str | None
     description_en: str | None
     description_es: str | None
     description_fr: str | None
-
+    description: str | None
     status: bool
 
 
 class UseCasesResponse(BaseModel):
     usecases: list[UseCaseResponse]
+
 
 class UseCaseDeleteResponse(BaseModel):
     message: str

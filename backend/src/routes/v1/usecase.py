@@ -50,12 +50,12 @@ def create_or_update_usecase(
 
 @router.get(
     "",
-    response_model=UseCasesResponse | UseCaseResponse,
+    response_model=UseCasesResponse,
     dependencies=[Depends(require_permission("usecase:read"))],
 )
 @router.get(
     "/{usecase_id}",
-    response_model=UseCasesResponse | UseCaseResponse,
+    response_model=UseCaseResponse,
     dependencies=[Depends(require_permission("usecase:read"))],
 )
 def get_usecases(
@@ -69,12 +69,11 @@ def get_usecases(
             usecase_id,
             request.state.lang,
         )
-    return UseCasesResponse(
-        usecases=get_all_usecase_details(
-            db,
-            request.state.lang,
-        )
-    )
+    else:
+        return get_all_usecase_details(
+                db,
+                request.state.lang,
+            )
 
 
 @router.delete(

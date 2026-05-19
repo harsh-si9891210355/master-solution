@@ -40,7 +40,7 @@ def _build_event_response(event: Event, language: str) -> EventResponse:
         usecase_name=(
             usecase_translation.name
             if usecase_translation
-            else (fallback_usecase_translation.name if fallback_usecase_translation else event.usecase.code)
+            else (fallback_usecase_translation.name if fallback_usecase_translation else str(event.usecase.id))
         ),
         event_description=(
             usecase_translation.description
