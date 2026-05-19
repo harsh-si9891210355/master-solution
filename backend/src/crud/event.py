@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session, selectinload
 
 from src.models.event import Event
+from src.models.usecase import UseCase
 
 
 def get_event_by_id(db: Session, event_id: int) -> Event | None:
@@ -9,7 +10,7 @@ def get_event_by_id(db: Session, event_id: int) -> Event | None:
         .options(
             selectinload(Event.camera),
             selectinload(Event.location),
-            selectinload(Event.usecase),
+            selectinload(Event.usecase).selectinload(UseCase.translations),
         )
         .filter(Event.id == event_id)
         .first()
@@ -22,7 +23,7 @@ def get_all_events(db: Session) -> list[Event]:
         .options(
             selectinload(Event.camera),
             selectinload(Event.location),
-            selectinload(Event.usecase),
+            selectinload(Event.usecase).selectinload(UseCase.translations),
         )
         .order_by(Event.id.desc())
         .all()
