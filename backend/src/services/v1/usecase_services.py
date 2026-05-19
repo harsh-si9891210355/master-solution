@@ -8,19 +8,20 @@ from src.crud.usecase import (
     get_usecase_by_code,
     create_usecase,
     create_usecase_translation,
-    delete_usecase
+    delete_usecase,
+    update_usecase
 )
 from src.models.usecase import UseCase
 from src.schemas.usecase import UseCaseResponse, UseCaseCreate
-from src.utils.translation import resolve_translation
 
 
 def create_or_update_usecase_details(
     db: Session,
     payload: UseCaseCreate,
-    language: str,
+    language: str = "en",
     usecase_id: int | None = None,
-):
+) -> UseCaseResponse:
+
     # UPDATE
     if usecase_id is not None:
 
@@ -35,94 +36,170 @@ def create_or_update_usecase_details(
                 detail="Usecase not found",
             )
 
-        existing_code = get_usecase_by_code(
+        updated_usecase = update_usecase(
             db,
-            payload.code,
+            usecase=usecase,
+            status=payload.status,
         )
 
-        if existing_code and existing_code.id != usecase_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Usecase code already exists",
-            )
+        translations = [
+            {
+                "language_code": "en",
+                "name": payload.name_en,
+                "description": payload.description_en,
+            },
+            {
+                "language_code": "es",
+                "name": payload.name_es,
+                "description": payload.description_es,
+            },
+            {
+                "language_code": "fr",
+                "name": payload.name_fr,
+                "description": payload.description_fr,
+            },
+        ]
 
-        usecase.code = payload.code
-        usecase.status = payload.status
+        for item in translations:
 
-        translation = get_translation(
-            db,
-            usecase_id=usecase.id,
-            language_code=payload.language_code,
-        )
+            if not item["name"]:
+                continue
 
-        if translation:
-            translation.name = payload.name
-            translation.description = payload.description
-
-        else:
-            create_usecase_translation(
+            translation = get_translation(
                 db,
-                usecase_id=usecase.id,
-                language_code=payload.language_code,
-                name=payload.name,
-                description=payload.description,
+                usecase_id=updated_usecase.id,
+                language_code=item["language_code"],
             )
+
+            if translation:
+                translation.name = item["name"]
+                translation.description = item["description"]
+
+            else:
+                create_usecase_translation(
+                    db,
+                    usecase_id=updated_usecase.id,
+                    language_code=item["language_code"],
+                    name=item["name"],
+                    description=item["description"],
+                )
 
         db.commit()
-        db.refresh(usecase)
+        db.refresh(updated_usecase)
 
-        return _build_usecase_response(
-            usecase,
+        return build_usecase_response(
+            updated_usecase,
             language,
         )
+
     # CREATE
-    existing_usecase = get_usecase_by_code(
-        db,
-        payload.code,
-    )
-
-    if existing_usecase:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Usecase code already exists",
-        )
-
     usecase = create_usecase(
         db,
-        code=payload.code,
         status=payload.status,
     )
 
-    create_usecase_translation(
-        db,
-        usecase_id=usecase.id,
-        language_code=payload.language_code,
-        name=payload.name,
-        description=payload.description,
-    )
+    translations = [
+        {
+            "language_code": "en",
+            "name": payload.name_en,
+            "description": payload.description_en,
+        },
+        {
+            "language_code": "es",
+            "name": payload.name_es,
+            "description": payload.description_es,
+        },
+        {
+            "language_code": "fr",
+            "name": payload.name_fr,
+            "description": payload.description_fr,
+        },
+    ]
+
+    for item in translations:
+
+        if not item["name"]:
+            continue
+
+        create_usecase_translation(
+            db,
+            usecase_id=usecase.id,
+            language_code=item["language_code"],
+            name=item["name"],
+            description=item["description"],
+        )
 
     db.commit()
     db.refresh(usecase)
 
-    return _build_usecase_response(
+    return build_usecase_response(
         usecase,
         language,
     )
 
-def _build_usecase_response(usecase: UseCase, language: str) -> UseCaseResponse:
-    translation = resolve_translation(usecase.translations, language)
-    fallback_translation = resolve_translation(usecase.translations, "en")
+
+def build_usecase_response(
+    usecase: UseCase,
+    language: str = "en",
+) -> UseCaseResponse:
 
     return UseCaseResponse(
         id=usecase.id,
-        code=usecase.code,
-        name=translation.name if translation else (fallback_translation.name if fallback_translation else usecase.code),
-        description=(
-            translation.description
-            if translation
-            else (fallback_translation.description if fallback_translation else None)
+
+        name_en=next(
+            (
+                t.name
+                for t in usecase.translations
+                if t.language_code == "en"
+            ),
+            None,
         ),
-        language_code=translation.language_code if translation else "en",
+
+        name_es=next(
+            (
+                t.name
+                for t in usecase.translations
+                if t.language_code == "es"
+            ),
+            None,
+        ),
+
+        name_fr=next(
+            (
+                t.name
+                for t in usecase.translations
+                if t.language_code == "fr"
+            ),
+            None,
+        ),
+
+        description_en=next(
+            (
+                t.description
+                for t in usecase.translations
+                if t.language_code == "en"
+            ),
+            None,
+        ),
+
+        description_es=next(
+            (
+                t.description
+                for t in usecase.translations
+                if t.language_code == "es"
+            ),
+            None,
+        ),
+
+        description_fr=next(
+            (
+                t.description
+                for t in usecase.translations
+                if t.language_code == "fr"
+            ),
+            None,
+        ),
+
         status=usecase.status,
     )
 
@@ -151,6 +228,13 @@ def delete_usecase_details(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usecase not found",
+        )
+    
+    # CHECK IF ASSIGNED TO ANY CAMERA
+    if usecase.camera_usecases:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usecase is assigned to one or more cameras and cannot be deleted",
         )
 
     delete_usecase(db, usecase)
