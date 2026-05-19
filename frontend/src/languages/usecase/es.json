@@ -23,32 +23,31 @@
             "message": "¿Estás seguro de que deseas eliminar el caso de uso \"{{name}}\"?"
         },
         "form": {
-            "add_title":       "Agregar Caso de Uso",
-            "edit_title":      "Editar Caso de Uso",
-            "add_subtitle":    "Complete los detalles para crear un nuevo caso de uso.",
-            "edit_subtitle":   "Actualiza los detalles del caso de uso a continuación.",
-            "back":            "Volver",
-            "cancel":          "Cancelar",
-            "add_submit":      "Agregar Caso de Uso",
-            "edit_submit":     "Actualizar Caso de Uso",
-            "section_details": "Detalles del Caso de Uso",
+            "add_title":          "Agregar Caso de Uso",
+            "edit_title":         "Editar Caso de Uso",
+            "add_subtitle":       "Complete los detalles para crear un nuevo caso de uso.",
+            "edit_subtitle":      "Actualiza los detalles del caso de uso a continuación.",
+            "back":               "Volver",
+            "cancel":             "Cancelar",
+            "add_submit":         "Agregar Caso de Uso",
+            "edit_submit":        "Actualizar Caso de Uso",
+            "section_name":        "Nombre del Caso de Uso",
+            "section_description": "Descripción",
             "fields": {
-                "name":        "Nombre",
-                "description": "Descripción",
-                "status":      "Estado"
+                "name_en":        "Nombre (Inglés)",
+                "name_es":        "Nombre (Español)",
+                "description_en": "Descripción (Inglés)",
+                "description_es": "Descripción (Español)"
             },
             "placeholders": {
-                "name":        "Ingrese el nombre del caso de uso",
-                "description": "Ingrese una breve descripción",
-                "status":      "Seleccionar estado"
+                "name_en":        "Ingrese el nombre en inglés",
+                "name_es":        "Se completa automáticamente desde el inglés...",
+                "description_en": "Ingrese la descripción en inglés",
+                "description_es": "Se completa automáticamente desde el inglés..."
             },
             "validation": {
-                "name_required":        "El nombre es obligatorio",
-                "description_required": "La descripción es obligatoria"
-            },
-            "options": {
-                "active":   "Activo",
-                "inactive": "Inactivo"
+                "name_en_required":        "El nombre en inglés es obligatorio",
+                "description_en_required": "La descripción en inglés es obligatoria"
             }
         }
     }

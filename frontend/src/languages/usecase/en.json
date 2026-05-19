@@ -23,32 +23,31 @@
             "message": "Are you sure you want to delete usecase \"{{name}}\"?"
         },
         "form": {
-            "add_title":      "Add Usecase",
-            "edit_title":     "Edit Usecase",
-            "add_subtitle":   "Fill in the details to create a new usecase.",
-            "edit_subtitle":  "Update the usecase details below.",
-            "back":           "Back",
-            "cancel":         "Cancel",
-            "add_submit":     "Add Usecase",
-            "edit_submit":    "Update Usecase",
-            "section_details": "Usecase Details",
+            "add_title":          "Add Usecase",
+            "edit_title":         "Edit Usecase",
+            "add_subtitle":       "Fill in the details to create a new usecase.",
+            "edit_subtitle":      "Update the usecase details below.",
+            "back":               "Back",
+            "cancel":             "Cancel",
+            "add_submit":         "Add Usecase",
+            "edit_submit":        "Update Usecase",
+            "section_name":        "Usecase Name",
+            "section_description": "Description",
             "fields": {
-                "name":        "Name",
-                "description": "Description",
-                "status":      "Status"
+                "name_en":        "Name (English)",
+                "name_es":        "Name (Spanish)",
+                "description_en": "Description (English)",
+                "description_es": "Description (Spanish)"
             },
             "placeholders": {
-                "name":        "Enter usecase name",
-                "description": "Enter a brief description",
-                "status":      "Select status"
+                "name_en":        "Enter usecase name in English",
+                "name_es":        "Auto-filled from English...",
+                "description_en": "Enter description in English",
+                "description_es": "Auto-filled from English..."
             },
             "validation": {
-                "name_required":        "Name is required",
-                "description_required": "Description is required"
-            },
-            "options": {
-                "active":   "Active",
-                "inactive": "Inactive"
+                "name_en_required":        "Name (English) is required",
+                "description_en_required": "Description (English) is required"
             }
         }
     }
