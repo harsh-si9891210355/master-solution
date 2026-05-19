@@ -8,6 +8,7 @@ from src.schemas.camera import (
     CameraResponse,
     CamerasResponse,
     CameraUpdate,
+    CameraStatusUpdate
 )
 from src.services.v1.camera_services import (
     create_camera_details,
@@ -15,6 +16,7 @@ from src.services.v1.camera_services import (
     get_all_camera_details,
     get_camera_details,
     update_camera_details,
+    update_camera_status
 )
 from src.utils.auth.auth import require_permission
 
@@ -65,3 +67,22 @@ def delete_camera(
 ) -> CameraDeleteResponse:
     delete_camera_details(db, camera_id)
     return CameraDeleteResponse(message="Camera deleted successfully")
+
+
+@router.patch(
+    "/{camera_id}/status",
+    response_model=CameraResponse,
+    dependencies=[Depends(require_permission("camera:update"))],
+)
+def change_camera_status(
+    camera_id: int,
+    payload: CameraStatusUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> CameraResponse:
+    return update_camera_status(
+        db=db,
+        camera_id=camera_id,
+        status=payload.status,
+        language=request.state.lang,
+    )

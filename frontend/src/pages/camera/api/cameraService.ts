@@ -7,4 +7,5 @@ export const cameraService = {
     createCamera:    (data: CameraFormValues)          => api.post<Camera>('/camera', data),
     updateCamera:    (id: number, data: CameraFormValues) => api.put<Camera>(`/camera/${id}`, data),
     deleteCamera:    (id: number)                      => api.delete<{ message: string }>(`/camera/${id}`),
+    updateStatus:    (id: number, status: boolean)     => api.patch<{ message: string }>(`/camera/${id}/status`, { status }),
 };

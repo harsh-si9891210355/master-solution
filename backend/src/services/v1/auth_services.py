@@ -94,7 +94,7 @@ def login_user(db: Session, payload: UserLogin, request: Request, language: str)
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
+            detail="Your account is currently inactive. Please contact the Super Admin for account activation or further assistance.",
         )
  
 

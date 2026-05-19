@@ -10,8 +10,8 @@ import enLayout         from "./Layout/en.json";
 import esLayout         from "./Layout/es.json";
 import enCamera         from "./camera/en.json";
 import esCamera         from "./camera/es.json";
-import enUsecase        from "./usecase/en.json";   // ← new
-import esUsecase        from "./usecase/es.json";   // ← new
+import enUsecase        from "./usecase/en.json";   
+import esUsecase        from "./usecase/es.json";  
 
 export const SUPPORTED_LANGUAGES = [
     { code: "en", label: "English", flag: "🇺🇸" },
@@ -20,7 +20,7 @@ export const SUPPORTED_LANGUAGES = [
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 
-export type AppNamespace = "auth" | "user_management" | "layout" | "camera" | "usecase"; // ← new
+export type AppNamespace = "auth" | "user_management" | "layout" | "camera" | "usecase"; 
 
 const resources = {
     en: {
@@ -28,14 +28,14 @@ const resources = {
         user_management: enUserManagement.user_management,
         layout:          enLayout.layout,
         camera:          enCamera.camera,
-        usecase:         enUsecase.usecase,   // ← new
+        usecase:         enUsecase.usecase,  
     },
     es: {
         auth:            esAuth.auth,
         user_management: esUserManagement.user_management,
         layout:          esLayout.layout,
         camera:          esCamera.camera,
-        usecase:         esUsecase.usecase,   // ← new
+        usecase:         esUsecase.usecase,  
     },
 };
 

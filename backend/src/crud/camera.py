@@ -40,7 +40,7 @@ def get_all_cameras(db: Session) -> list[Camera]:
             selectinload(Camera.location),
             selectinload(Camera.camera_usecases),
         )
-        .order_by(Camera.id.asc())
+        .order_by(Camera.id.desc())
         .all()
     )
 

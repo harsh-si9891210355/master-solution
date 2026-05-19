@@ -8,14 +8,16 @@ CREATE TABLE IF NOT EXISTS roles (
 
 CREATE TABLE IF NOT EXISTS usecases (
     id SERIAL PRIMARY KEY,
-    code VARCHAR(100) UNIQUE NOT NULL,
-    name_en VARCHAR(255) NOT NULL,
-    name_es VARCHAR(255) NOT NULL,
-    name_fr VARCHAR(255) NOT NULL,
-    description_en TEXT,
-    description_es TEXT,
-    description_fr TEXT,
     status BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS usecase_translations (
+    id SERIAL PRIMARY KEY,
+    usecase_id INTEGER NOT NULL REFERENCES usecases(id) ON DELETE CASCADE,
+    language_code VARCHAR(10) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    CONSTRAINT uq_usecase_translation_language UNIQUE (usecase_id, language_code)
 );
 
 CREATE TABLE IF NOT EXISTS locations (
@@ -55,8 +57,8 @@ CREATE TABLE IF NOT EXISTS users_token (
 CREATE TABLE IF NOT EXISTS cameras (
     id SERIAL PRIMARY KEY,
     name_en VARCHAR(255) NOT NULL,
-    name_es VARCHAR(255) NOT NULL,
-    name_fr VARCHAR(255) NOT NULL,
+    name_es VARCHAR(255),
+    name_fr VARCHAR(255),
     locationid INTEGER NOT NULL REFERENCES locations(id),
     codec VARCHAR(255) NOT NULL,
     resolution VARCHAR(255) NOT NULL,
@@ -158,7 +160,8 @@ CREATE TABLE IF NOT EXISTS incident_comments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_roles_code ON roles(code);
-CREATE INDEX IF NOT EXISTS idx_usecases_code ON usecases(code);
+CREATE INDEX IF NOT EXISTS idx_usecase_translations_usecase_id ON usecase_translations(usecase_id);
+CREATE INDEX IF NOT EXISTS idx_usecase_translations_language_code ON usecase_translations(language_code);
 CREATE INDEX IF NOT EXISTS idx_locations_name_en ON locations(name_en);
 CREATE INDEX IF NOT EXISTS idx_cameras_name_en ON cameras(name_en);
 CREATE INDEX IF NOT EXISTS idx_cameras_locationid ON cameras(locationid);

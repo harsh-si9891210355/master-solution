@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, Request, Query, status
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
 from src.schemas.auth import UserCreate, UserResponse
 from src.schemas.user import UserDeleteResponse, UserUpdate, UsersResponse, UserStatusUpdate
-from src.crud.user import get_user_by_email
+from src.crud.user import get_user_by_email, get_user_by_id
 from src.services.v1.user_services import (
     create_user_details,
     delete_user_details,
@@ -19,26 +19,55 @@ from src.utils.auth.auth import require_permission
 router = APIRouter()
 
 
-@router.post( "",
+@router.post(
+    "",
     response_model=UserResponse,
-    dependencies=[
-    Depends(require_permission("user:create")),
-    Depends(require_permission("user:update")),
-]
+    dependencies=[Depends(require_permission("user:create"))],
+)
+@router.post(
+    "/{user_id}",
+    response_model=UserResponse,
+    dependencies=[Depends(require_permission("user:update"))],
 )
 def create_or_update_user(
-    payload: UserCreate,
     request: Request,
+    payload: UserCreate,
     db: Session = Depends(get_db),
+    user_id: int | None = None,
 ) -> UserResponse:
+
+    # UPDATE
+    if user_id is not None:
+
+        user = get_user_by_id(db, user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        # email does not belong to this user_id
+        if user.email != payload.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Provided email does not match the selected user",
+            )
+
+        return update_user_details(
+            db=db,
+            user_id=user_id,
+            payload=payload,
+            language=request.state.lang,
+        )
+
+    # CREATE
     existing_user = get_user_by_email(db, payload.email)
 
     if existing_user:
-        return update_user_details(
-            db=db,
-            user_id=existing_user.id,
-            payload=payload,
-            language=request.state.lang,
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already exists",
         )
 
     return create_user_details(
