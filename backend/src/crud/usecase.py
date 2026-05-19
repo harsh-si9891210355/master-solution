@@ -17,11 +17,9 @@ def get_all_usecases(db: Session) -> list[UseCase]:
 def create_usecase(
     db: Session,
     *,
-    code: str,
     status: bool,
 ):
     usecase = UseCase(
-        code=code,
         status=status,
     )
 

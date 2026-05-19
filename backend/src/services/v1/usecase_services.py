@@ -5,7 +5,6 @@ from src.crud.usecase import (
     get_all_usecases,
     get_usecase_by_id,
     get_translation,
-    get_usecase_by_code,
     create_usecase,
     create_usecase_translation,
     delete_usecase
@@ -23,30 +22,13 @@ def create_or_update_usecase_details(
 ):
     # UPDATE
     if usecase_id is not None:
-
-        usecase = get_usecase_by_id(
-            db,
-            usecase_id,
-        )
+        usecase = get_usecase_by_id(db, usecase_id)
 
         if not usecase:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Usecase not found",
             )
-
-        existing_code = get_usecase_by_code(
-            db,
-            payload.code,
-        )
-
-        if existing_code and existing_code.id != usecase_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Usecase code already exists",
-            )
-
-        usecase.code = payload.code
         usecase.status = payload.status
 
         translation = get_translation(
@@ -75,21 +57,10 @@ def create_or_update_usecase_details(
             usecase,
             language,
         )
+
     # CREATE
-    existing_usecase = get_usecase_by_code(
-        db,
-        payload.code,
-    )
-
-    if existing_usecase:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Usecase code already exists",
-        )
-
     usecase = create_usecase(
         db,
-        code=payload.code,
         status=payload.status,
     )
 
@@ -121,7 +92,6 @@ def _build_usecase_response(usecase: UseCase, language: str) -> UseCaseResponse:
             if translation
             else (fallback_translation.description if fallback_translation else None)
         ),
-        language_code=translation.language_code if translation else "en",
         status=usecase.status,
     )
 
