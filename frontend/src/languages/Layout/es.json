@@ -5,7 +5,8 @@
       "dashboard": "Panel",
       "events":    "Eventos",
       "cameras":   "Cámaras",
-      "users":     "Usuarios"
+      "users":     "Usuarios",
+      "usecases":   "Casos de uso"
     },
     "logout": "Cerrar Sesión"
   }

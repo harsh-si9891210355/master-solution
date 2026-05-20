@@ -12,7 +12,7 @@ declare module "i18next" {
             user_management: (typeof enUserManagement)["user_management"];
             layout:          (typeof enLayout)["layout"];
             camera:          (typeof enCamera)["camera"];
-            usecase:         (typeof enUsecase)["usecase"];
+            usecase:         (typeof enUsecase)["usecase"];   // ← new
         };
     }
 }

@@ -3,20 +3,21 @@ import { useAuthStore } from "@/store/authStore";
 import { useNsTranslation } from "@/hooks/Usetranslation";
 import { SUPPORTED_LANGUAGES } from "@/languages/index";
 import { FormButton } from "../ui/FormButton";
-
+ 
 export const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((s) => s.logout);
   const { t, currentLang, changeLanguage } = useNsTranslation("layout");
-
+ 
   const NAV_ITEMS = [
-    { label: t("nav.dashboard"), icon: "pi pi-home", path: "/dashboard" },
-    { label: t("nav.events"), icon: "pi pi-calendar", path: "/events" },
-    { label: t("nav.cameras"), icon: "pi pi-video", path: "/cameras" },
-    { label: t("nav.users"), icon: "pi pi-users", path: "/users" },
+    { label: t("nav.dashboard"), icon: "pi pi-home",     path: "/dashboard" },
+    { label: t("nav.events"),    icon: "pi pi-calendar", path: "/events"    },
+    { label: t("nav.cameras"),   icon: "pi pi-video",    path: "/cameras"   },
+    { label: t("nav.usecases"),  icon: "pi pi-tag",      path: "/usecases"  },
+    { label: t("nav.users"),     icon: "pi pi-users",    path: "/users"     },
   ];
-
+ 
   return (
     <div className="app-layout">
       {/* ── Sidebar ──────────────────────────────────────────────────── */}
@@ -28,11 +29,11 @@ export const AppLayout = () => {
           </div>
           <span className="sidebar__logo-name">{t("app_name")}</span>
         </div>
-
+ 
         {/* Nav items */}
         <nav className="sidebar__nav">
           {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname.startsWith(item.path);
             return (
               <FormButton
                 key={item.path}
@@ -45,7 +46,7 @@ export const AppLayout = () => {
             );
           })}
         </nav>
-
+ 
         {/* Logout */}
         <div className="sidebar__footer">
           <FormButton
@@ -60,7 +61,7 @@ export const AppLayout = () => {
           />
         </div>
       </aside>
-
+ 
       {/* ── Main area ─────────────────────────────────────────────────── */}
       <div className="main-area">
         {/* Header */}
@@ -78,7 +79,7 @@ export const AppLayout = () => {
             ))}
           </div>
         </header>
-
+ 
         {/* Page content */}
         <main className="app-main">
           <Outlet />
