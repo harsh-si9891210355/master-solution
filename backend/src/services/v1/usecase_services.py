@@ -9,7 +9,7 @@ from src.crud.usecase import (
     update_usecase,
 )
 from src.models.usecase import UseCase, UseCaseTranslation
-from src.schemas.usecase import UseCaseResponse, UseCasesResponse, UseCaseCreate
+from src.schemas.usecase import UseCaseResponse, UseCasesResponse, UseCaseCreate, LinkedCamerasResponse, LinkedCameraResponse
 from src.utils.translation import resolve_translation
 
 
@@ -187,6 +187,13 @@ def change_usecase_status_details(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usecase not found",
         )
+    
+    # CHECK IF LINKED WITH ANY CAMERA
+    if usecase.camera_usecases:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usecase is linked with one or more cameras. Status cannot be changed.",
+        )
 
     usecase.status = status_value
 
@@ -196,4 +203,45 @@ def change_usecase_status_details(
     return _build_usecase_response(
         usecase,
         language,
+    )
+
+def get_linked_cameras_details(
+    db: Session,
+    usecase_id: int,
+    language: str,
+) -> LinkedCamerasResponse:
+ 
+    usecase = get_usecase_by_id(db, usecase_id)
+ 
+    if not usecase:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usecase not found",
+        )
+ 
+    cameras = [
+        LinkedCameraResponse(
+            id=item.camera.id,
+            name=next(
+                (
+                    translation.name
+                    for translation in item.camera.translations
+                    if translation.language_code == language
+                ),
+                next(
+                    (
+                        translation.name
+                        for translation in item.camera.translations
+                        if translation.language_code == "en"
+                    ),
+                    None,
+                ),
+            ),
+            status=item.camera.status,
+        )
+        for item in usecase.camera_usecases
+]
+ 
+    return LinkedCamerasResponse(
+        cameras=cameras,
     )

@@ -7,14 +7,16 @@ from src.schemas.usecase import (
     UseCasesResponse,
     UseCaseCreate,
     UseCaseDeleteResponse,
-    UseCaseStatusUpdate
+    UseCaseStatusUpdate,
+    LinkedCamerasResponse
 )
 from src.services.v1.usecase_services import (
     get_all_usecase_details,
     get_usecase_details,
     create_or_update_usecase_details,
     delete_usecase_details,
-    change_usecase_status_details
+    change_usecase_status_details,
+    get_linked_cameras_details
 )
 from src.utils.auth.auth import require_permission
 
@@ -107,5 +109,18 @@ def change_usecase_status(
         db,
         usecase_id,
         payload.status,
+        request.state.lang,
+    )
+
+
+@router.get("/{usecase_id}/linked-cameras")
+def get_linked_cameras(
+    usecase_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return get_linked_cameras_details(
+        db,
+        usecase_id,
         request.state.lang,
     )
