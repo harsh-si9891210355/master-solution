@@ -58,3 +58,13 @@ class UseCaseDeleteResponse(BaseModel):
 
 class UseCaseStatusUpdate(BaseModel):
     status: bool
+
+
+class LinkedCameraResponse(BaseModel):
+    id: int
+    name: str | None = None
+    status: bool
+ 
+ 
+class LinkedCamerasResponse(BaseModel):
+    cameras: list[LinkedCameraResponse]
