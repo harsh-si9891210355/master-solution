@@ -47,7 +47,7 @@ export const LoginForm = () => {
         error?.response?.data?.detail ||
         error?.response?.data?.message ||
         t("login.toast.error_title")
-      toast.error(t("toast.login_error_title") || "Sign in failed", msg);
+      toast.error(t("login.toast.error_title") || "Sign in failed", msg);
     },
   });
 
