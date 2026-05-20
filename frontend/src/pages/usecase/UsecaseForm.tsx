@@ -1,71 +1,227 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';           // ← same as UserForm
+import { useForm, useWatch } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UsecaseFormValues } from './types/index';
+import { usecaseService } from './api/usecaseService';
 import { FormInput } from '../../components/ui/FormInput';
 import { FormButton } from '../../components/ui/FormButton';
 import { useNsTranslation } from '../../hooks/Usetranslation';
-
-// ── Demo data — same seed used to pre-fill edit form ─────────────────────────
-const DEMO_USECASES = [
-    { id: 1, name: 'Face Detection',      description: 'Detect and identify faces in the camera feed in real time.',       status: true  },
-    { id: 2, name: 'Intrusion Detection', description: 'Trigger alerts when unauthorized entry into a restricted zone.',   status: true  },
-    { id: 3, name: 'Crowd Counting',      description: 'Count the number of people present in a defined area.',            status: false },
-    { id: 4, name: 'Vehicle Tracking',    description: 'Track and log vehicle movement across multiple camera frames.',    status: true  },
-    { id: 5, name: 'Loitering Detection', description: 'Alert when a person stays in a zone longer than a set duration.', status: false },
-];
+import { useToast } from '../../components/ui/ToastProvider';
+import { translationService } from './utils/translationService';
 
 export const UsecaseForm = () => {
-    const { id }   = useParams();
-    const isEdit   = !!id;
-    const navigate = useNavigate();
-    const { t }    = useNsTranslation('usecase');
-    const { i18n } = useTranslation();              // ← same as UserForm
+    const { id }        = useParams();
+    const isEdit        = !!id;
+    const navigate      = useNavigate();
+    const queryClient   = useQueryClient();
+    const { t }         = useNsTranslation('usecase');
+    const { i18n }      = useTranslation();
+    const toast         = useToast();
 
     const {
         control,
         handleSubmit,
         reset,
-        trigger,                                    // ← same as UserForm
-        formState: { errors, isSubmitted },         // ← same as UserForm
+        setValue,
+        trigger,
+        formState: { errors, isSubmitted },
     } = useForm<UsecaseFormValues>({
-        defaultValues: { name: '', description: '', status: true },
+        defaultValues: {
+            name_en:        '',
+            name_es:        '',
+            // name_fr:        '',
+            description_en: '',
+            description_es: '',
+            // description_fr: '',
+            status:         true,
+        },
     });
 
-    // ── Re-run validation when language changes so messages update ────────────
-    // Same fix as UserForm — trigger() re-evaluates all active validation rules
-    // which causes react-hook-form to re-read the now-updated t() strings.
+    // ── Re-trigger validation on language change ───────────────────────────────
     useEffect(() => {
         if (isSubmitted || Object.keys(errors).length > 0) {
             trigger();
         }
-    }, [i18n.language, trigger, isSubmitted]);      // ← exact same deps as UserForm
+    }, [i18n.language, trigger, isSubmitted]);
 
-    // ── Pre-fill form on edit using demo data ─────────────────────────────────
+    // ── Translation loop-prevention refs ──────────────────────────────────────
+    const shouldSkipTranslateRef      = useRef(false);
+    const nameTranslationRequestIdRef = useRef(0);
+    const nameTranslationSourceRef    = useRef<'name_en' | 'name_es' | null>(null);
+    const descTranslationRequestIdRef = useRef(0);
+    const descTranslationSourceRef    = useRef<'description_en' | 'description_es' | null>(null);
+
+    // ── Watch fields ──────────────────────────────────────────────────────────
+    const watchedNameEn        = useWatch({ control, name: 'name_en' });
+    const watchedNameEs        = useWatch({ control, name: 'name_es' });
+    const watchedDescriptionEn = useWatch({ control, name: 'description_en' });
+    const watchedDescriptionEs = useWatch({ control, name: 'description_es' });
+
+    // ── Fetch existing usecase for edit ───────────────────────────────────────
+    const { data: usecaseData, isLoading: isFetching } = useQuery({
+        queryKey: ['usecase', id],
+        queryFn:  () => usecaseService.getUsecaseById(Number(id)).then(r => r.data),
+        enabled:  isEdit,
+        staleTime: Infinity,
+    });
+
     useEffect(() => {
-        if (isEdit) {
-            const found = DEMO_USECASES.find(u => u.id === Number(id));
-            if (found) {
-                reset({
-                    name:        found.name,
-                    description: found.description,
-                    status:      found.status,
-                });
-            }
+        if (usecaseData) {
+            shouldSkipTranslateRef.current = true;
+            reset({
+                name_en:        usecaseData.name_en,
+                name_es:        usecaseData.name_es,
+                // name_fr:        usecaseData.name_fr,
+                description_en: usecaseData.description_en,
+                description_es: usecaseData.description_es,
+                // description_fr: usecaseData.description_fr,
+                status:         usecaseData.status,
+            });
         }
-    }, [id, isEdit, reset]);
+    }, [usecaseData, reset]);
 
-    // ── Submit — navigates back; wire API call here later ─────────────────────
-    const onSubmit = (_data: UsecaseFormValues) => {
-        // TODO: replace with usecaseService.createUsecase(data) / updateUsecase(id, data)
-        navigate('/usecases');
-    };
+    // ═════════════════════════════════════════════════════════════════════════
+    //  NAME EN → ES
+    // ═════════════════════════════════════════════════════════════════════════
+    useEffect(() => {
+        if (shouldSkipTranslateRef.current || nameTranslationSourceRef.current === 'name_es') {
+            shouldSkipTranslateRef.current   = false;
+            nameTranslationSourceRef.current = null;
+            return;
+        }
+        const trimmed = watchedNameEn?.trim() ?? '';
+        if (!trimmed) {
+            nameTranslationSourceRef.current = 'name_en';
+            setValue('name_es', '', { shouldDirty: true });
+            return;
+        }
+        const requestId = ++nameTranslationRequestIdRef.current;
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const res = await translationService.translateText({ text: trimmed, source_language: 'en', target_languages: ['es'] });
+                if (nameTranslationRequestIdRef.current !== requestId) return;
+                nameTranslationSourceRef.current = 'name_en';
+                setValue('name_es', res.data.translations.es ?? '', { shouldDirty: true, shouldValidate: true });
+            } catch (err) { console.error('Name EN→ES failed:', err); }
+        }, 400);
+        return () => window.clearTimeout(timeoutId);
+    }, [setValue, watchedNameEn]);
 
-    const STATUS_OPTIONS = [
-        { label: t('form.options.active'),   value: true  },
-        { label: t('form.options.inactive'), value: false },
-    ];
+    // ═════════════════════════════════════════════════════════════════════════
+    //  NAME ES → EN
+    // ═════════════════════════════════════════════════════════════════════════
+    useEffect(() => {
+        if (shouldSkipTranslateRef.current || nameTranslationSourceRef.current === 'name_en') {
+            shouldSkipTranslateRef.current   = false;
+            nameTranslationSourceRef.current = null;
+            return;
+        }
+        const trimmed = watchedNameEs?.trim() ?? '';
+        if (!trimmed) {
+            nameTranslationSourceRef.current = 'name_es';
+            setValue('name_en', '', { shouldDirty: true });
+            return;
+        }
+        const requestId = ++nameTranslationRequestIdRef.current;
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const res = await translationService.translateText({ text: trimmed, source_language: 'es', target_languages: ['en'] });
+                if (nameTranslationRequestIdRef.current !== requestId) return;
+                nameTranslationSourceRef.current = 'name_es';
+                setValue('name_en', res.data.translations.en ?? '', { shouldDirty: true, shouldValidate: true });
+            } catch (err) { console.error('Name ES→EN failed:', err); }
+        }, 400);
+        return () => window.clearTimeout(timeoutId);
+    }, [setValue, watchedNameEs]);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  DESCRIPTION EN → ES
+    // ═════════════════════════════════════════════════════════════════════════
+    useEffect(() => {
+        if (shouldSkipTranslateRef.current || descTranslationSourceRef.current === 'description_es') {
+            shouldSkipTranslateRef.current   = false;
+            descTranslationSourceRef.current = null;
+            return;
+        }
+        const trimmed = watchedDescriptionEn?.trim() ?? '';
+        if (!trimmed) {
+            descTranslationSourceRef.current = 'description_en';
+            setValue('description_es', '', { shouldDirty: true });
+            return;
+        }
+        const requestId = ++descTranslationRequestIdRef.current;
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const res = await translationService.translateText({ text: trimmed, source_language: 'en', target_languages: ['es'] });
+                if (descTranslationRequestIdRef.current !== requestId) return;
+                descTranslationSourceRef.current = 'description_en';
+                setValue('description_es', res.data.translations.es ?? '', { shouldDirty: true, shouldValidate: true });
+            } catch (err) { console.error('Description EN→ES failed:', err); }
+        }, 400);
+        return () => window.clearTimeout(timeoutId);
+    }, [setValue, watchedDescriptionEn]);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  DESCRIPTION ES → EN
+    // ═════════════════════════════════════════════════════════════════════════
+    useEffect(() => {
+        if (shouldSkipTranslateRef.current || descTranslationSourceRef.current === 'description_en') {
+            shouldSkipTranslateRef.current   = false;
+            descTranslationSourceRef.current = null;
+            return;
+        }
+        const trimmed = watchedDescriptionEs?.trim() ?? '';
+        if (!trimmed) {
+            descTranslationSourceRef.current = 'description_es';
+            setValue('description_en', '', { shouldDirty: true });
+            return;
+        }
+        const requestId = ++descTranslationRequestIdRef.current;
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                const res = await translationService.translateText({ text: trimmed, source_language: 'es', target_languages: ['en'] });
+                if (descTranslationRequestIdRef.current !== requestId) return;
+                descTranslationSourceRef.current = 'description_es';
+                setValue('description_en', res.data.translations.en ?? '', { shouldDirty: true, shouldValidate: true });
+            } catch (err) { console.error('Description ES→EN failed:', err); }
+        }, 400);
+        return () => window.clearTimeout(timeoutId);
+    }, [setValue, watchedDescriptionEs]);
+
+    // ── Save mutation — POST /usecase (create) or POST /usecase/:id (update) ──
+    const { mutate: saveUsecase, isPending: isSaving } = useMutation({
+        mutationFn: (data: UsecaseFormValues) =>
+            usecaseService.saveUsecase(data, isEdit ? Number(id) : undefined),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['usecases'] });
+            toast.success(
+                isEdit ? t('toast.updated_title') : t('toast.created_title'),
+                isEdit ? t('toast.updated_detail') : t('toast.created_detail'),
+            );
+            navigate('/usecases');
+        },
+        onError: (err: any) => {
+            const detail = err?.response?.data?.detail ||
+                (isEdit ? t('toast.update_error_detail') : t('toast.create_error_detail'));
+            toast.error(
+                isEdit ? t('toast.update_error_title') : t('toast.create_error_title'),
+                detail,
+            );
+        },
+    });
+
+    const onSubmit = (data: UsecaseFormValues) => saveUsecase(data);
+
+    if (isEdit && isFetching) {
+        return (
+            <div className="form-loading">
+                <i className="pi pi-spin pi-spinner" style={{ fontSize: '22px' }} />
+                {t('form.loading')}
+            </div>
+        );
+    }
 
     return (
         <div className="page-container">
@@ -94,52 +250,57 @@ export const UsecaseForm = () => {
 
                 <form onSubmit={handleSubmit(onSubmit)}>
 
-                    {/* Usecase Details */}
+                    {/* ── Name ─────────────────────────────────────────── */}
                     <div className="form-section">
                         <div className="form-section__label-row">
-                            <span>{t('form.section_details')}</span>
+                            <span>{t('form.section_name')}</span>
                             <div className="form-section__divider" />
                         </div>
                         <div className="form-grid-2">
                             <FormInput<UsecaseFormValues>
-                                name="name"
+                                name="name_en"
                                 control={control}
-                                label={t('form.fields.name')}
-                                placeholder={t('form.placeholders.name')}
-                                rules={{
-                                    validate: {
-                                        required: (v) => !!v || t('form.validation.name_required'),
-                                    },
-                                }}
-                                error={errors.name?.message}
+                                label={t('form.fields.name_en')}
+                                placeholder={t('form.placeholders.name_en')}
+                                rules={{ validate: { required: (v) => !!v || t('form.validation.name_en_required') } }}
+                                error={errors.name_en?.message}
                             />
                             <FormInput<UsecaseFormValues>
-                                name="status"
+                                name="name_es"
                                 control={control}
-                                label={t('form.fields.status')}
-                                type="dropdown"
-                                placeholder={t('form.placeholders.status')}
-                                options={STATUS_OPTIONS}
-                                error={errors.status?.message}
-                            />
-                        </div>
-                        <div className="form-grid-2">
-                            <FormInput<UsecaseFormValues>
-                                name="description"
-                                control={control}
-                                label={t('form.fields.description')}
-                                placeholder={t('form.placeholders.description')}
-                                rules={{
-                                    validate: {
-                                        required: (v) => !!v || t('form.validation.description_required'),
-                                    },
-                                }}
-                                error={errors.description?.message}
+                                label={t('form.fields.name_es')}
+                                placeholder={t('form.placeholders.name_es')}
+                                error={errors.name_es?.message}
                             />
                         </div>
                     </div>
 
-                    {/* Actions */}
+                    {/* ── Description ──────────────────────────────────── */}
+                    <div className="form-section">
+                        <div className="form-section__label-row">
+                            <span>{t('form.section_description')}</span>
+                            <div className="form-section__divider" />
+                        </div>
+                        <div className="form-grid-2">
+                            <FormInput<UsecaseFormValues>
+                                name="description_en"
+                                control={control}
+                                label={t('form.fields.description_en')}
+                                placeholder={t('form.placeholders.description_en')}
+                                rules={{ validate: { required: (v) => !!v || t('form.validation.description_en_required') } }}
+                                error={errors.description_en?.message}
+                            />
+                            <FormInput<UsecaseFormValues>
+                                name="description_es"
+                                control={control}
+                                label={t('form.fields.description_es')}
+                                placeholder={t('form.placeholders.description_es')}
+                                error={errors.description_es?.message}
+                            />
+                        </div>
+                    </div>
+
+                    {/* ── Actions ──────────────────────────────────────── */}
                     <div className="form-actions">
                         <FormButton
                             label={t('form.cancel')}
@@ -152,6 +313,7 @@ export const UsecaseForm = () => {
                             variant="primary"
                             type="submit"
                             iconLeft={isEdit ? 'pi pi-check' : 'pi pi-plus'}
+                            loading={isSaving}
                         />
                     </div>
 
