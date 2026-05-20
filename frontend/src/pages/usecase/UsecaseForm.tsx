@@ -9,7 +9,7 @@ import { FormInput } from '../../components/ui/FormInput';
 import { FormButton } from '../../components/ui/FormButton';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { useToast } from '../../components/ui/ToastProvider';
-import { translationService } from './utils/translationService';
+import { translationService } from '../../utils/translationService';
 
 export const UsecaseForm = () => {
     const { id }        = useParams();
