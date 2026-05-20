@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog } from 'primereact/dialog';
 import { Checkbox } from 'primereact/checkbox';
 import { cameraService } from '../camera/api/cameraService';
-import type { Camera, CameraFormValues } from '../camera/types/index';
+import type { Camera, UpdateCameraUseCaseRequest } from '../camera/types/index';
 import { usecaseService } from './api/usecaseService';
 import { FormButton } from '../../components/ui/FormButton';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -50,8 +50,8 @@ export const SelectUsecaseModal = ({
     );
 
     const { mutate: saveUsecases, isPending } = useMutation({
-        mutationFn: (payload: { id: number; data: CameraFormValues }) =>
-            cameraService.updateCamera(payload.id, payload.data),
+        mutationFn: (payload: { id: number; data: UpdateCameraUseCaseRequest }) =>
+            cameraService.updateCameraUseCase(payload.id, payload.data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cameras'] });
             toast.success(
@@ -81,18 +81,7 @@ export const SelectUsecaseModal = ({
     const handleSave = () => {
         if (!camera) return;
 
-        const payload: CameraFormValues = {
-            name_en: camera.name_en,
-            name_es: camera.name_es,
-            name_fr: camera.name_fr,
-            location_id: camera.location_id,
-            codec: camera.codec,
-            resolution: camera.resolution,
-            height: camera.height,
-            fps: camera.fps,
-            rtsp_url: camera.rtsp_url,
-            status: camera.status,
-            status_modified_by: camera.status_modified_by,
+        const payload: UpdateCameraUseCaseRequest = {
             usecases: selectedUsecaseIds.map((usecaseId) => ({
                 usecase_id: usecaseId,
                 is_active: true,

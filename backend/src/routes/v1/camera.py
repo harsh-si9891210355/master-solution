@@ -11,7 +11,8 @@ from src.schemas.camera import (
     CamerasResponse,
     CameraUpdate,
     CameraStatusUpdate,
-    CommonFailureResponse
+    CommonFailureResponse,
+    UpdateCameraUseCaseRequest
 )
 from src.services.v1.camera_services import CameraService
 from src.utils.auth.auth import require_permission
@@ -96,5 +97,25 @@ def change_camera_status(
         db=db,
         camera_id=camera_id,
         status=payload.status,
+        language=request.state.lang,
+    )
+
+
+@router.post(
+    "/{camera_id}/update_camera_usecase",
+    response_model=Union[CameraResponse, CommonFailureResponse],
+    dependencies=[Depends(require_permission("camera:update"))],
+)
+def update_camera_usecase(
+    camera_id: int,
+    payload: UpdateCameraUseCaseRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    camera_service = CameraService(db)
+    return camera_service.update_camera_usecase(
+        db=db,
+        camera_id=camera_id,
+        payload=payload,
         language=request.state.lang,
     )

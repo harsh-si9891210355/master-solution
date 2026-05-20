@@ -22,6 +22,7 @@ from src.schemas.camera import (
     CameraUpdate,
     CameraUseCaseResponse,
     CommonFailureResponse,
+    UpdateCameraUseCaseRequest,
 )
 from src.utils.translation import resolve_translation
 
@@ -328,6 +329,46 @@ class CameraService:
 
             camera.status = status
 
+            db.commit()
+            db.refresh(camera)
+
+            return self._build_camera_response(camera, language)
+        
+        except IntegrityError as e:
+            self.db.rollback()
+            return CommonFailureResponse(code=409, message="Duplicate/constraint violation")
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            return CommonFailureResponse(code=500, message="Database Error Occurred")
+        except Exception as e:
+            return CommonFailureResponse(code=500, message="Internal Server Error") 
+        
+
+    def update_camera_usecase(
+        self,
+        db: Session,
+        camera_id: int,
+        payload: UpdateCameraUseCaseRequest,
+        language: str,
+    ) -> Union[CameraResponse, CommonFailureResponse]:
+        try:
+            camera = get_camera_by_id(db, camera_id)
+
+            if not camera:
+                return CommonFailureResponse(code=404, message="Camera not found")
+
+            for usecase_assignment in payload.usecases:
+                usecase = get_usecase_by_id(db, usecase_assignment.usecase_id)
+                if not usecase:
+                    return CommonFailureResponse(code=400, message=f"Invalid usecase id: {usecase_assignment.usecase_id}")
+            camera.camera_usecases = [
+                CameraUsecase(
+                    usecase_id=usecase_assignment.usecase_id,
+                    is_active=usecase_assignment.is_active,
+                )
+                for usecase_assignment in payload.usecases
+            ]
+            db.add(camera)
             db.commit()
             db.refresh(camera)
 

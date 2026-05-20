@@ -74,6 +74,9 @@ class CameraDeleteSuccessResponse(BaseModel):
 class CameraStatusUpdate(BaseModel):
     status: bool
 
+class UpdateCameraUseCaseRequest(BaseModel):
+    usecases: list[CameraUseCaseAssignment]
+
 class CommonFailureResponse(BaseModel):
     code: int = 500
     message: str
