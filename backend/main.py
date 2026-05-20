@@ -22,6 +22,8 @@ from src.models.scope import Scope  # noqa: F401
 from src.models.role_permission import RolePermission  # noqa: F401
 from src.middleware.language import LanguageMiddleware
 from src.routes.router import api_router
+from src.services.translation import TranslationService
+from src.services.translation.exceptions import TranslationInitializationError
 
 logger = LoggingConfig().setup_logging()
 
@@ -48,13 +50,22 @@ def health_check():
 
 
 @app.on_event("startup")
-def on_startup() -> None:
+async def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         seed_roles(db)
     finally:
         db.close()
+
+    translation_service = TranslationService()
+    try:
+        await translation_service.initialize()
+    except TranslationInitializationError:
+        logger.exception("Failed to initialize the translation service during startup.")
+        raise
+
+    app.state.translation_service = translation_service
 
 
 def start():

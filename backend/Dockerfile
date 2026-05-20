@@ -5,10 +5,14 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
+ENV PIP_NO_CACHE_DIR=1
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install argostranslate==1.9.6
 
 COPY  . .
 

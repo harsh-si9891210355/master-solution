@@ -1,9 +1,49 @@
 from pydantic import BaseModel, Field
 
 
+class UseCaseCreate(BaseModel):
+    name_en: str = Field(min_length=2, max_length=255)
+
+    name_es: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=255,
+    )
+
+    name_fr: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=255,
+    )
+
+    description_en: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    description_es: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    description_fr: str | None = Field(
+        default=None,
+        max_length=1000,
+    )
+
+    status: bool = True
+
+
 class UseCaseResponse(BaseModel):
     id: int
-    name: str
+
+    name_en: str | None
+    name_es: str | None
+    name_fr: str | None
+    name: str | None
+    description_en: str | None
+    description_es: str | None
+    description_fr: str | None
     description: str | None
     status: bool
 
@@ -11,3 +51,10 @@ class UseCaseResponse(BaseModel):
 class UseCasesResponse(BaseModel):
     usecases: list[UseCaseResponse]
 
+
+class UseCaseDeleteResponse(BaseModel):
+    message: str
+
+
+class UseCaseStatusUpdate(BaseModel):
+    status: bool

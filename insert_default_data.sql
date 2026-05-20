@@ -68,6 +68,25 @@ WHERE NOT EXISTS (
     WHERE ut.language_code = 'en'
     AND ut.name = seed.name_en
 );
+INSERT INTO usecases (status)
+SELECT true
+FROM (
+    VALUES
+        ('Walking in No Walking Zone'),
+        ('Driver Lacking Awareness of People'),
+        ('Not Wearing Full PPE'),
+        ('Sleeping in Working Zone'),
+        ('Carrying Cell Phone in the Working Zone'),
+        ('Speeding'),
+        ('Goods Obstructing the Working Zone'),
+        ('Leaving the Working Zone')
+) AS seed(name_en)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM usecase_translations ut
+    WHERE ut.language_code = 'en'
+    AND ut.name = seed.name_en
+);
 
 INSERT INTO usecase_translations (usecase_id, language_code, name, description)
 SELECT
@@ -79,11 +98,13 @@ FROM (
     VALUES
         (
             'Walking in No Walking Zone',
+            'Walking in No Walking Zone',
             'en',
             'Walking in No Walking Zone',
             'Detected a person walking in a restricted no-walking zone.'
         ),
         (
+            'Walking in No Walking Zone',
             'Walking in No Walking Zone',
             'es',
             'Caminando en zona no permitida para peatones',
@@ -91,11 +112,13 @@ FROM (
         ),
         (
             'Walking in No Walking Zone',
+            'Walking in No Walking Zone',
             'fr',
             'Marche dans une zone interdite aux pietons',
             'Une personne a ete detectee en train de marcher dans une zone interdite aux pietons.'
         ),
         (
+            'Driver Lacking Awareness of People',
             'Driver Lacking Awareness of People',
             'en',
             'Driver Lacking Awareness of People',
@@ -103,11 +126,13 @@ FROM (
         ),
         (
             'Driver Lacking Awareness of People',
+            'Driver Lacking Awareness of People',
             'es',
             'Conductor sin atencion a las personas',
             'Se detecto un conductor que no presta atencion a las personas cercanas.'
         ),
         (
+            'Driver Lacking Awareness of People',
             'Driver Lacking Awareness of People',
             'fr',
             'Conducteur manquant de vigilance envers les personnes',
@@ -115,11 +140,13 @@ FROM (
         ),
         (
             'Not Wearing Full PPE',
+            'Not Wearing Full PPE',
             'en',
             'Not Wearing Full PPE',
             'Detected a person not wearing the required full personal protective equipment.'
         ),
         (
+            'Not Wearing Full PPE',
             'Not Wearing Full PPE',
             'es',
             'No lleva el EPP completo',
@@ -127,11 +154,13 @@ FROM (
         ),
         (
             'Not Wearing Full PPE',
+            'Not Wearing Full PPE',
             'fr',
             'Ne porte pas l''EPI complet',
             'Une personne ne portant pas l''equipement de protection individuelle complet requis a ete detectee.'
         ),
         (
+            'Sleeping in Working Zone',
             'Sleeping in Working Zone',
             'en',
             'Sleeping in Working Zone',
@@ -139,11 +168,13 @@ FROM (
         ),
         (
             'Sleeping in Working Zone',
+            'Sleeping in Working Zone',
             'es',
             'Durmiendo en la zona de trabajo',
             'Se detecto a una persona durmiendo dentro de la zona de trabajo.'
         ),
         (
+            'Sleeping in Working Zone',
             'Sleeping in Working Zone',
             'fr',
             'Dormir dans la zone de travail',
@@ -151,11 +182,13 @@ FROM (
         ),
         (
             'Carrying Cell Phone in the Working Zone',
+            'Carrying Cell Phone in the Working Zone',
             'en',
             'Carrying Cell Phone in the Working Zone',
             'Detected a person carrying or using a cell phone in the working zone.'
         ),
         (
+            'Carrying Cell Phone in the Working Zone',
             'Carrying Cell Phone in the Working Zone',
             'es',
             'Llevando telefono movil en la zona de trabajo',
@@ -163,11 +196,13 @@ FROM (
         ),
         (
             'Carrying Cell Phone in the Working Zone',
+            'Carrying Cell Phone in the Working Zone',
             'fr',
             'Transport d''un telephone portable dans la zone de travail',
             'Une personne transportant ou utilisant un telephone portable dans la zone de travail a ete detectee.'
         ),
         (
+            'Speeding',
             'Speeding',
             'en',
             'Speeding',
@@ -175,11 +210,13 @@ FROM (
         ),
         (
             'Speeding',
+            'Speeding',
             'es',
             'Exceso de velocidad',
             'Se detecto un vehiculo circulando por encima del limite de velocidad permitido.'
         ),
         (
+            'Speeding',
             'Speeding',
             'fr',
             'Exces de vitesse',
@@ -187,11 +224,13 @@ FROM (
         ),
         (
             'Goods Obstructing the Working Zone',
+            'Goods Obstructing the Working Zone',
             'en',
             'Goods Obstructing the Working Zone',
             'Detected goods or materials blocking the working zone.'
         ),
         (
+            'Goods Obstructing the Working Zone',
             'Goods Obstructing the Working Zone',
             'es',
             'Mercancias obstruyendo la zona de trabajo',
@@ -199,11 +238,13 @@ FROM (
         ),
         (
             'Goods Obstructing the Working Zone',
+            'Goods Obstructing the Working Zone',
             'fr',
             'Marchandises obstruant la zone de travail',
             'Des marchandises ou materiaux bloquant la zone de travail ont ete detectes.'
         ),
         (
+            'Leaving the Working Zone',
             'Leaving the Working Zone',
             'en',
             'Leaving the Working Zone',
@@ -211,16 +252,23 @@ FROM (
         ),
         (
             'Leaving the Working Zone',
+            'Leaving the Working Zone',
             'es',
             'Saliendo de la zona de trabajo',
             'Se detecto a una persona saliendo de la zona de trabajo designada.'
         ),
         (
             'Leaving the Working Zone',
+            'Leaving the Working Zone',
             'fr',
             'Quitter la zone de travail',
             'Une personne quittant la zone de travail designee a ete detectee.'
         )
+) AS seed(name_en, language_code, name, description)
+JOIN usecase_translations source_en
+    ON source_en.language_code = 'en'
+    AND source_en.name = seed.name_en
+JOIN usecases uc ON uc.id = source_en.usecase_id
 ) AS seed(name_en, language_code, name, description)
 JOIN usecase_translations source_en
     ON source_en.language_code = 'en'
