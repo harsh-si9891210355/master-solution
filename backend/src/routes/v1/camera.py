@@ -13,14 +13,7 @@ from src.schemas.camera import (
     CameraStatusUpdate,
     CommonFailureResponse
 )
-from src.services.v1.camera_services import (
-    create_camera_details,
-    delete_camera_details,
-    get_all_camera_details,
-    get_camera_details,
-    update_camera_details,
-    update_camera_status
-)
+from src.services.v1.camera_services import CameraService
 from src.utils.auth.auth import require_permission
 
 
@@ -42,13 +35,14 @@ def create_or_update_camera(
     db: Session = Depends(get_db),
     camera_id: int | None = None,
     payload: dict = Body(...),
-):
+):  
+    camera_service = CameraService(db)
     if camera_id is not None:
         payload = CameraUpdate.model_validate(payload)
-        return update_camera_details(db, camera_id, payload, request.state.lang)
+        return camera_service.update_camera_details(db, camera_id, payload, request.state.lang)
     else:
         payload = CameraCreate.model_validate(payload)
-        return create_camera_details(db, payload, request.state.lang)
+        return camera_service.create_camera_details(db, payload, request.state.lang)
 
 
 @router.get(
@@ -66,10 +60,11 @@ def get_cameras(
     db: Session = Depends(get_db),
     camera_id: int | None = None,
 ):
+    camera_service = CameraService(db)
     if camera_id is not None:
-        return get_camera_details(db, camera_id, request.state.lang)
+        return camera_service.get_camera_details(db, camera_id, request.state.lang)
     else:
-        return CamerasResponse(cameras=get_all_camera_details(db, request.state.lang))
+        return CamerasResponse(cameras=camera_service.get_all_camera_details(db, request.state.lang))
 
 
 @router.delete(
@@ -81,7 +76,8 @@ def delete_camera(
     camera_id: int,
     db: Session = Depends(get_db),
 ):
-    return delete_camera_details(db, camera_id)
+    camera_service = CameraService(db)
+    return camera_service.delete_camera_details(db, camera_id)
 
 
 @router.patch(
@@ -95,7 +91,8 @@ def change_camera_status(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    return update_camera_status(
+    camera_service = CameraService(db)
+    return camera_service.update_camera_status(
         db=db,
         camera_id=camera_id,
         status=payload.status,
