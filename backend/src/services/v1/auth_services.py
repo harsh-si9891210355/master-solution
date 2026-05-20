@@ -4,7 +4,7 @@ from fastapi import HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from src.crud.role import get_role_by_code
-from src.crud.user import create_user, get_user_by_email, update_user_password
+from src.crud.user import create_user, get_user_by_email, update_user_password, update_user
 from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
@@ -69,12 +69,8 @@ def signup_user(db: Session, payload: UserCreate, request: Request, language: st
     user = create_user(
         db,
         email=payload.email,
-        first_name_en=payload.first_name_en,
-        first_name_es=payload.first_name_es,
-        first_name_fr=payload.first_name_fr,
-        last_name_en=payload.last_name_en,
-        last_name_es=payload.last_name_es,
-        last_name_fr=payload.last_name_fr,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         mobile_number=payload.mobile_number,
         role_id=role.id,
         hashed_password=Hasher.get_hashed_password(payload.password),
@@ -93,6 +89,14 @@ def login_user(db: Session, payload: UserLogin, request: Request, language: str)
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+    
+    # Check if account is active
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is currently inactive. Please contact the Super Admin for account activation or further assistance.",
+        )
+ 
 
     # Check if user has an active, non-expired token
     active_token = get_any_active_user_token(
@@ -198,31 +202,55 @@ def build_user_response(user: User, language: str) -> UserResponse:
         language,
     )
     role_name = role_translation.value if role_translation else user.role.name_en
-    first_name_translation = resolve_translation(
-        [
-            type("UserTranslation", (), {"language": "en", "value": user.first_name_en})(),
-            type("UserTranslation", (), {"language": "es", "value": user.first_name_es})(),
-            type("UserTranslation", (), {"language": "fr", "value": user.first_name_fr})(),
-        ],
-        language,
-    )
-    last_name_translation = resolve_translation(
-        [
-            type("UserTranslation", (), {"language": "en", "value": user.last_name_en})(),
-            type("UserTranslation", (), {"language": "es", "value": user.last_name_es})(),
-            type("UserTranslation", (), {"language": "fr", "value": user.last_name_fr})(),
-        ],
-        language,
-    )
 
     return UserResponse(
         id=user.id,
         email=user.email,
-        first_name=first_name_translation.value if first_name_translation else user.first_name_en,
-        last_name=last_name_translation.value if last_name_translation else user.last_name_en,
+        first_name= user.first_name,
+        last_name= user.last_name,
         mobile_number=user.mobile_number,
         role_code=user.role.code,
         role_name=role_name,
         is_active=user.is_active,
         status=user.status,
+    )
+
+def set_password(
+    db: Session,
+    token: str,
+    password: str,
+):
+    email = Authentication.verify_token(token)
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token",
+        )
+
+    user = get_user_by_email(db, email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    update_user_password(
+        db,
+        user=user,
+        hashed_password=Hasher.get_hashed_password(password),
+    )
+
+    # Activate user after password setup
+    user.is_active = True
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    revoke_all_user_tokens(db, userid=user.id)
+
+    return MessageResponse(
+        message="Password set successfully"
     )

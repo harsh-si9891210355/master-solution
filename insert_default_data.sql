@@ -1,5 +1,6 @@
 INSERT INTO roles (code, name_en, name_es, name_fr)
 VALUES
+    ('super_admin', 'Super Admin', 'Super Administrador', 'Super Administrateur'),
     ('admin', 'Administrator', 'Administrador', 'Administrateur'),
     ('manager', 'Manager', 'Gerente', 'Gestionnaire'),
     ('user', 'User', 'Usuario', 'Utilisateur')
@@ -25,89 +26,207 @@ VALUES
     ('scope', true, NULL, NULL)
 ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO usecases (
-    code,
-    name_en,
-    name_es,
-    name_fr,
-    description_en,
-    description_es,
-    description_fr
+INSERT INTO users (
+    email,
+    first_name,
+    last_name,
+    mobile_number,
+    role_id,
+    hashed_password,
+    is_active,
+    status
 )
-VALUES
-    (
-        'walking_in_no_walking_zone',
-        'Walking in No Walking Zone',
-        'Caminando en zona no permitida para peatones',
-        'Marche dans une zone interdite aux pietons',
-        'Detected a person walking in a restricted no-walking zone.',
-        'Se detecto a una persona caminando en una zona restringida para peatones.',
-        'Une personne a ete detectee en train de marcher dans une zone interdite aux pietons.'
-    ),
-    (
-        'driver_lacking_awareness_of_people',
-        'Driver Lacking Awareness of People',
-        'Conductor sin atencion a las personas',
-        'Conducteur manquant de vigilance envers les personnes',
-        'Detected a driver not paying attention to nearby people.',
-        'Se detecto un conductor que no presta atencion a las personas cercanas.',
-        'Un conducteur ne faisant pas attention aux personnes a proximite a ete detecte.'
-    ),
-    (
-        'not_wearing_full_ppe',
-        'Not Wearing Full PPE',
-        'No lleva el EPP completo',
-        'Ne porte pas l''EPI complet',
-        'Detected a person not wearing the required full personal protective equipment.',
-        'Se detecto a una persona sin el equipo de proteccion personal completo requerido.',
-        'Une personne ne portant pas l''equipement de protection individuelle complet requis a ete detectee.'
-    ),
-    (
-        'sleeping_in_working_zone',
-        'Sleeping in Working Zone',
-        'Durmiendo en la zona de trabajo',
-        'Dormir dans la zone de travail',
-        'Detected a person sleeping inside the working zone.',
-        'Se detecto a una persona durmiendo dentro de la zona de trabajo.',
-        'Une personne endormie dans la zone de travail a ete detectee.'
-    ),
-    (
-        'carrying_cell_phone_in_the_working_zone',
-        'Carrying Cell Phone in the Working Zone',
-        'Llevando telefono movil en la zona de trabajo',
-        'Transport d''un telephone portable dans la zone de travail',
-        'Detected a person carrying or using a cell phone in the working zone.',
-        'Se detecto a una persona llevando o usando un telefono movil en la zona de trabajo.',
-        'Une personne transportant ou utilisant un telephone portable dans la zone de travail a ete detectee.'
-    ),
-    (
-        'speeding',
-        'Speeding',
-        'Exceso de velocidad',
-        'Exces de vitesse',
-        'Detected a vehicle moving above the allowed speed limit.',
-        'Se detecto un vehiculo circulando por encima del limite de velocidad permitido.',
-        'Un vehicule roulant au-dessus de la limite de vitesse autorisee a ete detecte.'
-    ),
-    (
-        'goods_obstructing_the_working_zone',
-        'Goods Obstructing the Working Zone',
-        'Mercancias obstruyendo la zona de trabajo',
-        'Marchandises obstruant la zone de travail',
-        'Detected goods or materials blocking the working zone.',
-        'Se detectaron mercancias o materiales bloqueando la zona de trabajo.',
-        'Des marchandises ou materiaux bloquant la zone de travail ont ete detectes.'
-    ),
-    (
-        'leaving_the_working_zone',
-        'Leaving the Working Zone',
-        'Saliendo de la zona de trabajo',
-        'Quitter la zone de travail',
-        'Detected a person leaving the designated working zone.',
-        'Se detecto a una persona saliendo de la zona de trabajo designada.',
-        'Une personne quittant la zone de travail designee a ete detectee.'
-    )
-ON CONFLICT (code) DO NOTHING;
+SELECT
+    'superadmin@visionx.com',
+    'Super',
+    'Admin',
+    NULL,
+    r.id,
+    'pbkdf2_sha256$100000$YA34Bw+AP/ZbhoATW3MBNQ==$1ldUU7biZpjMELofOv2WJy9Ci9Pd20hMD93F09KzVmc=', -- Password = SuperAdmin@123
+    true,
+    true
+FROM roles r
+WHERE r.code = 'super_admin'
+ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO usecases (status)
+SELECT true
+FROM (
+    VALUES
+        ('Walking in No Walking Zone'),
+        ('Driver Lacking Awareness of People'),
+        ('Not Wearing Full PPE'),
+        ('Sleeping in Working Zone'),
+        ('Carrying Cell Phone in the Working Zone'),
+        ('Speeding'),
+        ('Goods Obstructing the Working Zone'),
+        ('Leaving the Working Zone')
+) AS seed(name_en)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM usecase_translations ut
+    WHERE ut.language_code = 'en'
+    AND ut.name = seed.name_en
+);
+
+INSERT INTO usecase_translations (usecase_id, language_code, name, description)
+SELECT
+    uc.id,
+    seed.language_code,
+    seed.name,
+    seed.description
+FROM (
+    VALUES
+        (
+            'Walking in No Walking Zone',
+            'en',
+            'Walking in No Walking Zone',
+            'Detected a person walking in a restricted no-walking zone.'
+        ),
+        (
+            'Walking in No Walking Zone',
+            'es',
+            'Caminando en zona no permitida para peatones',
+            'Se detecto a una persona caminando en una zona restringida para peatones.'
+        ),
+        (
+            'Walking in No Walking Zone',
+            'fr',
+            'Marche dans une zone interdite aux pietons',
+            'Une personne a ete detectee en train de marcher dans une zone interdite aux pietons.'
+        ),
+        (
+            'Driver Lacking Awareness of People',
+            'en',
+            'Driver Lacking Awareness of People',
+            'Detected a driver not paying attention to nearby people.'
+        ),
+        (
+            'Driver Lacking Awareness of People',
+            'es',
+            'Conductor sin atencion a las personas',
+            'Se detecto un conductor que no presta atencion a las personas cercanas.'
+        ),
+        (
+            'Driver Lacking Awareness of People',
+            'fr',
+            'Conducteur manquant de vigilance envers les personnes',
+            'Un conducteur ne faisant pas attention aux personnes a proximite a ete detecte.'
+        ),
+        (
+            'Not Wearing Full PPE',
+            'en',
+            'Not Wearing Full PPE',
+            'Detected a person not wearing the required full personal protective equipment.'
+        ),
+        (
+            'Not Wearing Full PPE',
+            'es',
+            'No lleva el EPP completo',
+            'Se detecto a una persona sin el equipo de proteccion personal completo requerido.'
+        ),
+        (
+            'Not Wearing Full PPE',
+            'fr',
+            'Ne porte pas l''EPI complet',
+            'Une personne ne portant pas l''equipement de protection individuelle complet requis a ete detectee.'
+        ),
+        (
+            'Sleeping in Working Zone',
+            'en',
+            'Sleeping in Working Zone',
+            'Detected a person sleeping inside the working zone.'
+        ),
+        (
+            'Sleeping in Working Zone',
+            'es',
+            'Durmiendo en la zona de trabajo',
+            'Se detecto a una persona durmiendo dentro de la zona de trabajo.'
+        ),
+        (
+            'Sleeping in Working Zone',
+            'fr',
+            'Dormir dans la zone de travail',
+            'Une personne endormie dans la zone de travail a ete detectee.'
+        ),
+        (
+            'Carrying Cell Phone in the Working Zone',
+            'en',
+            'Carrying Cell Phone in the Working Zone',
+            'Detected a person carrying or using a cell phone in the working zone.'
+        ),
+        (
+            'Carrying Cell Phone in the Working Zone',
+            'es',
+            'Llevando telefono movil en la zona de trabajo',
+            'Se detecto a una persona llevando o usando un telefono movil en la zona de trabajo.'
+        ),
+        (
+            'Carrying Cell Phone in the Working Zone',
+            'fr',
+            'Transport d''un telephone portable dans la zone de travail',
+            'Une personne transportant ou utilisant un telephone portable dans la zone de travail a ete detectee.'
+        ),
+        (
+            'Speeding',
+            'en',
+            'Speeding',
+            'Detected a vehicle moving above the allowed speed limit.'
+        ),
+        (
+            'Speeding',
+            'es',
+            'Exceso de velocidad',
+            'Se detecto un vehiculo circulando por encima del limite de velocidad permitido.'
+        ),
+        (
+            'Speeding',
+            'fr',
+            'Exces de vitesse',
+            'Un vehicule roulant au-dessus de la limite de vitesse autorisee a ete detecte.'
+        ),
+        (
+            'Goods Obstructing the Working Zone',
+            'en',
+            'Goods Obstructing the Working Zone',
+            'Detected goods or materials blocking the working zone.'
+        ),
+        (
+            'Goods Obstructing the Working Zone',
+            'es',
+            'Mercancias obstruyendo la zona de trabajo',
+            'Se detectaron mercancias o materiales bloqueando la zona de trabajo.'
+        ),
+        (
+            'Goods Obstructing the Working Zone',
+            'fr',
+            'Marchandises obstruant la zone de travail',
+            'Des marchandises ou materiaux bloquant la zone de travail ont ete detectes.'
+        ),
+        (
+            'Leaving the Working Zone',
+            'en',
+            'Leaving the Working Zone',
+            'Detected a person leaving the designated working zone.'
+        ),
+        (
+            'Leaving the Working Zone',
+            'es',
+            'Saliendo de la zona de trabajo',
+            'Se detecto a una persona saliendo de la zona de trabajo designada.'
+        ),
+        (
+            'Leaving the Working Zone',
+            'fr',
+            'Quitter la zone de travail',
+            'Une personne quittant la zone de travail designee a ete detectee.'
+        )
+) AS seed(name_en, language_code, name, description)
+JOIN usecase_translations source_en
+    ON source_en.language_code = 'en'
+    AND source_en.name = seed.name_en
+JOIN usecases uc ON uc.id = source_en.usecase_id
+ON CONFLICT (usecase_id, language_code) DO NOTHING;
 
 INSERT INTO locations (name_en, name_es, name_fr)
 VALUES
@@ -121,7 +240,9 @@ VALUES
 ON CONFLICT (name_en) DO NOTHING;
 
 INSERT INTO cameras (
-    name,
+    name_en,
+    name_es,
+    name_fr,
     locationid,
     codec,
     resolution,
@@ -132,6 +253,8 @@ INSERT INTO cameras (
     last_modified_at
 )
 SELECT
+    seed.name,
+    seed.name,
     seed.name,
     l.id,
     seed.codec,
@@ -158,7 +281,7 @@ CROSS JOIN LATERAL (
 WHERE NOT EXISTS (
     SELECT 1
     FROM cameras c
-    WHERE c.name = seed.name
+    WHERE c.name_en = seed.name
 );
 
 INSERT INTO camera_usecase (cameraid, usecaseid, is_active)
@@ -168,18 +291,33 @@ SELECT
     seed.is_active
 FROM (
     VALUES
-        ('Front Gate Camera 01', 'walking_in_no_walking_zone', true),
-        ('Front Gate Camera 01', 'driver_lacking_awareness_of_people', true),
-        ('Entry Gate Camera 01', 'not_wearing_full_ppe', true),
-        ('Exit Gate Camera 01', 'leaving_the_working_zone', true),
-        ('Zone A Camera 01', 'sleeping_in_working_zone', true),
-        ('Zone B Camera 01', 'carrying_cell_phone_in_the_working_zone', true),
-        ('Loading Bay Camera 01', 'goods_obstructing_the_working_zone', true),
-        ('Parking Area Camera 01', 'speeding', true)
-) AS seed(camera_name, usecase_code, is_active)
-JOIN cameras c ON c.name = seed.camera_name
-JOIN usecases uc ON uc.code = seed.usecase_code
+        ('Front Gate Camera 01', 'Walking in No Walking Zone', true),
+        ('Front Gate Camera 01', 'Driver Lacking Awareness of People', true),
+        ('Entry Gate Camera 01', 'Not Wearing Full PPE', true),
+        ('Exit Gate Camera 01', 'Leaving the Working Zone', true),
+        ('Zone A Camera 01', 'Sleeping in Working Zone', true),
+        ('Zone B Camera 01', 'Carrying Cell Phone in the Working Zone', true),
+        ('Loading Bay Camera 01', 'Goods Obstructing the Working Zone', true),
+        ('Parking Area Camera 01', 'Speeding', true)
+) AS seed(camera_name, usecase_name_en, is_active)
+JOIN cameras c ON c.name_en = seed.camera_name
+JOIN usecase_translations ut ON ut.language_code = 'en' AND ut.name = seed.usecase_name_en
+JOIN usecases uc ON uc.id = ut.usecase_id
 ON CONFLICT (cameraid, usecaseid) DO NOTHING;
+
+-- Super Admin role: Full access to all resources with all scopes (create, read, update, delete)
+INSERT INTO role_permissions (role_id, resource_id, scope_id, created_by, updated_by)
+SELECT
+    r.id,
+    res.id,
+    s.id,
+    NULL,
+    NULL
+FROM roles r
+CROSS JOIN resources res
+CROSS JOIN scopes s
+WHERE r.code = 'super_admin'
+ON CONFLICT (role_id, resource_id, scope_id) DO NOTHING;
 
 -- Admin role: Full access to all resources with all scopes (create, read, update, delete)
 INSERT INTO role_permissions (role_id, resource_id, scope_id, created_by, updated_by)

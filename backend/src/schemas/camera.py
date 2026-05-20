@@ -10,8 +10,8 @@ class CameraUseCaseAssignment(BaseModel):
 
 class CameraCreate(BaseModel):
     name_en: str = Field(min_length=2, max_length=255)
-    name_es: str = Field(min_length=2, max_length=255)
-    name_fr: str = Field(min_length=2, max_length=255)
+    name_es: str | None = Field(default=None, min_length=2, max_length=255)
+    name_fr: str | None = Field(default=None, min_length=2, max_length=255)
     location_id: int
     codec: str = Field(min_length=1, max_length=255)
     resolution: str = Field(min_length=1, max_length=255)
@@ -46,8 +46,8 @@ class CameraUseCaseResponse(BaseModel):
 class CameraResponse(BaseModel):
     id: int
     name_en: str
-    name_es: str
-    name_fr: str
+    name_es: str | None = None
+    name_fr: str | None = None
     name: str
     location_id: int
     location_name: str
@@ -69,3 +69,6 @@ class CamerasResponse(BaseModel):
 
 class CameraDeleteResponse(BaseModel):
     message: str
+
+class CameraStatusUpdate(BaseModel):
+    status: bool

@@ -11,6 +11,14 @@ from src.utils.translation import resolve_translation
 
 
 def _build_event_response(event: Event, language: str) -> EventResponse:
+    camera_name_translation = resolve_translation(
+        [
+            type("CameraTranslation", (), {"language": "en", "value": event.camera.name_en})(),
+            type("CameraTranslation", (), {"language": "es", "value": event.camera.name_es})(),
+            type("CameraTranslation", (), {"language": "fr", "value": event.camera.name_fr})(),
+        ],
+        language,
+    )
     location_translation = resolve_translation(
         [
             type("LocationTranslation", (), {"language": "en", "value": event.location.name_en})(),
@@ -19,32 +27,26 @@ def _build_event_response(event: Event, language: str) -> EventResponse:
         ],
         language,
     )
-    usecase_name_translation = resolve_translation(
-        [
-            type("UseCaseTranslation", (), {"language": "en", "value": event.usecase.name_en})(),
-            type("UseCaseTranslation", (), {"language": "es", "value": event.usecase.name_es})(),
-            type("UseCaseTranslation", (), {"language": "fr", "value": event.usecase.name_fr})(),
-        ],
-        language,
-    )
-    event_description_translation = resolve_translation(
-        [
-            type("EventTranslation", (), {"language": "en", "value": event.usecase.description_en})(),
-            type("EventTranslation", (), {"language": "es", "value": event.usecase.description_es})(),
-            type("EventTranslation", (), {"language": "fr", "value": event.usecase.description_fr})(),
-        ],
-        language,
-    )
+    usecase_translation = resolve_translation(event.usecase.translations, language)
+    fallback_usecase_translation = resolve_translation(event.usecase.translations, "en")
 
     return EventResponse(
         id=event.id,
         camera_id=event.camera_id,
-        camera_name=event.camera.name,
+        camera_name=camera_name_translation.value if camera_name_translation else event.camera.name_en,
         location_id=event.location_id,
         location_name=location_translation.value if location_translation else event.location.name_en,
         usecase_id=event.usecase_id,
-        usecase_name=usecase_name_translation.value if usecase_name_translation else event.usecase.name_en,
-        event_description=event_description_translation.value if event_description_translation else event.usecase.description_en,
+        usecase_name=(
+            usecase_translation.name
+            if usecase_translation
+            else (fallback_usecase_translation.name if fallback_usecase_translation else str(event.usecase.id))
+        ),
+        event_description=(
+            usecase_translation.description
+            if usecase_translation
+            else (fallback_usecase_translation.description if fallback_usecase_translation else None)
+        ),
         evidence_url=event.evidence_url,
         created_date_time=event.created_date_time,
         event_start_time=event.event_start_time,

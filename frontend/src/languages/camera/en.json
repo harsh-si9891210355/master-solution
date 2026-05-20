@@ -1,0 +1,114 @@
+{
+  "camera": {
+    "title": "Camera Management",
+    "add_camera": "Add Camera",
+    "columns": {
+      "name": "Name",
+      "location": "Location",
+      "codec": "Codec",
+      "resolution": "Resolution",
+      "fps": "FPS",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "usecases": "Usecases"
+    },
+    "delete_dialog": {
+      "message": "Are you sure you want to delete camera \"{{name}}\"?",
+      "header": "Delete Camera"
+    },
+    "empty_message": "No cameras found.",
+    "error_message": "Failed to load cameras.",
+    "toast": {
+      "status_activated_title": "Camera Activated",
+      "status_activated_detail": "The camera has been activated.",
+      "status_deactivated_title": "Camera Deactivated",
+      "status_deactivated_detail": "The camera has been deactivated.",
+      "status_error_title": "Status Update Failed",
+      "status_error_detail": "Could not update camera status. Please try again."
+    },
+    "toast_actions": {
+      "camera_created_title": "Camera Created",
+      "camera_created_detail": "The new camera has been added successfully.",
+      "camera_create_error_title": "Create Failed",
+      "camera_create_error_detail": "Could not create camera. Please check the details and try again.",
+      "camera_updated_title": "Camera Updated",
+      "camera_updated_detail": "Camera details have been saved successfully.",
+      "camera_update_error_title": "Update Failed",
+      "camera_update_error_detail": "Could not update camera. Please try again.",
+      "camera_deleted_title": "Camera Deleted",
+      "camera_deleted_detail": "The camera has been removed successfully.",
+      "camera_delete_error_title": "Delete Failed",
+      "camera_delete_error_detail": "Could not delete camera. Please try again."
+    },
+    "form": {
+      "add_title": "Add Camera",
+      "edit_title": "Edit Camera",
+      "add_subtitle": "Fill in details to register a new camera",
+      "edit_subtitle": "Update existing camera details",
+      "loading": "Loading camera...",
+      "back": "Back",
+      "cancel": "Cancel",
+      "add_submit": "Add Camera",
+      "edit_submit": "Update Camera",
+      "section_name": "Camera Name",
+      "section_technical": "Technical Details",
+      "section_location": "Location",
+      "section_usecases": "Usecases",
+      "add_usecase": "Add Usecase",
+      "no_usecases": "No usecases added yet.",
+      "remove_usecase": "Remove usecase",
+      "fields": {
+        "name_en": "English *",
+        "name_es": "Spanish",
+        "name_fr": "French",
+        "location_id": "Location *",
+        "codec": "Codec *",
+        "resolution": "Resolution *",
+        "height": "Height (px)",
+        "fps": "FPS *",
+        "rtsp_url": "RTSP URL *",
+        "status": "Status",
+        "usecase_id": "Usecase ID",
+        "usecase_is_active": "Active"
+      },
+      "placeholders": {
+        "name_en": "Front Gate",
+        "name_es": "Puerta Delantera",
+        "name_fr": "Porte Avant",
+        "location_id": "Select location",
+        "location_id_loading": "Loading locations...",
+        "codec": "Select codec",
+        "resolution": "Select resolution",
+        "height": "e.g. 1080",
+        "fps": "e.g. 30",
+        "rtsp_url": "rtsp://...",
+        "status": "Select status",
+        "usecase_id": "Enter usecase ID",
+        "usecase_is_active": "Select status"
+      },
+      "validation": {
+        "name_en_required": "English name is required",
+        "location_required": "Location is required",
+        "location_invalid": "Enter a valid location ID",
+        "codec_required": "Codec is required",
+        "resolution_required": "Resolution is required",
+        "fps_required": "FPS is required",
+        "rtsp_required": "RTSP URL is required",
+        "usecase_id_required": "Usecase ID is required",
+        "usecase_id_invalid": "Enter a valid usecase ID"
+      },
+      "options": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    }
+  }
+}
