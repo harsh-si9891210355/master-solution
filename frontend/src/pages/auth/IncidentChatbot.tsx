@@ -340,7 +340,7 @@ const IncidentChatbot = ({ visible, onHide }: { visible: boolean; onHide: () => 
                             </>
                         ) : (
                             <div className="vx-file-ready">
-                                <span>✅ {photoFile.name}</span>
+                                <span>{photoFile.name}</span>
                                 <button className="vx-submit-photo-btn" onClick={() => submitIncident(true)}>
                                     Submit incident →
                                 </button>
@@ -352,7 +352,7 @@ const IncidentChatbot = ({ visible, onHide }: { visible: boolean; onHide: () => 
                 {/* Step 6 — Done */}
                 {step === 6 && (
                     <div className="vx-success-banner">
-                        <div className="vx-success-icon">✅</div>
+                        <div className="vx-success-icon"></div>
                         <p>Incident submitted to AIVMS team</p>
                         <small>{data.assignee?.name} has been notified</small>
                     </div>
