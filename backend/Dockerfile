@@ -7,6 +7,8 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 ENV PIP_NO_CACHE_DIR=1
 
+RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
+
 COPY requirements.txt .
 
 RUN pip install --upgrade pip && \

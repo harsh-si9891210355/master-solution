@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, Request
+from typing import Union
+
+from fastapi import APIRouter, Depends, Request, Body
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
 from src.schemas.camera import (
     CameraCreate,
-    CameraDeleteResponse,
+    CameraDeleteSuccessResponse,
     CameraResponse,
     CamerasResponse,
     CameraUpdate,
-    CameraStatusUpdate
+    CameraStatusUpdate,
+    CommonFailureResponse
 )
 from src.services.v1.camera_services import (
     create_camera_details,
@@ -24,54 +27,66 @@ from src.utils.auth.auth import require_permission
 router = APIRouter()
 
 
-@router.post("", response_model=CameraResponse, status_code=201, dependencies=[Depends(require_permission("camera:create"))])
-def create_camera(
-    payload: CameraCreate,
+@router.post(
+    "", 
+    response_model=Union[CameraResponse, CommonFailureResponse],
+    dependencies=[Depends(require_permission("camera:create"))]
+)
+@router.post(
+    "/{camera_id}", 
+    response_model=Union[CameraResponse, CommonFailureResponse],
+    dependencies=[Depends(require_permission("camera:update"))]
+)
+def create_or_update_camera(
     request: Request,
     db: Session = Depends(get_db),
-) -> CameraResponse:
-    return create_camera_details(db, payload, request.state.lang)
+    camera_id: int | None = None,
+    payload: dict = Body(...),
+):
+    if camera_id is not None:
+        payload = CameraUpdate.model_validate(payload)
+        return update_camera_details(db, camera_id, payload, request.state.lang)
+    else:
+        payload = CameraCreate.model_validate(payload)
+        return create_camera_details(db, payload, request.state.lang)
 
 
-@router.get("", response_model=CamerasResponse, dependencies=[Depends(require_permission("camera:read"))])
+@router.get(
+    "", 
+    response_model=Union[CamerasResponse, CommonFailureResponse], 
+    dependencies=[Depends(require_permission("camera:read"))]
+)
+@router.get(
+    "/{camera_id}", 
+    response_model=Union[CameraResponse, CommonFailureResponse], 
+    dependencies=[Depends(require_permission("camera:read"))]
+)
 def get_cameras(
     request: Request,
     db: Session = Depends(get_db),
-) -> CamerasResponse:
-    return CamerasResponse(cameras=get_all_camera_details(db, request.state.lang))
+    camera_id: int | None = None,
+):
+    if camera_id is not None:
+        return get_camera_details(db, camera_id, request.state.lang)
+    else:
+        return CamerasResponse(cameras=get_all_camera_details(db, request.state.lang))
 
 
-@router.get("/{camera_id}", response_model=CameraResponse, dependencies=[Depends(require_permission("camera:read"))])
-def get_camera(
-    camera_id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-) -> CameraResponse:
-    return get_camera_details(db, camera_id, request.state.lang)
-
-
-@router.put("/{camera_id}", response_model=CameraResponse, dependencies=[Depends(require_permission("camera:update"))])
-def update_camera(
-    camera_id: int,
-    payload: CameraUpdate,
-    request: Request,
-    db: Session = Depends(get_db),
-) -> CameraResponse:
-    return update_camera_details(db, camera_id, payload, request.state.lang)
-
-
-@router.delete("/{camera_id}", response_model=CameraDeleteResponse, dependencies=[Depends(require_permission("camera:delete"))])
+@router.delete(
+    "/{camera_id}", 
+    response_model=Union[CameraDeleteSuccessResponse, CommonFailureResponse], 
+    dependencies=[Depends(require_permission("camera:delete"))]
+)
 def delete_camera(
     camera_id: int,
     db: Session = Depends(get_db),
-) -> CameraDeleteResponse:
-    delete_camera_details(db, camera_id)
-    return CameraDeleteResponse(message="Camera deleted successfully")
+):
+    return delete_camera_details(db, camera_id)
 
 
 @router.patch(
     "/{camera_id}/status",
-    response_model=CameraResponse,
+    response_model=Union[CameraResponse, CommonFailureResponse],
     dependencies=[Depends(require_permission("camera:update"))],
 )
 def change_camera_status(
@@ -79,7 +94,7 @@ def change_camera_status(
     payload: CameraStatusUpdate,
     request: Request,
     db: Session = Depends(get_db),
-) -> CameraResponse:
+):
     return update_camera_status(
         db=db,
         camera_id=camera_id,
