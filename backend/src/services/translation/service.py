@@ -1,8 +1,12 @@
 import logging
+import json
+import shutil
 from collections.abc import Sequence
+from pathlib import Path
 
 from fastapi.concurrency import run_in_threadpool
 
+from src.core.config import settings
 from src.services.translation.constants import REQUIRED_LANGUAGE_PAIRS
 from src.services.translation.exceptions import (
     ServiceNotReadyError,
@@ -25,6 +29,8 @@ class TranslationService:
         )
         self._translations: dict[tuple[str, str], object] = {}
         self._initialized = False
+        self._cache_dir = Path(settings.argos_model_cache_dir)
+        self._manifest_path = self._cache_dir / "manifest.json"
 
     async def initialize(self) -> None:
         if self._initialized:
@@ -78,9 +84,41 @@ class TranslationService:
         if not missing_pairs:
             return
 
+        self._cache_dir.mkdir(parents=True, exist_ok=True)
+        manifest = self._load_manifest()
+        remaining_pairs: list[tuple[str, str]] = []
+
+        for source_language, target_language in missing_pairs:
+            cache_key = self._manifest_key(source_language, target_language)
+            cached_package_name = manifest.get(cache_key)
+            cached_package_path = self._cache_dir / cached_package_name if cached_package_name else None
+
+            if cached_package_path and cached_package_path.exists():
+                logger.info(
+                    "Installing cached Argos package for language pair %s->%s from %s",
+                    source_language,
+                    target_language,
+                    cached_package_path,
+                )
+                try:
+                    argos_package.install_from_path(str(cached_package_path))
+                    continue
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to install cached Argos package for %s->%s. Will re-download it.",
+                        source_language,
+                        target_language,
+                        exc_info=exc,
+                    )
+
+            remaining_pairs.append((source_language, target_language))
+
+        if not remaining_pairs:
+            return
+
         logger.info(
             "Installing missing Argos packages for language pairs: %s",
-            ", ".join(f"{source}->{target}" for source, target in missing_pairs),
+            ", ".join(f"{source}->{target}" for source, target in remaining_pairs),
         )
 
         try:
@@ -91,7 +129,7 @@ class TranslationService:
                 "Unable to refresh the Argos package index during startup."
             ) from exc
 
-        for source_language, target_language in missing_pairs:
+        for source_language, target_language in remaining_pairs:
             package_to_install = next(
                 (
                     package
@@ -108,11 +146,55 @@ class TranslationService:
 
             try:
                 downloaded_package_path = package_to_install.download()
-                argos_package.install_from_path(downloaded_package_path)
+                persistent_package_path = self._persist_downloaded_package(
+                    downloaded_package_path,
+                    source_language,
+                    target_language,
+                )
+                argos_package.install_from_path(str(persistent_package_path))
             except Exception as exc:
                 raise TranslationInitializationError(
                     f"Failed to install Argos package for {source_language}->{target_language}."
                 ) from exc
+
+    def _manifest_key(self, source_language: str, target_language: str) -> str:
+        return f"{source_language.lower()}->{target_language.lower()}"
+
+    def _load_manifest(self) -> dict[str, str]:
+        if not self._manifest_path.exists():
+            return {}
+
+        try:
+            with self._manifest_path.open("r", encoding="utf-8") as manifest_file:
+                data = json.load(manifest_file)
+        except (OSError, json.JSONDecodeError):
+            logger.warning("Unable to read Argos model manifest. Rebuilding it as packages are downloaded.")
+            return {}
+
+        return data if isinstance(data, dict) else {}
+
+    def _save_manifest(self, manifest: dict[str, str]) -> None:
+        with self._manifest_path.open("w", encoding="utf-8") as manifest_file:
+            json.dump(manifest, manifest_file, indent=2, sort_keys=True)
+
+    def _persist_downloaded_package(
+        self,
+        downloaded_package_path: str,
+        source_language: str,
+        target_language: str,
+    ) -> Path:
+        source_path = Path(downloaded_package_path)
+        extension = source_path.suffix or ".argosmodel"
+        target_filename = f"{source_language.lower()}_{target_language.lower()}{extension}"
+        target_path = self._cache_dir / target_filename
+
+        shutil.copy2(source_path, target_path)
+
+        manifest = self._load_manifest()
+        manifest[self._manifest_key(source_language, target_language)] = target_filename
+        self._save_manifest(manifest)
+
+        return target_path
 
     def _build_translation_cache(
         self,

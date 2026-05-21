@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -16,6 +17,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = "harsh.si9891210355@gmail.com"
     smtp_password: str = "nzpb hkub mhlz djkk"
+    argos_model_cache_dir: str = str(Path(".argos-models"))
 
     model_config = SettingsConfigDict(
         env_file=".env",
