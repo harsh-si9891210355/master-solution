@@ -1,5 +1,3 @@
-from typing import Union
-
 from fastapi import APIRouter, Depends, Request, Body
 from sqlalchemy.orm import Session
 
@@ -23,12 +21,12 @@ router = APIRouter()
 
 @router.post(
     "", 
-    response_model=Union[CameraResponse, CommonFailureResponse],
+    response_model=CameraResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("camera:create"))]
 )
 @router.post(
     "/{camera_id}", 
-    response_model=Union[CameraResponse, CommonFailureResponse],
+    response_model=CameraResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("camera:update"))]
 )
 def create_or_update_camera(
@@ -37,6 +35,8 @@ def create_or_update_camera(
     camera_id: int | None = None,
     payload: dict = Body(...),
 ):  
+    '''Create a new camera or update an existing camera.'''
+
     camera_service = CameraService(db)
     if camera_id is not None:
         payload = CameraUpdate.model_validate(payload)
@@ -48,12 +48,12 @@ def create_or_update_camera(
 
 @router.get(
     "", 
-    response_model=Union[CamerasResponse, CommonFailureResponse], 
+    response_model=CamerasResponse | CommonFailureResponse, 
     dependencies=[Depends(require_permission("camera:read"))]
 )
 @router.get(
     "/{camera_id}", 
-    response_model=Union[CameraResponse, CommonFailureResponse], 
+    response_model=CameraResponse | CommonFailureResponse, 
     dependencies=[Depends(require_permission("camera:read"))]
 )
 def get_cameras(
@@ -61,6 +61,8 @@ def get_cameras(
     db: Session = Depends(get_db),
     camera_id: int | None = None,
 ):
+    '''Fetch all cameras or retrieve a specific camera by ID.'''
+
     camera_service = CameraService(db)
     if camera_id is not None:
         return camera_service.get_camera_details(db, camera_id, request.state.lang)
@@ -70,20 +72,22 @@ def get_cameras(
 
 @router.delete(
     "/{camera_id}", 
-    response_model=Union[CameraDeleteSuccessResponse, CommonFailureResponse], 
+    response_model=CameraDeleteSuccessResponse | CommonFailureResponse, 
     dependencies=[Depends(require_permission("camera:delete"))]
 )
 def delete_camera(
     camera_id: int,
     db: Session = Depends(get_db),
-):
+):  
+    '''Delete a camera using its unique camera ID.'''
+
     camera_service = CameraService(db)
     return camera_service.delete_camera_details(db, camera_id)
 
 
 @router.patch(
     "/{camera_id}/status",
-    response_model=Union[CameraResponse, CommonFailureResponse],
+    response_model=CameraResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("camera:update"))],
 )
 def change_camera_status(
@@ -92,6 +96,8 @@ def change_camera_status(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    '''Update the active or inactive status of a camera.'''
+
     camera_service = CameraService(db)
     return camera_service.update_camera_status(
         db=db,
@@ -103,7 +109,7 @@ def change_camera_status(
 
 @router.post(
     "/{camera_id}/update_camera_usecase",
-    response_model=Union[CameraResponse, CommonFailureResponse],
+    response_model=CameraResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("camera:update"))],
 )
 def update_camera_usecase(
@@ -112,6 +118,8 @@ def update_camera_usecase(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    '''Update use-case configuration for a specific camera.'''
+
     camera_service = CameraService(db)
     return camera_service.update_camera_usecase(
         db=db,
