@@ -28,16 +28,27 @@ def _get_camera_name(event: Event, language_code: str, fallback: str | None = No
     return next(iter(translations.values())).name if translations else None
 
 
+def _get_location_name(event: Event, language_code: str, fallback: str | None = None) -> str | None:
+    translations = {translation.language_code.lower(): translation for translation in event.location.translations}
+    normalized = language_code.lower()
+    if normalized in translations:
+        return translations[normalized].name
+    base = normalized.split("-", 1)[0]
+    if base in translations:
+        return translations[base].name
+    if fallback:
+        fallback_normalized = fallback.lower()
+        if fallback_normalized in translations:
+            return translations[fallback_normalized].name
+        fallback_base = fallback_normalized.split("-", 1)[0]
+        if fallback_base in translations:
+            return translations[fallback_base].name
+    return next(iter(translations.values())).name if translations else None
+
+
 def _build_event_response(event: Event, language: str) -> EventResponse:
     camera_name_translation = resolve_translation(event.camera.translations, language)
-    location_translation = resolve_translation(
-        [
-            type("LocationTranslation", (), {"language": "en", "value": event.location.name_en})(),
-            type("LocationTranslation", (), {"language": "es", "value": event.location.name_es})(),
-            type("LocationTranslation", (), {"language": "fr", "value": event.location.name_fr})(),
-        ],
-        language,
-    )
+    location_translation = resolve_translation(event.location.translations, language)
     usecase_translation = resolve_translation(event.usecase.translations, language)
     fallback_usecase_translation = resolve_translation(event.usecase.translations, "en")
 
@@ -46,7 +57,7 @@ def _build_event_response(event: Event, language: str) -> EventResponse:
         camera_id=event.camera_id,
         camera_name=camera_name_translation.name if camera_name_translation else (_get_camera_name(event, "en") or str(event.camera_id)),
         location_id=event.location_id,
-        location_name=location_translation.value if location_translation else event.location.name_en,
+        location_name=location_translation.name if location_translation else (_get_location_name(event, "en") or str(event.location_id)),
         usecase_id=event.usecase_id,
         usecase_name=(
             usecase_translation.name

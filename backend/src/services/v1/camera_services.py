@@ -108,16 +108,32 @@ class CameraService:
             else:
                 camera.translations.append(CameraTranslation(language_code=language_code, name=name))
 
+    def _get_location_name(
+        self,
+        camera: Camera,
+        language_code: str,
+        fallback: str | None = None,
+    ) -> str | None:
+        translations = {translation.language_code.lower(): translation for translation in camera.location.translations}
+        normalized = language_code.lower()
+        if normalized in translations:
+            return translations[normalized].name
+        base = normalized.split("-", 1)[0]
+        if base in translations:
+            return translations[base].name
+        if fallback:
+            fallback_normalized = fallback.lower()
+            if fallback_normalized in translations:
+                return translations[fallback_normalized].name
+            fallback_base = fallback_normalized.split("-", 1)[0]
+            if fallback_base in translations:
+                return translations[fallback_base].name
+        return next(iter(translations.values())).name if translations else None
+
 
     def _build_camera_response(self, camera: Camera, language: str) -> CameraResponse:
-        location_translation = resolve_translation(
-            [
-                type("LocationTranslation", (), {"language": "en", "value": camera.location.name_en})(),
-                type("LocationTranslation", (), {"language": "es", "value": camera.location.name_es})(),
-                type("LocationTranslation", (), {"language": "fr", "value": camera.location.name_fr})(),
-            ],
-            language,
-        )
+        location_translation = resolve_translation(camera.location.translations, language)
+        fallback_location_name = self._get_location_name(camera, "en")
         camera_name_translation = resolve_translation(camera.translations, language)
         fallback_camera_name = resolve_translation(camera.translations, "en").name if resolve_translation(camera.translations, "en") else None
         return CameraResponse(
@@ -127,7 +143,7 @@ class CameraService:
             name_fr=resolve_translation(camera.translations, "fr").name if resolve_translation(camera.translations, "fr") else None,
             name=camera_name_translation.name if camera_name_translation else (fallback_camera_name or str(camera.id)),
             location_id=camera.location_id,
-            location_name=location_translation.value if location_translation else camera.location.name_en,
+            location_name=location_translation.name if location_translation else (fallback_location_name or str(camera.location_id)),
             codec=camera.codec,
             resolution=camera.resolution,
             height=camera.height,

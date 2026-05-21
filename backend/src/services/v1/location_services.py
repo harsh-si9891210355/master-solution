@@ -11,17 +11,11 @@ from src.utils.translation import resolve_translation
 
 
 def _build_location_response(location: Location, language: str) -> LocationResponse:
-    name_translation = resolve_translation(
-        [
-            type("LocationTranslation", (), {"language": "en", "value": location.name_en})(),
-            type("LocationTranslation", (), {"language": "es", "value": location.name_es})(),
-            type("LocationTranslation", (), {"language": "fr", "value": location.name_fr})(),
-        ],
-        language,
-    )
+    name_translation = resolve_translation(location.translations, language)
+    fallback_translation = resolve_translation(location.translations, "en")
     return LocationResponse(
         id=location.id,
-        name=name_translation.value if name_translation else location.name_en,
+        name=name_translation.name if name_translation else (fallback_translation.name if fallback_translation else str(location.id)),
     )
 
 
@@ -38,4 +32,3 @@ def get_location_details(db: Session, location_id: int, language: str) -> Locati
 def get_all_location_details(db: Session, language: str) -> list[LocationResponse]:
     locations = get_all_locations(db)
     return [_build_location_response(location, language) for location in locations]
-
