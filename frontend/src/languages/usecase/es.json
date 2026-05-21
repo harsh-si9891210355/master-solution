@@ -70,6 +70,20 @@
                 "name_en_required":        "El nombre en inglés es obligatorio",
                 "description_en_required": "La descripción en inglés es obligatoria"
             }
+        },
+        "modal": {
+            "title": "Seleccionar Casos de Uso",
+            "subtitle": "Elija los casos de uso activos para {{name}}.",
+            "subtitle_empty": "Elija los casos de uso activos para esta cámara.",
+            "loading": "Cargando casos de uso...",
+            "load_error": "No se pudieron cargar los casos de uso.",
+            "empty": "No hay casos de uso activos disponibles.",
+            "cancel": "Cancelar",
+            "save": "Guardar Casos de Uso",
+            "success_title": "Casos de Uso Actualizados",
+            "success_message": "Los casos de uso de la cámara se actualizaron correctamente.",
+            "error_title": "Error al Actualizar",
+            "error_message": "No se pudieron actualizar los casos de uso de la cámara."
         }
     }
 }

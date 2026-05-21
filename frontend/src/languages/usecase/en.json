@@ -70,6 +70,20 @@
                 "name_en_required":        "Name (English) is required",
                 "description_en_required": "Description (English) is required"
             }
+        },
+        "modal": {
+            "title": "Select Usecases",
+            "subtitle": "Choose the active usecases for {{name}}.",
+            "subtitle_empty": "Choose the active usecases for this camera.",
+            "loading": "Loading usecases...",
+            "load_error": "Failed to load usecases.",
+            "empty": "No active usecases available.",
+            "cancel": "Cancel",
+            "save": "Save Usecases",
+            "success_title": "Usecases Updated",
+            "success_message": "Camera usecases were updated successfully.",
+            "error_title": "Update Failed",
+            "error_message": "Unable to update camera usecases."
         }
     }
 }
