@@ -8,18 +8,10 @@ from src.schemas.usecase import (
     UseCaseCreate,
     UseCaseDeleteResponse,
     UseCaseStatusUpdate,
-    LinkedCamerasResponse
+    LinkedCamerasResponse,
 )
-from src.services.v1.usecase_services import (
-    get_all_usecase_details,
-    get_usecase_details,
-    create_or_update_usecase_details,
-    delete_usecase_details,
-    change_usecase_status_details,
-    get_linked_cameras_details
-)
+from src.services.v1.usecase_services import UseCaseService
 from src.utils.auth.auth import require_permission
-
 
 router = APIRouter()
 
@@ -41,9 +33,11 @@ def create_or_update_usecase(
     db: Session = Depends(get_db),
     usecase_id: int | None = None,
 ) -> UseCaseResponse:
+    ''' Create a new usecase or update an existing usecase '''
 
-    return create_or_update_usecase_details(
-        db=db,
+    service = UseCaseService(db)
+
+    return service.create_or_update_usecase_details(
         payload=payload,
         language=request.state.lang,
         usecase_id=usecase_id,
@@ -64,18 +58,20 @@ def get_usecases(
     request: Request,
     db: Session = Depends(get_db),
     usecase_id: int | None = None,
-):
+) -> UseCasesResponse | UseCaseResponse:
+    ''' Fetch all usecases or a specific usecase by id '''
+
+    service = UseCaseService(db)
+
     if usecase_id is not None:
-        return get_usecase_details(
-            db,
+        return service.get_usecase_details(
             usecase_id,
             request.state.lang,
         )
-    else:
-        return get_all_usecase_details(
-                db,
-                request.state.lang,
-            )
+
+    return service.get_all_usecase_details(
+        request.state.lang,
+    )
 
 
 @router.delete(
@@ -86,11 +82,13 @@ def get_usecases(
 def delete_usecase(
     usecase_id: int,
     db: Session = Depends(get_db),
-):
-    delete_usecase_details(db, usecase_id)
+) -> UseCaseDeleteResponse:
+    ''' Delete a usecase by id '''
 
-    return UseCaseDeleteResponse(
-        message="Usecase deleted successfully",
+    service = UseCaseService(db)
+
+    return service.delete_usecase_details(
+        usecase_id,
     )
 
 
@@ -104,23 +102,33 @@ def change_usecase_status(
     payload: UseCaseStatusUpdate,
     request: Request,
     db: Session = Depends(get_db),
-):
-    return change_usecase_status_details(
-        db,
+) -> UseCaseResponse:
+    ''' Enable or disable a usecase '''
+
+    service = UseCaseService(db)
+
+    return service.change_usecase_status_details(
         usecase_id,
         payload.status,
         request.state.lang,
     )
 
 
-@router.get("/{usecase_id}/linked-cameras")
+@router.get(
+    "/{usecase_id}/linked-cameras",
+    response_model=LinkedCamerasResponse,
+    dependencies=[Depends(require_permission("usecase:read"))],
+)
 def get_linked_cameras(
     usecase_id: int,
     request: Request,
     db: Session = Depends(get_db),
-):
-    return get_linked_cameras_details(
-        db,
+) -> LinkedCamerasResponse:
+    ''' Fetch all cameras linked to a specific usecase '''
+
+    service = UseCaseService(db)
+
+    return service.get_linked_cameras_details(
         usecase_id,
         request.state.lang,
     )
