@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
 from src.schemas.usecase import (
+    CommonFailureResponse,
     UseCaseResponse,
     UseCasesResponse,
     UseCaseCreate,
@@ -18,13 +19,13 @@ router = APIRouter()
 
 @router.post(
     "",
-    response_model=UseCaseResponse,
+    response_model=UseCaseResponse | CommonFailureResponse,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(require_permission("usecase:create"))],
 )
 @router.post(
     "/{usecase_id}",
-    response_model=UseCaseResponse,
+    response_model=UseCaseResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("usecase:update"))],
 )
 def create_or_update_usecase(
@@ -32,7 +33,7 @@ def create_or_update_usecase(
     payload: UseCaseCreate,
     db: Session = Depends(get_db),
     usecase_id: int | None = None,
-) -> UseCaseResponse:
+):
     ''' Create a new usecase or update an existing usecase '''
 
     service = UseCaseService(db)
@@ -46,19 +47,19 @@ def create_or_update_usecase(
 
 @router.get(
     "",
-    response_model=UseCasesResponse,
+    response_model=UseCasesResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("usecase:read"))],
 )
 @router.get(
     "/{usecase_id}",
-    response_model=UseCaseResponse,
+    response_model=UseCaseResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("usecase:read"))],
 )
 def get_usecases(
     request: Request,
     db: Session = Depends(get_db),
     usecase_id: int | None = None,
-) -> UseCasesResponse | UseCaseResponse:
+):
     ''' Fetch all usecases or a specific usecase by id '''
 
     service = UseCaseService(db)
@@ -76,13 +77,13 @@ def get_usecases(
 
 @router.delete(
     "/{usecase_id}",
-    response_model=UseCaseDeleteResponse,
+    response_model=UseCaseDeleteResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("usecase:delete"))],
 )
 def delete_usecase(
     usecase_id: int,
     db: Session = Depends(get_db),
-) -> UseCaseDeleteResponse:
+):
     ''' Delete a usecase by id '''
 
     service = UseCaseService(db)
@@ -94,7 +95,7 @@ def delete_usecase(
 
 @router.patch(
     "/{usecase_id}/status",
-    response_model=UseCaseResponse,
+    response_model=UseCaseResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("usecase:update"))],
 )
 def change_usecase_status(
@@ -102,7 +103,7 @@ def change_usecase_status(
     payload: UseCaseStatusUpdate,
     request: Request,
     db: Session = Depends(get_db),
-) -> UseCaseResponse:
+):
     ''' Enable or disable a usecase '''
 
     service = UseCaseService(db)
@@ -116,14 +117,14 @@ def change_usecase_status(
 
 @router.get(
     "/{usecase_id}/linked-cameras",
-    response_model=LinkedCamerasResponse,
+    response_model=LinkedCamerasResponse | CommonFailureResponse,
     dependencies=[Depends(require_permission("usecase:read"))],
 )
 def get_linked_cameras(
     usecase_id: int,
     request: Request,
     db: Session = Depends(get_db),
-) -> LinkedCamerasResponse:
+):
     ''' Fetch all cameras linked to a specific usecase '''
 
     service = UseCaseService(db)
