@@ -67,8 +67,16 @@ class CamerasResponse(BaseModel):
     cameras: list[CameraResponse]
 
 
-class CameraDeleteResponse(BaseModel):
-    message: str
+class CameraDeleteSuccessResponse(BaseModel):
+    code: int = 200
+    message: str = "Camera deleted successfully"
 
 class CameraStatusUpdate(BaseModel):
     status: bool
+
+class UpdateCameraUseCaseRequest(BaseModel):
+    usecases: list[CameraUseCaseAssignment]
+
+class CommonFailureResponse(BaseModel):
+    code: int = 500
+    message: str

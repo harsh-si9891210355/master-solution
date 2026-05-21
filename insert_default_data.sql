@@ -68,6 +68,25 @@ WHERE NOT EXISTS (
     WHERE ut.language_code = 'en'
     AND ut.name = seed.name_en
 );
+INSERT INTO usecases (status)
+SELECT true
+FROM (
+    VALUES
+        ('Walking in No Walking Zone'),
+        ('Driver Lacking Awareness of People'),
+        ('Not Wearing Full PPE'),
+        ('Sleeping in Working Zone'),
+        ('Carrying Cell Phone in the Working Zone'),
+        ('Speeding'),
+        ('Goods Obstructing the Working Zone'),
+        ('Leaving the Working Zone')
+) AS seed(name_en)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM usecase_translations ut
+    WHERE ut.language_code = 'en'
+    AND ut.name = seed.name_en
+);
 
 INSERT INTO usecase_translations (usecase_id, language_code, name, description)
 SELECT
@@ -79,11 +98,13 @@ FROM (
     VALUES
         (
             'Walking in No Walking Zone',
+            'Walking in No Walking Zone',
             'en',
             'Walking in No Walking Zone',
             'Detected a person walking in a restricted no-walking zone.'
         ),
         (
+            'Walking in No Walking Zone',
             'Walking in No Walking Zone',
             'es',
             'Caminando en zona no permitida para peatones',
@@ -91,11 +112,13 @@ FROM (
         ),
         (
             'Walking in No Walking Zone',
+            'Walking in No Walking Zone',
             'fr',
             'Marche dans une zone interdite aux pietons',
             'Une personne a ete detectee en train de marcher dans une zone interdite aux pietons.'
         ),
         (
+            'Driver Lacking Awareness of People',
             'Driver Lacking Awareness of People',
             'en',
             'Driver Lacking Awareness of People',
@@ -103,11 +126,13 @@ FROM (
         ),
         (
             'Driver Lacking Awareness of People',
+            'Driver Lacking Awareness of People',
             'es',
             'Conductor sin atencion a las personas',
             'Se detecto un conductor que no presta atencion a las personas cercanas.'
         ),
         (
+            'Driver Lacking Awareness of People',
             'Driver Lacking Awareness of People',
             'fr',
             'Conducteur manquant de vigilance envers les personnes',
@@ -115,11 +140,13 @@ FROM (
         ),
         (
             'Not Wearing Full PPE',
+            'Not Wearing Full PPE',
             'en',
             'Not Wearing Full PPE',
             'Detected a person not wearing the required full personal protective equipment.'
         ),
         (
+            'Not Wearing Full PPE',
             'Not Wearing Full PPE',
             'es',
             'No lleva el EPP completo',
@@ -127,11 +154,13 @@ FROM (
         ),
         (
             'Not Wearing Full PPE',
+            'Not Wearing Full PPE',
             'fr',
             'Ne porte pas l''EPI complet',
             'Une personne ne portant pas l''equipement de protection individuelle complet requis a ete detectee.'
         ),
         (
+            'Sleeping in Working Zone',
             'Sleeping in Working Zone',
             'en',
             'Sleeping in Working Zone',
@@ -139,11 +168,13 @@ FROM (
         ),
         (
             'Sleeping in Working Zone',
+            'Sleeping in Working Zone',
             'es',
             'Durmiendo en la zona de trabajo',
             'Se detecto a una persona durmiendo dentro de la zona de trabajo.'
         ),
         (
+            'Sleeping in Working Zone',
             'Sleeping in Working Zone',
             'fr',
             'Dormir dans la zone de travail',
@@ -151,11 +182,13 @@ FROM (
         ),
         (
             'Carrying Cell Phone in the Working Zone',
+            'Carrying Cell Phone in the Working Zone',
             'en',
             'Carrying Cell Phone in the Working Zone',
             'Detected a person carrying or using a cell phone in the working zone.'
         ),
         (
+            'Carrying Cell Phone in the Working Zone',
             'Carrying Cell Phone in the Working Zone',
             'es',
             'Llevando telefono movil en la zona de trabajo',
@@ -163,11 +196,13 @@ FROM (
         ),
         (
             'Carrying Cell Phone in the Working Zone',
+            'Carrying Cell Phone in the Working Zone',
             'fr',
             'Transport d''un telephone portable dans la zone de travail',
             'Une personne transportant ou utilisant un telephone portable dans la zone de travail a ete detectee.'
         ),
         (
+            'Speeding',
             'Speeding',
             'en',
             'Speeding',
@@ -175,11 +210,13 @@ FROM (
         ),
         (
             'Speeding',
+            'Speeding',
             'es',
             'Exceso de velocidad',
             'Se detecto un vehiculo circulando por encima del limite de velocidad permitido.'
         ),
         (
+            'Speeding',
             'Speeding',
             'fr',
             'Exces de vitesse',
@@ -187,11 +224,13 @@ FROM (
         ),
         (
             'Goods Obstructing the Working Zone',
+            'Goods Obstructing the Working Zone',
             'en',
             'Goods Obstructing the Working Zone',
             'Detected goods or materials blocking the working zone.'
         ),
         (
+            'Goods Obstructing the Working Zone',
             'Goods Obstructing the Working Zone',
             'es',
             'Mercancias obstruyendo la zona de trabajo',
@@ -199,11 +238,13 @@ FROM (
         ),
         (
             'Goods Obstructing the Working Zone',
+            'Goods Obstructing the Working Zone',
             'fr',
             'Marchandises obstruant la zone de travail',
             'Des marchandises ou materiaux bloquant la zone de travail ont ete detectes.'
         ),
         (
+            'Leaving the Working Zone',
             'Leaving the Working Zone',
             'en',
             'Leaving the Working Zone',
@@ -211,16 +252,23 @@ FROM (
         ),
         (
             'Leaving the Working Zone',
+            'Leaving the Working Zone',
             'es',
             'Saliendo de la zona de trabajo',
             'Se detecto a una persona saliendo de la zona de trabajo designada.'
         ),
         (
             'Leaving the Working Zone',
+            'Leaving the Working Zone',
             'fr',
             'Quitter la zone de travail',
             'Une personne quittant la zone de travail designee a ete detectee.'
         )
+) AS seed(name_en, language_code, name, description)
+JOIN usecase_translations source_en
+    ON source_en.language_code = 'en'
+    AND source_en.name = seed.name_en
+JOIN usecases uc ON uc.id = source_en.usecase_id
 ) AS seed(name_en, language_code, name, description)
 JOIN usecase_translations source_en
     ON source_en.language_code = 'en'
@@ -240,9 +288,6 @@ VALUES
 ON CONFLICT (name_en) DO NOTHING;
 
 INSERT INTO cameras (
-    name_en,
-    name_es,
-    name_fr,
     locationid,
     codec,
     resolution,
@@ -253,9 +298,6 @@ INSERT INTO cameras (
     last_modified_at
 )
 SELECT
-    seed.name,
-    seed.name,
-    seed.name,
     l.id,
     seed.codec,
     seed.resolution,
@@ -266,14 +308,14 @@ SELECT
     NOW()
 FROM (
     VALUES
-        ('Front Gate Camera 01', 'Front Gate', 'H.264', '1920x1080', 3.5, '5', 'rtsp://visionx/front-gate-cam-01'),
-        ('Entry Gate Camera 01', 'Entry Gate', 'H.265', '1280x720', 4.0, '5', 'rtsp://visionx/entry-gate-cam-01'),
-        ('Exit Gate Camera 01', 'Exit Gate', 'H.264', '1920x1080', 3.8, '5', 'rtsp://visionx/exit-gate-cam-01'),
-        ('Zone A Camera 01', 'Zone A', 'H.265', '2560x1440', 5.5, '10', 'rtsp://visionx/zone-a-cam-01'),
-        ('Zone B Camera 01', 'Zone B', 'H.265', '2560x1440', 5.5, '10', 'rtsp://visionx/zone-b-cam-01'),
-        ('Loading Bay Camera 01', 'Loading Bay', 'H.264', '1920x1080', 4.2, '8', 'rtsp://visionx/loading-bay-cam-01'),
-        ('Parking Area Camera 01', 'Parking Area', 'H.264', '1280x720', 6.0, '5', 'rtsp://visionx/parking-area-cam-01')
-) AS seed(name, location_name_en, codec, resolution, height, fps, rtspurl)
+        ('Front Gate Camera 01', 'Front Gate Camera 01', 'Front Gate Camera 01', 'Front Gate', 'H.264', '1920x1080', 3.5, '5', 'rtsp://visionx/front-gate-cam-01'),
+        ('Entry Gate Camera 01', 'Entry Gate Camera 01', 'Entry Gate Camera 01', 'Entry Gate', 'H.265', '1280x720', 4.0, '5', 'rtsp://visionx/entry-gate-cam-01'),
+        ('Exit Gate Camera 01', 'Exit Gate Camera 01', 'Exit Gate Camera 01', 'Exit Gate', 'H.264', '1920x1080', 3.8, '5', 'rtsp://visionx/exit-gate-cam-01'),
+        ('Zone A Camera 01', 'Zone A Camera 01', 'Zone A Camera 01', 'Zone A', 'H.265', '2560x1440', 5.5, '10', 'rtsp://visionx/zone-a-cam-01'),
+        ('Zone B Camera 01', 'Zone B Camera 01', 'Zone B Camera 01', 'Zone B', 'H.265', '2560x1440', 5.5, '10', 'rtsp://visionx/zone-b-cam-01'),
+        ('Loading Bay Camera 01', 'Loading Bay Camera 01', 'Loading Bay Camera 01', 'Loading Bay', 'H.264', '1920x1080', 4.2, '8', 'rtsp://visionx/loading-bay-cam-01'),
+        ('Parking Area Camera 01', 'Parking Area Camera 01', 'Parking Area Camera 01', 'Parking Area', 'H.264', '1280x720', 6.0, '5', 'rtsp://visionx/parking-area-cam-01')
+) AS seed(name_en, name_es, name_fr, location_name_en, codec, resolution, height, fps, rtspurl)
 JOIN locations l ON l.name_en = seed.location_name_en
 CROSS JOIN LATERAL (
     SELECT id FROM users ORDER BY id LIMIT 1
@@ -281,8 +323,40 @@ CROSS JOIN LATERAL (
 WHERE NOT EXISTS (
     SELECT 1
     FROM cameras c
-    WHERE c.name_en = seed.name
+    WHERE c.rtspurl = seed.rtspurl
 );
+
+INSERT INTO camera_translations (camera_id, language_code, name)
+SELECT
+    c.id,
+    seed.language_code,
+    seed.name
+FROM (
+    VALUES
+        ('rtsp://visionx/front-gate-cam-01', 'en', 'Front Gate Camera 01'),
+        ('rtsp://visionx/front-gate-cam-01', 'es', 'Front Gate Camera 01'),
+        ('rtsp://visionx/front-gate-cam-01', 'fr', 'Front Gate Camera 01'),
+        ('rtsp://visionx/entry-gate-cam-01', 'en', 'Entry Gate Camera 01'),
+        ('rtsp://visionx/entry-gate-cam-01', 'es', 'Entry Gate Camera 01'),
+        ('rtsp://visionx/entry-gate-cam-01', 'fr', 'Entry Gate Camera 01'),
+        ('rtsp://visionx/exit-gate-cam-01', 'en', 'Exit Gate Camera 01'),
+        ('rtsp://visionx/exit-gate-cam-01', 'es', 'Exit Gate Camera 01'),
+        ('rtsp://visionx/exit-gate-cam-01', 'fr', 'Exit Gate Camera 01'),
+        ('rtsp://visionx/zone-a-cam-01', 'en', 'Zone A Camera 01'),
+        ('rtsp://visionx/zone-a-cam-01', 'es', 'Zone A Camera 01'),
+        ('rtsp://visionx/zone-a-cam-01', 'fr', 'Zone A Camera 01'),
+        ('rtsp://visionx/zone-b-cam-01', 'en', 'Zone B Camera 01'),
+        ('rtsp://visionx/zone-b-cam-01', 'es', 'Zone B Camera 01'),
+        ('rtsp://visionx/zone-b-cam-01', 'fr', 'Zone B Camera 01'),
+        ('rtsp://visionx/loading-bay-cam-01', 'en', 'Loading Bay Camera 01'),
+        ('rtsp://visionx/loading-bay-cam-01', 'es', 'Loading Bay Camera 01'),
+        ('rtsp://visionx/loading-bay-cam-01', 'fr', 'Loading Bay Camera 01'),
+        ('rtsp://visionx/parking-area-cam-01', 'en', 'Parking Area Camera 01'),
+        ('rtsp://visionx/parking-area-cam-01', 'es', 'Parking Area Camera 01'),
+        ('rtsp://visionx/parking-area-cam-01', 'fr', 'Parking Area Camera 01')
+) AS seed(rtspurl, language_code, name)
+JOIN cameras c ON c.rtspurl = seed.rtspurl
+ON CONFLICT (camera_id, language_code) DO NOTHING;
 
 INSERT INTO camera_usecase (cameraid, usecaseid, is_active)
 SELECT
@@ -300,7 +374,8 @@ FROM (
         ('Loading Bay Camera 01', 'Goods Obstructing the Working Zone', true),
         ('Parking Area Camera 01', 'Speeding', true)
 ) AS seed(camera_name, usecase_name_en, is_active)
-JOIN cameras c ON c.name_en = seed.camera_name
+JOIN camera_translations ct ON ct.language_code = 'en' AND ct.name = seed.camera_name
+JOIN cameras c ON c.id = ct.camera_id
 JOIN usecase_translations ut ON ut.language_code = 'en' AND ut.name = seed.usecase_name_en
 JOIN usecases uc ON uc.id = ut.usecase_id
 ON CONFLICT (cameraid, usecaseid) DO NOTHING;

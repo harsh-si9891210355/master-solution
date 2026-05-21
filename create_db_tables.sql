@@ -56,9 +56,6 @@ CREATE TABLE IF NOT EXISTS users_token (
 
 CREATE TABLE IF NOT EXISTS cameras (
     id SERIAL PRIMARY KEY,
-    name_en VARCHAR(255) NOT NULL,
-    name_es VARCHAR(255),
-    name_fr VARCHAR(255),
     locationid INTEGER NOT NULL REFERENCES locations(id),
     codec VARCHAR(255) NOT NULL,
     resolution VARCHAR(255) NOT NULL,
@@ -69,6 +66,14 @@ CREATE TABLE IF NOT EXISTS cameras (
     status_modified_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     last_modified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS camera_translations (
+    id SERIAL PRIMARY KEY,
+    camera_id INTEGER NOT NULL REFERENCES cameras(id) ON DELETE CASCADE,
+    language_code VARCHAR(10) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    CONSTRAINT uq_camera_translation_language UNIQUE (camera_id, language_code)
 );
 
 CREATE TABLE IF NOT EXISTS camera_usecase (
@@ -163,7 +168,9 @@ CREATE INDEX IF NOT EXISTS idx_roles_code ON roles(code);
 CREATE INDEX IF NOT EXISTS idx_usecase_translations_usecase_id ON usecase_translations(usecase_id);
 CREATE INDEX IF NOT EXISTS idx_usecase_translations_language_code ON usecase_translations(language_code);
 CREATE INDEX IF NOT EXISTS idx_locations_name_en ON locations(name_en);
-CREATE INDEX IF NOT EXISTS idx_cameras_name_en ON cameras(name_en);
+CREATE INDEX IF NOT EXISTS idx_camera_translations_camera_id ON camera_translations(camera_id);
+CREATE INDEX IF NOT EXISTS idx_camera_translations_language_code ON camera_translations(language_code);
+CREATE INDEX IF NOT EXISTS idx_camera_translations_name ON camera_translations(name);
 CREATE INDEX IF NOT EXISTS idx_cameras_locationid ON cameras(locationid);
 CREATE INDEX IF NOT EXISTS idx_cameras_status_modified_by ON cameras(status_modified_by);
 CREATE INDEX IF NOT EXISTS idx_events_camera_id ON events(camera_id);

@@ -37,3 +37,7 @@ export interface CameraFormValues {
     status_modified_by: number;
     usecases:           CameraUsecase[];
 }
+
+export interface UpdateCameraUseCaseRequest {
+    usecases: CameraUsecase[];
+}
