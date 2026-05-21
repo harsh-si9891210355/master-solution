@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, status, Body
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
@@ -7,6 +7,7 @@ from src.schemas.usecase import (
     UseCaseResponse,
     UseCasesResponse,
     UseCaseCreate,
+    UseCaseUpdate,
     UseCaseDeleteResponse,
     UseCaseStatusUpdate,
     LinkedCamerasResponse,
@@ -19,31 +20,44 @@ router = APIRouter()
 
 @router.post(
     "",
-    response_model=UseCaseResponse | CommonFailureResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_permission("usecase:create"))],
+    response_model=(
+        UseCaseResponse
+        | CommonFailureResponse
+    ),
+    dependencies=[
+        Depends(require_permission("usecase:create"))
+    ],
 )
 @router.post(
     "/{usecase_id}",
-    response_model=UseCaseResponse | CommonFailureResponse,
-    dependencies=[Depends(require_permission("usecase:update"))],
+    response_model=(
+        UseCaseResponse
+        | CommonFailureResponse
+    ),
+    dependencies=[
+        Depends(require_permission("usecase:update"))
+    ],
 )
 def create_or_update_usecase(
     request: Request,
-    payload: UseCaseCreate,
     db: Session = Depends(get_db),
     usecase_id: int | None = None,
+    payload: dict = Body(...),
 ):
-    ''' Create a new usecase or update an existing usecase '''
 
-    service = UseCaseService(db)
+    usecase_service = UseCaseService(db)
 
-    return service.create_or_update_usecase_details(
-        payload=payload,
+    validated_payload = (
+        UseCaseUpdate.model_validate(payload)
+        if usecase_id is not None
+        else UseCaseCreate.model_validate(payload)
+    )
+
+    return usecase_service.create_or_update_usecase_details(
+        payload=validated_payload,
         language=request.state.lang,
         usecase_id=usecase_id,
     )
-
 
 @router.get(
     "",

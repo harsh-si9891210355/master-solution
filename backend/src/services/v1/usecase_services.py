@@ -17,6 +17,7 @@ from src.schemas.usecase import (
     UseCaseResponse,
     UseCasesResponse,
     UseCaseCreate,
+    UseCaseUpdate,
     LinkedCamerasResponse,
     LinkedCameraResponse,
     CommonFailureResponse,
@@ -242,11 +243,11 @@ class UseCaseService:
 
             status=usecase.status,
         )
-
+    
     @handle_db_exceptions
     def create_or_update_usecase_details(
         self,
-        payload: UseCaseCreate,
+        payload: UseCaseCreate | UseCaseUpdate,
         language: str = "en",
         usecase_id: int | None = None,
     ) -> UseCaseResponse | CommonFailureResponse:
@@ -268,20 +269,79 @@ class UseCaseService:
             updated_usecase = update_usecase(
                 self.db,
                 usecase=usecase,
-                status=payload.status,
+                status=(
+                    payload.status
+                    if payload.status is not None
+                    else usecase.status
+                ),
             )
 
             self._sync_usecase_translations(
                 updated_usecase,
-                name_en=payload.name_en,
-                name_es=payload.name_es,
-                name_fr=payload.name_fr,
-                description_en=payload.description_en,
-                description_es=payload.description_es,
-                description_fr=payload.description_fr,
+
+                name_en=(
+                    payload.name_en
+                    if payload.name_en is not None
+                    else self._get_translation_value(
+                        updated_usecase.translations,
+                        "en",
+                        "name",
+                    )
+                ),
+
+                name_es=(
+                    payload.name_es
+                    if payload.name_es is not None
+                    else self._get_translation_value(
+                        updated_usecase.translations,
+                        "es",
+                        "name",
+                    )
+                ),
+
+                name_fr=(
+                    payload.name_fr
+                    if payload.name_fr is not None
+                    else self._get_translation_value(
+                        updated_usecase.translations,
+                        "fr",
+                        "name",
+                    )
+                ),
+
+                description_en=(
+                    payload.description_en
+                    if payload.description_en is not None
+                    else self._get_translation_value(
+                        updated_usecase.translations,
+                        "en",
+                        "description",
+                    )
+                ),
+
+                description_es=(
+                    payload.description_es
+                    if payload.description_es is not None
+                    else self._get_translation_value(
+                        updated_usecase.translations,
+                        "es",
+                        "description",
+                    )
+                ),
+
+                description_fr=(
+                    payload.description_fr
+                    if payload.description_fr is not None
+                    else self._get_translation_value(
+                        updated_usecase.translations,
+                        "fr",
+                        "description",
+                    )
+                ),
             )
 
             self.db.commit()
+
             self.db.refresh(updated_usecase)
 
             return self._build_usecase_response(
@@ -306,13 +366,14 @@ class UseCaseService:
         )
 
         self.db.commit()
+
         self.db.refresh(usecase)
 
         return self._build_usecase_response(
             usecase,
             language,
         )
-
+    
     @handle_db_exceptions
     def get_usecase_details(
         self,
