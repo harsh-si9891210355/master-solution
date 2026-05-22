@@ -24,6 +24,7 @@ from src.schemas.camera import (
     CameraResponse,
     CameraUpdate,
     CameraUseCaseResponse,
+    CamerasResponse,
     CommonFailureResponse,
     UpdateCameraUseCaseRequest,
 )
@@ -304,10 +305,10 @@ class CameraService:
         self,
         db: Session, 
         language: str = "en"
-    ) -> list[CameraResponse] | CommonFailureResponse:
+    ) -> CamerasResponse | CommonFailureResponse:
         
         cameras = get_all_cameras(db)
-        return [self._build_camera_response(camera, language) for camera in cameras]
+        return CamerasResponse(cameras=[self._build_camera_response(camera, language) for camera in cameras])
 
     @handle_db_exceptions
     def delete_camera_details(
