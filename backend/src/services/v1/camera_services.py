@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 import logging
 from functools import wraps
 from typing import Callable
@@ -25,7 +26,6 @@ from src.schemas.camera import (
     CameraUpdate,
     CameraUseCaseResponse,
     CamerasResponse,
-    CommonFailureResponse,
     UpdateCameraUseCaseRequest,
 )
 from src.utils.translation import resolve_translation
@@ -47,30 +47,21 @@ def handle_db_exceptions(func: Callable):
 
             logger.exception(error)
 
-            return CommonFailureResponse(
-                code=409,
-                message="Duplicate/constraint violation",
-            )
+            raise HTTPException(404, "Camera not found")
 
         except SQLAlchemyError as error:
             self.db.rollback()
 
             logger.exception(error)
 
-            return CommonFailureResponse(
-                code=500,
-                message="Database Error Occurred",
-            )
+            raise HTTPException(500, "Database Error Occurred")
 
         except Exception as error:
             self.db.rollback()
 
             logger.exception(error)
 
-            return CommonFailureResponse(
-                code=500,
-                message="Internal Server Error",
-            )
+            raise HTTPException(500, "Internal Server Error")
 
     return wrapper
 
@@ -167,24 +158,24 @@ class CameraService:
         db: Session, 
         payload: CameraCreate, 
         language: str = "en"
-    ) -> CameraResponse | CommonFailureResponse:
+    ) -> CameraResponse:
         
         existing_camera = get_camera_by_name(db, payload.name_en, payload.name_es, payload.name_fr)
         if existing_camera:
-            return CommonFailureResponse(code=400, message="Camera name already exists")
+            raise HTTPException(400, "Camera name already exists")
 
         location = get_location_by_id(db, payload.location_id)
         if not location:
-            return CommonFailureResponse(code=400, message="Invalid location id")
+            raise HTTPException(400, "Invalid location id")
 
         user = get_user_by_id(db, payload.status_modified_by)
         if not user:
-            return CommonFailureResponse(code=400, message="Invalid status_modified_by user id")
+            raise HTTPException(400, "Invalid status_modified_by user id")
 
         for usecase_assignment in payload.usecases:
             usecase = get_usecase_by_id(db, usecase_assignment.usecase_id)
             if not usecase:
-                return CommonFailureResponse(code=400, message=f"Invalid usecase id: {usecase_assignment.usecase_id}")
+                raise HTTPException(400, f"Invalid usecase id: {usecase_assignment.usecase_id}")
 
         camera = create_camera(
             db,
@@ -226,11 +217,11 @@ class CameraService:
         camera_id: int,
         payload: CameraUpdate,
         language: str = "en",
-    ) -> CameraResponse | CommonFailureResponse:
+    ) -> CameraResponse:
         
         camera = get_camera_by_id(db, camera_id)
         if not camera:
-            return CommonFailureResponse(code=404, message="Camera not found")
+            raise HTTPException(404, "Camera not found")
 
         # Check if any of the localized names are being changed
         current_name_en = resolve_translation(camera.translations, "en").name if resolve_translation(camera.translations, "en") else None
@@ -245,23 +236,23 @@ class CameraService:
                 payload.name_fr if payload.name_fr is not None else current_name_fr,
             )
             if existing_camera and existing_camera.id != camera.id:
-                return CommonFailureResponse(code=400, message="Camera name already exists")
+                raise HTTPException(400, "Camera name already exists")
 
         if payload.location_id is not None:
             location = get_location_by_id(db, payload.location_id)
             if not location:
-                return CommonFailureResponse(code=400, message="Invalid location id")
+                raise HTTPException(400, "Invalid location id")
 
         if payload.status_modified_by is not None:
             user = get_user_by_id(db, payload.status_modified_by)
             if not user:
-                return CommonFailureResponse(code=400, message="Invalid status_modified_by user id")
+                raise HTTPException(400, "Invalid status_modified_by user id")
 
         if payload.usecases is not None:
             for usecase_assignment in payload.usecases:
                 usecase = get_usecase_by_id(db, usecase_assignment.usecase_id)
                 if not usecase:
-                    return CommonFailureResponse(code=400, message=f"Invalid usecase id: {usecase_assignment.usecase_id}")
+                    raise HTTPException(400, f"Invalid usecase id: {usecase_assignment.usecase_id}")
 
         updated_camera = update_camera(
             db,
@@ -309,11 +300,11 @@ class CameraService:
         db: Session, 
         camera_id: int, 
         language: str = "en"
-    ) -> CameraResponse | CommonFailureResponse:
+    ) -> CameraResponse:
         
         camera = get_camera_by_id(db, camera_id)
         if not camera:
-            return CommonFailureResponse(code=404, message="Camera not found")
+            raise HTTPException(404, "Camera not found")
         return self._build_camera_response(camera, language)
         
     @handle_db_exceptions
@@ -321,7 +312,7 @@ class CameraService:
         self,
         db: Session, 
         language: str = "en"
-    ) -> CamerasResponse | CommonFailureResponse:
+    ) -> CamerasResponse:
         
         cameras = get_all_cameras(db)
         return CamerasResponse(cameras=[self._build_camera_response(camera, language) for camera in cameras])
@@ -331,11 +322,11 @@ class CameraService:
         self,
         db: Session, 
         camera_id: int
-    ) -> CameraDeleteSuccessResponse | CommonFailureResponse:
+    ) -> CameraDeleteSuccessResponse:
 
         camera = get_camera_by_id(db, camera_id)
         if not camera:
-            return CommonFailureResponse(code=404, message="Camera not found")
+            raise HTTPException(404, "Camera not found")
         delete_camera(db, camera=camera)
         return CameraDeleteSuccessResponse(code=200, message="Camera deleted successfully")
         
@@ -347,12 +338,12 @@ class CameraService:
         camera_id: int,
         status: bool,
         language: str,
-    ) -> CameraResponse | CommonFailureResponse:
+    ) -> CameraResponse:
         
         camera = get_camera_by_id(db, camera_id)
 
         if not camera:
-            return CommonFailureResponse(code=404, message="Camera not found")
+            raise HTTPException(404, "Camera not found")
 
         camera.status = status
 
@@ -369,17 +360,17 @@ class CameraService:
         camera_id: int,
         payload: UpdateCameraUseCaseRequest,
         language: str,
-    ) -> CameraResponse | CommonFailureResponse:
+    ) -> CameraResponse:
         
         camera = get_camera_by_id(db, camera_id)
 
         if not camera:
-            return CommonFailureResponse(code=404, message="Camera not found")
+            raise HTTPException(404, "Camera not found")
 
         for usecase_assignment in payload.usecases:
             usecase = get_usecase_by_id(db, usecase_assignment.usecase_id)
             if not usecase:
-                return CommonFailureResponse(code=400, message=f"Invalid usecase id: {usecase_assignment.usecase_id}")
+                raise HTTPException(400, f"Invalid usecase id: {usecase_assignment.usecase_id}")
         camera.camera_usecases = [
             CameraUsecase(
                 usecase_id=usecase_assignment.usecase_id,

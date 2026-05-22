@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -108,6 +110,16 @@ async def pydantic_validation_exception_handler(
         }
     )
 
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "code": exc.status_code,
+            "message": exc.detail
+        }
+    )
+    
 def start():
     logger.info("Initializing the FastAPI Backend Server...")
     uvicorn.run(app, host=settings.host, port=settings.port)

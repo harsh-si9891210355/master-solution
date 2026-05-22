@@ -21,12 +21,12 @@ router = APIRouter()
 
 @router.post(
     "", 
-    response_model=CameraResponse | CommonFailureResponse,
+    response_model=CameraResponse,
     dependencies=[Depends(require_permission("camera:create"))]
 )
 @router.post(
     "/{camera_id}", 
-    response_model=CameraResponse | CommonFailureResponse,
+    response_model=CameraResponse,
     dependencies=[Depends(require_permission("camera:update"))]
 )
 def create_or_update_camera(
@@ -48,12 +48,12 @@ def create_or_update_camera(
 
 @router.get(
     "", 
-    response_model=CamerasResponse | CommonFailureResponse, 
+    response_model=CamerasResponse, 
     dependencies=[Depends(require_permission("camera:read"))]
 )
 @router.get(
     "/{camera_id}", 
-    response_model=CameraResponse | CommonFailureResponse, 
+    response_model=CameraResponse, 
     dependencies=[Depends(require_permission("camera:read"))]
 )
 def get_cameras(
@@ -72,7 +72,7 @@ def get_cameras(
 
 @router.delete(
     "/{camera_id}", 
-    response_model=CameraDeleteSuccessResponse | CommonFailureResponse, 
+    response_model=CameraDeleteSuccessResponse, 
     dependencies=[Depends(require_permission("camera:delete"))]
 )
 def delete_camera(
@@ -87,7 +87,7 @@ def delete_camera(
 
 @router.patch(
     "/{camera_id}/status",
-    response_model=CameraResponse | CommonFailureResponse,
+    response_model=CameraResponse,
     dependencies=[Depends(require_permission("camera:update"))],
 )
 def change_camera_status(
@@ -109,7 +109,7 @@ def change_camera_status(
 
 @router.post(
     "/{camera_id}/update_camera_usecase",
-    response_model=CameraResponse | CommonFailureResponse,
+    response_model=CameraResponse,
     dependencies=[Depends(require_permission("camera:update"))],
 )
 def update_camera_usecase(
