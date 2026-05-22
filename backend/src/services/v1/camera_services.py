@@ -298,17 +298,17 @@ class CameraService:
         camera = get_camera_by_id(db, camera_id)
         if not camera:
             return CommonFailureResponse(code=404, message="Camera not found")
-        return CamerasResponse(cameras=[self._build_camera_response(camera, language)])
+        return self._build_camera_response(camera, language)
         
     @handle_db_exceptions
     def get_all_camera_details(
         self,
         db: Session, 
         language: str = "en"
-    ) -> list[CameraResponse] | CommonFailureResponse:
+    ) -> CamerasResponse | CommonFailureResponse:
         
         cameras = get_all_cameras(db)
-        return [self._build_camera_response(camera, language) for camera in cameras]
+        return CamerasResponse(cameras=[self._build_camera_response(camera, language) for camera in cameras])
 
     @handle_db_exceptions
     def delete_camera_details(
