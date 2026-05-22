@@ -1,0 +1,113 @@
+{
+  "dashboard": {
+    "title": "Panel de Analítica",
+    "subtitle": "Todas las cámaras · Todos los casos de uso",
+    "footer": "© 2025 SentinelAI · Todos los derechos reservados · Versión v2.0.0",
+    "presets": {
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "7d": "Últimos 7 días",
+      "30d": "Últimos 30 días",
+      "90d": "Últimos 90 días",
+      "custom": "Personalizado"
+    },
+    "filters": {
+      "from": "Desde",
+      "to": "Hasta",
+      "arrow": "→",
+      "badge_icon": "📅",
+      "range_summary": "{{from}} → {{to}}",
+      "days_short": "{{count}}d"
+    },
+    "ai_banner": {
+      "icon": "🤖",
+      "label": "Información de IA",
+      "badge": "Impulsado por GPT",
+      "message": "Mostrando {{count}} día(s) de datos ({{from}} → {{to}}). {{insight}}"
+    },
+    "kpis": {
+      "total_events": "Eventos Totales",
+      "daily_avg": "Promedio Diario",
+      "this_week": "Esta Semana",
+      "this_month": "Este Mes",
+      "selected_days": "{{count}}d seleccionados",
+      "events_per_day": "eventos por día",
+      "vs_last_week": "{{percent}} vs semana anterior",
+      "vs_last_month": "{{percent}} vs mes anterior"
+    },
+    "comparison": {
+      "period_activity": "Actividad del Período",
+      "weekly_activity": "Actividad Semanal",
+      "monthly_activity": "Actividad Mensual",
+      "this_period": "Este período",
+      "prior_period": "Período anterior",
+      "this_week": "Esta semana",
+      "last_week": "Semana anterior",
+      "this_month": "Este mes",
+      "last_month": "Mes anterior",
+      "up_arrow": "▲",
+      "down_arrow": "▼",
+      "diff_vs_period": "{{direction}}{{amount}} vs {{period}}"
+    },
+    "panels": {
+      "monthly_trend": {
+        "title": "Tendencia de Eventos - Mensual",
+        "subtitle": "Cada punto representa el total de eventos de ese mes para el período seleccionado."
+      },
+      "peak_hours": {
+        "title": "Horas de Mayor Actividad",
+        "subtitle": "Cada barra representa eventos en esa hora. El ámbar resalta los períodos más activos.",
+        "legend_peak": "Horas pico (8-10am, 5-7pm)",
+        "legend_normal": "Horas normales",
+        "hour_suffix": "h"
+      },
+      "event_types": {
+        "title": "Distribución por Tipo de Evento",
+        "subtitle": "Las porciones más grandes indican eventos más frecuentes. Pase el cursor para ver el total exacto."
+      }
+    },
+    "event_types": {
+      "motion_detected": "Movimiento Detectado",
+      "intrusion_alert": "Alerta de Intrusión",
+      "face_recognized": "Rostro Reconocido",
+      "vehicle_detected": "Vehículo Detectado",
+      "loitering": "Merodeo",
+      "ppe_violation": "Incumplimiento de EPP"
+    },
+    "top_cameras": {
+      "title": "Cámaras Principales por Eventos",
+      "subtitle": "La longitud de la barra muestra eventos frente a la cámara principal. El porcentaje muestra la participación del total de las cinco principales.",
+      "top_badge": "TOP",
+      "location_prefix": "📍",
+      "events_label": "eventos",
+      "share_of_top_five": "{{percent}} del top-5",
+      "summary": {
+        "top_five_events": "Eventos del top 5",
+        "most_active_camera": "Cámara más activa",
+        "need_attention": "Requieren atención",
+        "need_attention_value": "{{count}} fuera de línea"
+      }
+    },
+    "status": {
+      "title": "Estado de Cámaras",
+      "online": "En línea",
+      "offline": "Fuera de línea",
+      "online_indicator": "● En línea",
+      "offline_indicator": "● Fuera de línea",
+      "online_ratio": "Proporción en línea",
+      "total_devices": "{{count}} dispositivos totales",
+      "online_icon": "📹",
+      "offline_icon": "📷"
+    },
+    "reactions": {
+      "title": "Reacciones a Eventos",
+      "total_responses": "{{count}} respuestas totales",
+      "likes": "Total de Me gusta",
+      "dislikes": "Total de No me gusta",
+      "neutral": "Total Neutral",
+      "likes_icon": "👍",
+      "dislikes_icon": "👎",
+      "neutral_icon": "😐"
+    }
+  }
+}
