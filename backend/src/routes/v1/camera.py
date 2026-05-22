@@ -67,7 +67,7 @@ def get_cameras(
     if camera_id is not None:
         return camera_service.get_camera_details(db, camera_id, request.state.lang)
     else:
-        return CamerasResponse(cameras=camera_service.get_all_camera_details(db, request.state.lang))
+        return camera_service.get_all_camera_details(db, request.state.lang)
 
 
 @router.delete(

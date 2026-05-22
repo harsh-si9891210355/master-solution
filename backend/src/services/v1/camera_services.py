@@ -24,6 +24,7 @@ from src.schemas.camera import (
     CameraResponse,
     CameraUpdate,
     CameraUseCaseResponse,
+    CamerasResponse,
     CommonFailureResponse,
     UpdateCameraUseCaseRequest,
 )
@@ -297,7 +298,7 @@ class CameraService:
         camera = get_camera_by_id(db, camera_id)
         if not camera:
             return CommonFailureResponse(code=404, message="Camera not found")
-        return self._build_camera_response(camera, language)
+        return CamerasResponse(cameras=[self._build_camera_response(camera, language)])
         
     @handle_db_exceptions
     def get_all_camera_details(
