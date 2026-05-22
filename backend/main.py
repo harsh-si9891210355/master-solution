@@ -1,6 +1,9 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 
 from config.logging_config import LoggingConfig
 from src.core.config import settings
@@ -67,6 +70,43 @@ async def on_startup() -> None:
 
     app.state.translation_service = translation_service
 
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError
+):
+    errors = []
+
+    for err in exc.errors():
+        errors.append({
+            "field": ".".join(str(x) for x in err["loc"]),
+            "message": err["msg"]
+        })
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "code": 422,
+            "message": "Validation Error",
+            "errors": errors
+        }
+    )
+
+
+@app.exception_handler(ValidationError)
+async def pydantic_validation_exception_handler(
+    request: Request,
+    exc: ValidationError
+):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "code": 422,
+            "message": "Pydantic Validation Error",
+            "errors": exc.errors()
+        }
+    )
 
 def start():
     logger.info("Initializing the FastAPI Backend Server...")
