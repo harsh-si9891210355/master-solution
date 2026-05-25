@@ -3,6 +3,24 @@
     "title": "Panel de Analítica",
     "subtitle": "Todas las cámaras · Todos los casos de uso",
     "footer": "© 2025 SentinelAI · Todos los derechos reservados · Versión v2.0.0",
+    "layout": {
+      "customize": "Personalizar diseño",
+      "done": "Finalizar edición",
+      "save": "Guardar diseño",
+      "reset": "Restablecer diseño",
+      "helper": "Arrastre las secciones del panel para reordenarlas y luego guarde el diseño para conservarlo en este navegador.",
+      "drag_label": "Arrastrar"
+    },
+    "widgets": {
+      "ai_insight": "Información de IA",
+      "kpis": "KPIs",
+      "comparisons": "Comparaciones",
+      "monthly_trend": "Tendencia mensual",
+      "peak_hours": "Horas pico",
+      "event_types": "Tipos de evento",
+      "top_cameras": "Cámaras principales",
+      "status_reactions": "Estado y reacciones"
+    },
     "presets": {
       "today": "Hoy",
       "yesterday": "Ayer",
@@ -65,6 +83,16 @@
         "title": "Distribución por Tipo de Evento",
         "subtitle": "Las porciones más grandes indican eventos más frecuentes. Pase el cursor para ver el total exacto."
       }
+    },
+    "drilldown": {
+      "all_months": "Todos los meses",
+      "back": "Volver",
+      "reset": "Restablecer",
+      "month_hint": "Haga clic en un mes para profundizar en los conteos de eventos por semana.",
+      "week_hint": "Mostrando los totales semanales de {{month}}. Haga clic en una semana para ver la actividad diaria.",
+      "day_hint": "Mostrando los totales diarios de {{week}}. Haga clic en un día para ver la actividad por hora.",
+      "hour_hint": "Mostrando la actividad por hora de {{day}}.",
+      "week_label": "Semana {{index}}"
     },
     "event_types": {
       "motion_detected": "Movimiento Detectado",

@@ -1,42 +1,27 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-    Area,
-    AreaChart,
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from "recharts";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useNsTranslation } from "@/hooks/Usetranslation";
+import { EventTrendPanel } from "@/pages/dashboard/EventTrendPanel";
+import type { DashboardWidget, DashboardWidgetId, DateFilterBarProps, DateRange, Preset } from "@/pages/dashboard/types";
 
 import data from "./dashboardData.json";
 import "../../assets/Style/dashboard.css";
 
-type Preset = "today" | "yesterday" | "7d" | "30d" | "90d" | "custom";
-
-interface DateRange {
-    from: string;
-    to: string;
-}
-
-interface FilterBarProps {
-    locale: string;
-    preset: Preset;
-    range: DateRange;
-    onPreset: (preset: Preset) => void;
-    onRange: (range: DateRange) => void;
-    t: (key: string, options?: Record<string, unknown>) => string;
-}
-
 const DAY_MS = 86_400_000;
+const DASHBOARD_LAYOUT_STORAGE_KEY = "master-solution-dashboard-layout-v1";
 const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"] as const;
+const PRESETS: Preset[] = ["today", "yesterday", "7d", "30d", "90d", "custom"];
+const DEFAULT_WIDGET_ORDER: DashboardWidgetId[] = [
+    "ai_insight",
+    "kpis",
+    "comparisons",
+    "monthly_trend",
+    "peak_hours",
+    "event_types",
+    "top_cameras",
+    "status_reactions",
+];
 
 const EVENT_TYPE_KEY_MAP: Record<string, string> = {
     "Motion Detected": "motion_detected",
@@ -74,6 +59,20 @@ const getPresetRange = (preset: Preset): DateRange => {
         default:
             return { from: minus(29), to: today };
     }
+};
+
+const normalizeLocale = (language: string) => {
+    const lang = language?.slice(0, 2);
+    return lang === "es" ? "es-ES" : "en-US";
+};
+
+const isValidWidgetOrder = (value: unknown): value is DashboardWidgetId[] => {
+    if (!Array.isArray(value) || value.length !== DEFAULT_WIDGET_ORDER.length) {
+        return false;
+    }
+
+    const expected = new Set(DEFAULT_WIDGET_ORDER);
+    return value.every((item) => typeof item === "string" && expected.has(item as DashboardWidgetId));
 };
 
 function AnimatedNumber({ locale, target }: { locale: string; target: number }) {
@@ -141,9 +140,7 @@ const CustomTooltip = ({
     );
 };
 
-const PRESETS: Preset[] = ["today", "yesterday", "7d", "30d", "90d", "custom"];
-
-function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: FilterBarProps) {
+function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: DateFilterBarProps) {
     const formatDate = (value: string) =>
         new Intl.DateTimeFormat(locale, {
             day: "2-digit",
@@ -211,23 +208,72 @@ function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: FilterBa
     );
 }
 
-const normalizeLocale = (language: string) => {
-    const lang = language?.slice(0, 2);
-    return lang === "es" ? "es-ES" : "en-US";
-};
-
 export const Dashboard = () => {
     const { t, i18n } = useNsTranslation("dashboard");
     const locale = normalizeLocale(i18n.language);
 
     const [preset, setPreset] = useState<Preset>("30d");
     const [range, setRange] = useState<DateRange>(getPresetRange("30d"));
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [draggedWidgetId, setDraggedWidgetId] = useState<DashboardWidgetId | null>(null);
+    const [widgetOrder, setWidgetOrder] = useState<DashboardWidgetId[]>(DEFAULT_WIDGET_ORDER);
+    const [hasUnsavedLayout, setHasUnsavedLayout] = useState(false);
+
+    useEffect(() => {
+        try {
+            const savedLayout = window.localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY);
+            if (!savedLayout) {
+                return;
+            }
+
+            const parsed = JSON.parse(savedLayout);
+            if (isValidWidgetOrder(parsed)) {
+                setWidgetOrder(parsed);
+            }
+        } catch {
+            window.localStorage.removeItem(DASHBOARD_LAYOUT_STORAGE_KEY);
+        }
+    }, []);
 
     const handlePreset = (nextPreset: Preset) => {
         setPreset(nextPreset);
         if (nextPreset !== "custom") {
             setRange(getPresetRange(nextPreset));
         }
+    };
+
+    const saveLayout = () => {
+        window.localStorage.setItem(DASHBOARD_LAYOUT_STORAGE_KEY, JSON.stringify(widgetOrder));
+        setHasUnsavedLayout(false);
+        setIsEditMode(false);
+    };
+
+    const resetLayout = () => {
+        setWidgetOrder(DEFAULT_WIDGET_ORDER);
+        window.localStorage.removeItem(DASHBOARD_LAYOUT_STORAGE_KEY);
+        setHasUnsavedLayout(false);
+        setDraggedWidgetId(null);
+    };
+
+    const moveWidget = (sourceId: DashboardWidgetId, targetId: DashboardWidgetId) => {
+        if (sourceId === targetId) {
+            return;
+        }
+
+        setWidgetOrder((currentOrder) => {
+            const nextOrder = [...currentOrder];
+            const sourceIndex = nextOrder.indexOf(sourceId);
+            const targetIndex = nextOrder.indexOf(targetId);
+
+            if (sourceIndex === -1 || targetIndex === -1) {
+                return currentOrder;
+            }
+
+            const [movedWidget] = nextOrder.splice(sourceIndex, 1);
+            nextOrder.splice(targetIndex, 0, movedWidget);
+            return nextOrder;
+        });
+        setHasUnsavedLayout(true);
     };
 
     const formatNumber = (value: number) => value.toLocaleString(locale);
@@ -279,9 +325,11 @@ export const Dashboard = () => {
             weekPrev: scaledValue(data.comparisonMetrics.weekVsLastWeek.lastWeek),
             monthCur: scaledValue(data.comparisonMetrics.monthVsLastMonth.thisMonth),
             monthPrev: scaledValue(data.comparisonMetrics.monthVsLastMonth.lastMonth),
-            eventsByMonth: data.eventsByMonth.map((item) => ({
+            eventsByMonth: data.eventsByMonth.map((item, index) => ({
                 ...item,
-                month: localizeMonth(item.month),
+                label: localizeMonth(item.month),
+                monthIndex: index,
+                monthKey: item.month,
                 events: scaledValue(item.events),
             })),
             eventsByHour: data.eventsByHour.map((item) => ({
@@ -398,130 +446,116 @@ export const Dashboard = () => {
         insight: data.summary.aiInsight,
     });
 
-    return (
-        <div className="db-page">
-            <div className="db-header">
-                <div className="db-header-top">
+    const widgetsById: Record<DashboardWidgetId, DashboardWidget> = {
+        ai_insight: {
+            id: "ai_insight",
+            title: t("widgets.ai_insight"),
+            span: "full",
+            content: (
+                <div className="db-ai-banner">
+                    <div className="db-ai-icon">{t("ai_banner.icon")}</div>
                     <div>
-                        <h1>{t("title")}</h1>
-                        <p>{t("subtitle")}</p>
-                    </div>
-                </div>
-                <DateFilterBar
-                    locale={locale}
-                    preset={preset}
-                    range={range}
-                    onPreset={handlePreset}
-                    onRange={(nextRange) => {
-                        setRange(nextRange);
-                        setPreset("custom");
-                    }}
-                    t={t}
-                />
-            </div>
-
-            <div className="db-ai-banner">
-                <div className="db-ai-icon">{t("ai_banner.icon")}</div>
-                <div>
-                    <div className="db-ai-label-row">
-                        <span className="db-ai-label">{t("ai_banner.label")}</span>
-                        <span className="db-ai-badge">{t("ai_banner.badge")}</span>
-                    </div>
-                    <p className="db-ai-text">
-                        <TypedText text={aiInsightText} />
-                    </p>
-                </div>
-            </div>
-
-            <div className="db-grid-4">
-                {kpiCards.map((card) => (
-                    <div key={card.label} className="db-kpi-card" style={{ border: `1px solid ${card.accent}22` }}>
-                        <div className="db-kpi-orb" style={{ background: `${card.accent}18` }} />
-                        <p className="db-kpi-label">{card.label}</p>
-                        <p className="db-kpi-value">
-                            <AnimatedNumber locale={locale} target={card.value} />
-                        </p>
-                        <p className="db-kpi-sub" style={{ color: card.accent }}>
-                            {card.sub}
+                        <div className="db-ai-label-row">
+                            <span className="db-ai-label">{t("ai_banner.label")}</span>
+                            <span className="db-ai-badge">{t("ai_banner.badge")}</span>
+                        </div>
+                        <p className="db-ai-text">
+                            <TypedText text={aiInsightText} />
                         </p>
                     </div>
-                ))}
-            </div>
-
-            <div className="db-grid-3">
-                {comparisonItems.map((item) => {
-                    const ratio = item.current === 0 ? 0 : Math.round((item.previous / item.current) * 100);
-                    const isUp = item.current >= item.previous;
-
-                    return (
-                        <div key={item.label} className="db-cmp-card" style={{ border: `1px solid ${item.accent}22` }}>
-                            <div className="db-cmp-accent-bar" style={{ background: item.accent }} />
-                            <p className="db-cmp-title">{item.label}</p>
-                            <p className="db-cmp-period-label">{item.currentLabel}</p>
-                            <div className="db-cmp-cur-row">
-                                <span className="db-cmp-cur-val">{formatNumber(item.current)}</span>
-                                <span className={`db-cmp-pct-badge ${isUp ? "up" : "down"}`}>
-                                    {isUp ? t("comparison.up_arrow") : t("comparison.down_arrow")} {formatPercent(item.percent)}
-                                </span>
-                            </div>
-                            <div className="db-cmp-bars">
-                                <div className="db-cmp-bar-row">
-                                    <span className="db-cmp-bar-period">{item.currentLabel}</span>
-                                    <div className="db-cmp-bar-track">
-                                        <div className="db-cmp-bar-fill current" style={{ background: item.accent }} />
-                                    </div>
-                                    <span className="db-cmp-bar-num bright">{formatNumber(item.current)}</span>
-                                </div>
-                                <div className="db-cmp-bar-row">
-                                    <span className="db-cmp-bar-period dim">{item.previousLabel}</span>
-                                    <div className="db-cmp-bar-track">
-                                        <div className="db-cmp-bar-fill previous" style={{ width: `${ratio}%` }} />
-                                    </div>
-                                    <span className="db-cmp-bar-num dim">{formatNumber(item.previous)}</span>
-                                </div>
-                            </div>
-                            <p className="db-cmp-diff">
-                                {t("comparison.diff_vs_period", {
-                                    direction: isUp ? "+" : "-",
-                                    amount: formatNumber(Math.abs(item.current - item.previous)),
-                                    period: item.previousLabel.toLowerCase(),
-                                })}
+                </div>
+            ),
+        },
+        kpis: {
+            id: "kpis",
+            title: t("widgets.kpis"),
+            span: "full",
+            content: (
+                <div className="db-grid-4 db-grid-4--compact">
+                    {kpiCards.map((card) => (
+                        <div key={card.label} className="db-kpi-card" style={{ border: `1px solid ${card.accent}22` }}>
+                            <div className="db-kpi-orb" style={{ background: `${card.accent}18` }} />
+                            <p className="db-kpi-label">{card.label}</p>
+                            <p className="db-kpi-value">
+                                <AnimatedNumber locale={locale} target={card.value} />
+                            </p>
+                            <p className="db-kpi-sub" style={{ color: card.accent }}>
+                                {card.sub}
                             </p>
                         </div>
-                    );
-                })}
-            </div>
+                    ))}
+                </div>
+            ),
+        },
+        comparisons: {
+            id: "comparisons",
+            title: t("widgets.comparisons"),
+            span: "full",
+            content: (
+                <div className="db-grid-3 db-grid-3--compact">
+                    {comparisonItems.map((item) => {
+                        const ratio = item.current === 0 ? 0 : Math.round((item.previous / item.current) * 100);
+                        const isUp = item.current >= item.previous;
 
-            <div className="db-panel db-trend-panel">
-                <p className="db-panel-title">{t("panels.monthly_trend.title")}</p>
-                <p className="db-panel-sub">{t("panels.monthly_trend.subtitle")}</p>
-                <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart data={scaled.eventsByMonth} margin={{ top: 5, right: 10, bottom: 0, left: -10 }}>
-                        <defs>
-                            <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.35} />
-                                <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                        <XAxis dataKey="month" tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <Tooltip content={<CustomTooltip locale={locale} />} />
-                        <Area
-                            type="monotone"
-                            dataKey="events"
-                            stroke="#F59E0B"
-                            strokeWidth={2.5}
-                            fill="url(#grad1)"
-                            dot={{ fill: "#F59E0B", r: 3 }}
-                            activeDot={{ r: 5 }}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-
-            <div className="db-grid-2">
-                <div className="db-panel">
+                        return (
+                            <div key={item.label} className="db-cmp-card" style={{ border: `1px solid ${item.accent}22` }}>
+                                <div className="db-cmp-accent-bar" style={{ background: item.accent }} />
+                                <p className="db-cmp-title">{item.label}</p>
+                                <p className="db-cmp-period-label">{item.currentLabel}</p>
+                                <div className="db-cmp-cur-row">
+                                    <span className="db-cmp-cur-val">{formatNumber(item.current)}</span>
+                                    <span className={`db-cmp-pct-badge ${isUp ? "up" : "down"}`}>
+                                        {isUp ? t("comparison.up_arrow") : t("comparison.down_arrow")} {formatPercent(item.percent)}
+                                    </span>
+                                </div>
+                                <div className="db-cmp-bars">
+                                    <div className="db-cmp-bar-row">
+                                        <span className="db-cmp-bar-period">{item.currentLabel}</span>
+                                        <div className="db-cmp-bar-track">
+                                            <div className="db-cmp-bar-fill current" style={{ background: item.accent }} />
+                                        </div>
+                                        <span className="db-cmp-bar-num bright">{formatNumber(item.current)}</span>
+                                    </div>
+                                    <div className="db-cmp-bar-row">
+                                        <span className="db-cmp-bar-period dim">{item.previousLabel}</span>
+                                        <div className="db-cmp-bar-track">
+                                            <div className="db-cmp-bar-fill previous" style={{ width: `${ratio}%` }} />
+                                        </div>
+                                        <span className="db-cmp-bar-num dim">{formatNumber(item.previous)}</span>
+                                    </div>
+                                </div>
+                                <p className="db-cmp-diff">
+                                    {t("comparison.diff_vs_period", {
+                                        direction: isUp ? "+" : "-",
+                                        amount: formatNumber(Math.abs(item.current - item.previous)),
+                                        period: item.previousLabel.toLowerCase(),
+                                    })}
+                                </p>
+                            </div>
+                        );
+                    })}
+                </div>
+            ),
+        },
+        monthly_trend: {
+            id: "monthly_trend",
+            title: t("widgets.monthly_trend"),
+            span: "full",
+            content: (
+                <EventTrendPanel
+                    locale={locale}
+                    monthlyData={scaled.eventsByMonth}
+                    hourlyTemplate={data.eventsByHour}
+                    t={t}
+                />
+            ),
+        },
+        peak_hours: {
+            id: "peak_hours",
+            title: t("widgets.peak_hours"),
+            span: "half",
+            content: (
+                <div className="db-panel db-widget-panel">
                     <p className="db-panel-title">{t("panels.peak_hours.title")}</p>
                     <p className="db-panel-sub">{t("panels.peak_hours.subtitle")}</p>
                     <ResponsiveContainer width="100%" height={180}>
@@ -555,8 +589,14 @@ export const Dashboard = () => {
                         ))}
                     </div>
                 </div>
-
-                <div className="db-panel">
+            ),
+        },
+        event_types: {
+            id: "event_types",
+            title: t("widgets.event_types"),
+            span: "half",
+            content: (
+                <div className="db-panel db-widget-panel">
                     <p className="db-panel-title">{t("panels.event_types.title")}</p>
                     <p className="db-panel-sub">{t("panels.event_types.subtitle")}</p>
                     <div className="db-donut-wrap">
@@ -595,10 +635,14 @@ export const Dashboard = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div className="db-grid-21">
-                <div className="db-panel">
+            ),
+        },
+        top_cameras: {
+            id: "top_cameras",
+            title: t("widgets.top_cameras"),
+            span: "half",
+            content: (
+                <div className="db-panel db-widget-panel">
                     <p className="db-panel-title">{t("top_cameras.title")}</p>
                     <p className="db-panel-sub">{t("top_cameras.subtitle")}</p>
                     <div className="db-cam-summary-grid">
@@ -656,8 +700,14 @@ export const Dashboard = () => {
                         );
                     })}
                 </div>
-
-                <div className="db-panel">
+            ),
+        },
+        status_reactions: {
+            id: "status_reactions",
+            title: t("widgets.status_reactions"),
+            span: "half",
+            content: (
+                <div className="db-panel db-widget-panel">
                     <p className="db-panel-title">{t("status.title")}</p>
                     <p className="db-panel-sub">{t("status.total_devices", { count: data.deviceStatus.total })}</p>
 
@@ -740,6 +790,116 @@ export const Dashboard = () => {
                         </div>
                     </div>
                 </div>
+            ),
+        },
+    };
+
+    const orderedWidgets = widgetOrder.map((widgetId) => widgetsById[widgetId]);
+
+    return (
+        <div className="db-page">
+            <div className="db-header">
+                <div className="db-header-top">
+                    <div>
+                        <h1>{t("title")}</h1>
+                        <p>{t("subtitle")}</p>
+                    </div>
+
+                    <div className="db-layout-actions">
+                        <button
+                            type="button"
+                            className={`db-layout-btn ${isEditMode ? "is-active" : ""}`}
+                            onClick={() => {
+                                setIsEditMode((current) => !current);
+                                setDraggedWidgetId(null);
+                            }}
+                        >
+                            {isEditMode ? t("layout.done") : t("layout.customize")}
+                        </button>
+                        <button
+                            type="button"
+                            className="db-layout-btn db-layout-btn--secondary"
+                            onClick={saveLayout}
+                            disabled={!hasUnsavedLayout}
+                        >
+                            {t("layout.save")}
+                        </button>
+                        <button
+                            type="button"
+                            className="db-layout-btn db-layout-btn--ghost"
+                            onClick={resetLayout}
+                        >
+                            {t("layout.reset")}
+                        </button>
+                    </div>
+                </div>
+
+                {isEditMode && (
+                    <p className="db-layout-help">
+                        {t("layout.helper")}
+                    </p>
+                )}
+
+                <DateFilterBar
+                    locale={locale}
+                    preset={preset}
+                    range={range}
+                    onPreset={handlePreset}
+                    onRange={(nextRange) => {
+                        setRange(nextRange);
+                        setPreset("custom");
+                    }}
+                    t={t}
+                />
+            </div>
+
+            <div className={`db-widget-grid ${isEditMode ? "is-editing" : ""}`}>
+                {orderedWidgets.map((widget) => (
+                    <section
+                        key={widget.id}
+                        className={`db-widget-shell db-widget-shell--${widget.span}${draggedWidgetId === widget.id ? " is-dragging" : ""}`}
+                        draggable={isEditMode}
+                        onDragStart={(event) => {
+                            if (!isEditMode) {
+                                return;
+                            }
+
+                            setDraggedWidgetId(widget.id);
+                            event.dataTransfer.effectAllowed = "move";
+                            event.dataTransfer.setData("text/plain", widget.id);
+                        }}
+                        onDragOver={(event) => {
+                            if (!isEditMode || !draggedWidgetId || draggedWidgetId === widget.id) {
+                                return;
+                            }
+
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = "move";
+                        }}
+                        onDrop={(event) => {
+                            if (!isEditMode) {
+                                return;
+                            }
+
+                            event.preventDefault();
+                            const sourceId = event.dataTransfer.getData("text/plain") as DashboardWidgetId;
+                            moveWidget(sourceId, widget.id);
+                            setDraggedWidgetId(null);
+                        }}
+                        onDragEnd={() => setDraggedWidgetId(null)}
+                    >
+                        {isEditMode && (
+                            <div className="db-widget-editor">
+                                <div className="db-widget-editor__handle">
+                                    <span className="db-widget-editor__grip" aria-hidden="true">⋮⋮</span>
+                                    <span>{widget.title}</span>
+                                </div>
+                                <span className="db-widget-editor__hint">{t("layout.drag_label")}</span>
+                            </div>
+                        )}
+                        {widget.content}
+                    </section>
+                ))}
             </div>
 
             <div className="db-footer">{t("footer")}</div>

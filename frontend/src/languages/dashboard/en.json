@@ -3,6 +3,24 @@
     "title": "Analytics Dashboard",
     "subtitle": "All cameras · All use cases",
     "footer": "© 2025 SentinelAI · All rights reserved · Version v2.0.0",
+    "layout": {
+      "customize": "Customize Layout",
+      "done": "Done Editing",
+      "save": "Save Layout",
+      "reset": "Reset Layout",
+      "helper": "Drag the dashboard sections to reorder them, then save your layout to keep it in this browser.",
+      "drag_label": "Drag to move"
+    },
+    "widgets": {
+      "ai_insight": "AI Insight",
+      "kpis": "KPIs",
+      "comparisons": "Comparisons",
+      "monthly_trend": "Monthly Trend",
+      "peak_hours": "Peak Hours",
+      "event_types": "Event Types",
+      "top_cameras": "Top Cameras",
+      "status_reactions": "Status and Reactions"
+    },
     "presets": {
       "today": "Today",
       "yesterday": "Yesterday",
@@ -65,6 +83,16 @@
         "title": "Event Type Breakdown",
         "subtitle": "Bigger slices indicate more frequent events. Hover for the exact count."
       }
+    },
+    "drilldown": {
+      "all_months": "All months",
+      "back": "Back",
+      "reset": "Reset",
+      "month_hint": "Click a month to drill down into week-wise event counts.",
+      "week_hint": "Showing weekly totals for {{month}}. Click a week to view daily activity.",
+      "day_hint": "Showing day-wise totals for {{week}}. Click a day to view hourly activity.",
+      "hour_hint": "Showing hourly activity for {{day}}.",
+      "week_label": "Week {{index}}"
     },
     "event_types": {
       "motion_detected": "Motion Detected",
