@@ -5,6 +5,7 @@ import { cameraService } from './api/cameraService';
 import type { Camera } from './types/index';
 import { useToast } from '../../components/ui/ToastProvider';
 import { SelectUsecaseModal } from '../usecase/SelectUsecaseModal';
+import { LiveViewModal } from './LiveViewModal';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { FormButton } from '../../components/ui/FormButton';
@@ -17,6 +18,8 @@ export const CameraList = () => {
     const navigate    = useNavigate();
     const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
     const [isUsecaseModalVisible, setIsUsecaseModalVisible] = useState(false);
+    const [liveViewCamera, setLiveViewCamera] = useState<Camera | null>(null);
+    const [isLiveViewVisible, setIsLiveViewVisible] = useState(false);
 
     // ── Data ─────────────────────────────────────────────────────────────────
     const { data, isLoading, isError } = useQuery({
@@ -101,6 +104,11 @@ export const CameraList = () => {
         setIsUsecaseModalVisible(true);
     };
 
+    const handleOpenLiveView = (row: Camera) => {
+        setLiveViewCamera(row);
+        setIsLiveViewVisible(true);
+    };
+
     // ── Column templates ──────────────────────────────────────────────────────
     const nameTemplate = (row: Camera) => {
         const name = getLocalizedName(row);
@@ -169,6 +177,16 @@ export const CameraList = () => {
                 label=""
                 variant="ghost"
                 size="sm"
+                iconLeft="pi pi-eye"
+                ariaLabel={t('actions.view')}
+                onClick={() => handleOpenLiveView(row)}
+                disabled={!row.rtsp_url}
+                title={row.rtsp_url ? undefined : 'No RTSP URL configured'}
+            />
+            <FormButton
+                label=""
+                variant="ghost"
+                size="sm"
                 iconLeft="pi pi-pencil"
                 ariaLabel={t('actions.edit')}
                 onClick={() => navigate(`/cameras/edit/${row.id}`)}
@@ -231,6 +249,14 @@ export const CameraList = () => {
                 onHide={() => {
                     setIsUsecaseModalVisible(false);
                     setSelectedCamera(null);
+                }}
+            />
+            <LiveViewModal
+                camera={liveViewCamera}
+                visible={isLiveViewVisible}
+                onHide={() => {
+                    setIsLiveViewVisible(false);
+                    setLiveViewCamera(null);
                 }}
             />
             <div className="p-4">

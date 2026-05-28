@@ -46,6 +46,19 @@ services:
       - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: master-solution-mediamtx
+    ports:
+      - "8554:8554"   # RTSP ingest
+      - "8888:8888"   # HLS playback
+      - "8889:8889"   # WebRTC (WHEP) — browser connects here
+      - "9997:9997"   # MediaMTX HTTP API — backend uses this
+    volumes:
+      - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
+      - ./recordings:/recordings
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend

@@ -1,0 +1,54 @@
+logLevel: info
+logDestinations: [stdout]
+
+# API — used by the backend to dynamically add camera paths
+api: yes
+apiAddress: :9997
+
+# Grant unauthenticated access to publish, read, and the HTTP API.
+# By default, newer MediaMTX does not include "api" in the any-user permissions.
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+        path:
+      - action: read
+        path:
+      - action: playback
+        path:
+      - action: api
+        path:
+
+# RTSP server (ingest from IP cameras)
+rtsp: yes
+rtspAddress: :8554
+
+# HLS server (optional, for fallback playback)
+hls: yes
+hlsAddress: :8888
+hlsAlwaysRemux: no
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+
+# WebRTC server — WHEP endpoint used by the browser
+webrtc: yes
+webrtcAddress: :8889
+
+# RTMP / SRT disabled
+rtmp: no
+srt: no
+
+# Default recording settings (applied per-path when backend enables recording)
+recordFormat: fmp4
+recordPartDuration: 200ms
+recordSegmentDuration: 1h
+recordDeleteAfter: 168h
+
+# Paths are managed dynamically via the API from the backend.
+# The backend calls POST /v3/config/paths/add/camera-{id} for each camera.
+paths: {}
