@@ -269,23 +269,61 @@ JOIN usecase_translations source_en
     ON source_en.language_code = 'en'
     AND source_en.name = seed.name_en
 JOIN usecases uc ON uc.id = source_en.usecase_id
-) AS seed(name_en, language_code, name, description)
-JOIN usecase_translations source_en
-    ON source_en.language_code = 'en'
-    AND source_en.name = seed.name_en
-JOIN usecases uc ON uc.id = source_en.usecase_id
 ON CONFLICT (usecase_id, language_code) DO NOTHING;
 
-INSERT INTO locations (name_en, name_es, name_fr)
-VALUES
-    ('Front Gate', 'Puerta Frontal', 'Porte Principale'),
-    ('Entry Gate', 'Puerta de Entrada', 'Porte d''Entree'),
-    ('Exit Gate', 'Puerta de Salida', 'Porte de Sortie'),
-    ('Zone A', 'Zona A', 'Zone A'),
-    ('Zone B', 'Zona B', 'Zone B'),
-    ('Loading Bay', 'Muelle de Carga', 'Quai de Chargement'),
-    ('Parking Area', 'Area de Estacionamiento', 'Zone de Stationnement')
-ON CONFLICT (name_en) DO NOTHING;
+INSERT INTO locations
+SELECT *
+FROM (
+    VALUES
+        ('Front Gate'),
+        ('Entry Gate'),
+        ('Exit Gate'),
+        ('Zone A'),
+        ('Zone B'),
+        ('Loading Bay'),
+        ('Parking Area')
+) AS seed(name_en)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM location_translations lt
+    WHERE lt.language_code = 'en'
+    AND lt.name = seed.name_en
+);
+
+INSERT INTO location_translations (location_id, language_code, name)
+SELECT
+    l.id,
+    seed.language_code,
+    seed.name
+FROM (
+    VALUES
+        ('Front Gate', 'en', 'Front Gate'),
+        ('Front Gate', 'es', 'Puerta Frontal'),
+        ('Front Gate', 'fr', 'Porte Principale'),
+        ('Entry Gate', 'en', 'Entry Gate'),
+        ('Entry Gate', 'es', 'Puerta de Entrada'),
+        ('Entry Gate', 'fr', 'Porte d''Entree'),
+        ('Exit Gate', 'en', 'Exit Gate'),
+        ('Exit Gate', 'es', 'Puerta de Salida'),
+        ('Exit Gate', 'fr', 'Porte de Sortie'),
+        ('Zone A', 'en', 'Zone A'),
+        ('Zone A', 'es', 'Zona A'),
+        ('Zone A', 'fr', 'Zone A'),
+        ('Zone B', 'en', 'Zone B'),
+        ('Zone B', 'es', 'Zona B'),
+        ('Zone B', 'fr', 'Zone B'),
+        ('Loading Bay', 'en', 'Loading Bay'),
+        ('Loading Bay', 'es', 'Muelle de Carga'),
+        ('Loading Bay', 'fr', 'Quai de Chargement'),
+        ('Parking Area', 'en', 'Parking Area'),
+        ('Parking Area', 'es', 'Area de Estacionamiento'),
+        ('Parking Area', 'fr', 'Zone de Stationnement')
+) AS seed(name_en, language_code, name)
+JOIN location_translations source_en
+    ON source_en.language_code = 'en'
+    AND source_en.name = seed.name_en
+JOIN locations l ON l.id = source_en.location_id
+ON CONFLICT (location_id, language_code) DO NOTHING;
 
 INSERT INTO cameras (
     locationid,
@@ -316,7 +354,8 @@ FROM (
         ('Loading Bay Camera 01', 'Loading Bay Camera 01', 'Loading Bay Camera 01', 'Loading Bay', 'H.264', '1920x1080', 4.2, '8', 'rtsp://visionx/loading-bay-cam-01'),
         ('Parking Area Camera 01', 'Parking Area Camera 01', 'Parking Area Camera 01', 'Parking Area', 'H.264', '1280x720', 6.0, '5', 'rtsp://visionx/parking-area-cam-01')
 ) AS seed(name_en, name_es, name_fr, location_name_en, codec, resolution, height, fps, rtspurl)
-JOIN locations l ON l.name_en = seed.location_name_en
+JOIN location_translations lt ON lt.language_code = 'en' AND lt.name = seed.location_name_en
+JOIN locations l ON l.id = lt.location_id
 CROSS JOIN LATERAL (
     SELECT id FROM users ORDER BY id LIMIT 1
 ) u
