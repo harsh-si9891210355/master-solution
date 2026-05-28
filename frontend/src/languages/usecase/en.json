@@ -5,85 +5,87 @@
         "empty_message": "No usecases found.",
         "error_message": "Failed to load usecases.",
         "columns": {
-            "name":        "Name",
+            "name": "Name",
             "description": "Description",
-            "status":      "Status",
-            "actions":     "Actions"
+            "status": "Status",
+            "actions": "Actions"
         },
         "status": {
-            "active":   "Active",
+            "active": "Active",
             "inactive": "Inactive"
         },
         "actions": {
-            "edit":   "Edit",
-            "delete": "Delete"
+            "edit": "Edit",
+            "delete": "Delete",
+            "linked_cameras": "Linked Cameras"
         },
         "delete_dialog": {
-            "header":  "Delete Usecase",
+            "header": "Delete Usecase",
             "message": "Are you sure you want to delete usecase \"{{name}}\"?"
         },
         "toast": {
-            "created_title":          "Usecase Created",
-            "created_detail":         "The usecase was created successfully.",
-            "create_error_title":     "Create Failed",
-            "create_error_detail":    "An error occurred while creating the usecase.",
-            "updated_title":          "Usecase Updated",
-            "updated_detail":         "The usecase was updated successfully.",
-            "update_error_title":     "Update Failed",
-            "update_error_detail":    "An error occurred while updating the usecase.",
-            "deleted_title":          "Usecase Deleted",
-            "deleted_detail":         "The usecase was deleted successfully.",
-            "delete_error_title":     "Delete Failed",
-            "delete_error_detail":    "An error occurred while deleting the usecase.",
-            "status_activated_title":    "Status Activated",
-            "status_activated_detail":   "The usecase has been activated.",
-            "status_deactivated_title":  "Status Deactivated",
+            "created_title": "Usecase Created",
+            "created_detail": "The usecase was created successfully.",
+            "create_error_title": "Create Failed",
+            "create_error_detail": "An error occurred while creating the usecase.",
+            "updated_title": "Usecase Updated",
+            "updated_detail": "The usecase was updated successfully.",
+            "update_error_title": "Update Failed",
+            "update_error_detail": "An error occurred while updating the usecase.",
+            "deleted_title": "Usecase Deleted",
+            "deleted_detail": "The usecase was deleted successfully.",
+            "delete_error_title": "Delete Failed",
+            "delete_error_detail": "An error occurred while deleting the usecase.",
+            "status_activated_title": "Status Activated",
+            "status_activated_detail": "The usecase has been activated.",
+            "status_deactivated_title": "Status Deactivated",
             "status_deactivated_detail": "The usecase has been deactivated.",
-            "status_error_title":        "Status Update Failed",
-            "status_error_detail":       "An error occurred while updating the status."
+            "status_error_title": "Status Update Failed",
+            "status_error_detail": "An error occurred while updating the status."
         },
         "form": {
-            "add_title":           "Add Usecase",
-            "edit_title":          "Edit Usecase",
-            "add_subtitle":        "Fill in the details to create a new usecase.",
-            "edit_subtitle":       "Update the usecase details below.",
-            "loading":             "Loading usecase...",
-            "back":                "Back",
-            "cancel":              "Cancel",
-            "add_submit":          "Add Usecase",
-            "edit_submit":         "Update Usecase",
-            "section_name":        "Usecase Name",
+            "add_title": "Add Usecase",
+            "edit_title": "Edit Usecase",
+            "add_subtitle": "Fill in the details to create a new usecase.",
+            "edit_subtitle": "Update the usecase details below.",
+            "loading": "Loading usecase...",
+            "back": "Back",
+            "cancel": "Cancel",
+            "add_submit": "Add Usecase",
+            "edit_submit": "Update Usecase",
+            "section_name": "Usecase Name",
             "section_description": "Description",
             "fields": {
-                "name_en":        "Name (English)",
-                "name_es":        "Name (Spanish)",
+                "name_en": "Name (English)",
+                "name_es": "Name (Spanish)",
                 "description_en": "Description (English)",
                 "description_es": "Description (Spanish)"
             },
             "placeholders": {
-                "name_en":        "Enter usecase name in English",
-                "name_es":        "Auto-filled from English...",
+                "name_en": "Enter usecase name in English",
+                "name_es": "Auto-filled from English...",
                 "description_en": "Enter description in English",
                 "description_es": "Auto-filled from English..."
             },
             "validation": {
-                "name_en_required":        "Name (English) is required",
+                "name_en_required": "Name (English) is required",
                 "description_en_required": "Description (English) is required"
             }
         },
-        "modal": {
-            "title": "Select Usecases",
-            "subtitle": "Choose the active usecases for {{name}}.",
-            "subtitle_empty": "Choose the active usecases for this camera.",
-            "loading": "Loading usecases...",
-            "load_error": "Failed to load usecases.",
-            "empty": "No active usecases available.",
-            "cancel": "Cancel",
-            "save": "Save Usecases",
-            "success_title": "Usecases Updated",
-            "success_message": "Camera usecases were updated successfully.",
-            "error_title": "Update Failed",
-            "error_message": "Unable to update camera usecases."
+        "linked_cameras_modal": {
+            "title": "Linked Cameras",
+            "subtitle": "Cameras assigned to usecase \"{{name}}\"",
+            "loading": "Loading cameras...",
+            "load_error": "Failed to load linked cameras.",
+            "empty": "No cameras are linked to this usecase.",
+            "close": "Close",
+            "col_id": "Camera ID",
+            "col_name": "Camera Name",
+            "col_status": "Status",
+            "status_active": "Active",
+            "status_inactive": "Inactive",
+            "unnamed": "Unnamed Camera",
+            "count": "{{count}} camera(s) linked"
         }
     }
 }

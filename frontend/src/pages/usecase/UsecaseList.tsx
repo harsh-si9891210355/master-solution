@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import type { Usecase } from './types/index';
 import { usecaseService } from './api/usecaseService';
+import { LinkedCamerasModal } from './Linkedcamerasmodal';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { FormButton } from '../../components/ui/FormButton';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { useToast } from '../../components/ui/ToastProvider';
 
-// ── Status toggle cell — same pattern as UsersList ────────────────────────────
+// ── Status toggle cell ────────────────────────────────────────────────────────
 interface StatusToggleCellProps {
     row:           Usecase;
     onToggle:      (id: number, status: boolean) => Promise<void>;
@@ -52,6 +53,20 @@ export const UsecaseList = () => {
     const queryClient        = useQueryClient();
     const toast              = useToast();
 
+    // ── Linked cameras modal state ────────────────────────────────────────────
+    const [linkedCamerasUsecase, setLinkedCamerasUsecase] = useState<Usecase | null>(null);
+    const [linkedCamerasVisible, setLinkedCamerasVisible] = useState(false);
+
+    const openLinkedCameras = (row: Usecase) => {
+        setLinkedCamerasUsecase(row);
+        setLinkedCamerasVisible(true);
+    };
+
+    const closeLinkedCameras = () => {
+        setLinkedCamerasVisible(false);
+        setLinkedCamerasUsecase(null);
+    };
+
     // ── Fetch ─────────────────────────────────────────────────────────────────
     const { data, isLoading, isError } = useQuery({
         queryKey: ['usecases'],
@@ -75,8 +90,8 @@ export const UsecaseList = () => {
 
         onSuccess: (_data, { status }) => {
             toast.success(
-                status ? t('toast.status_activated_title')   : t('toast.status_deactivated_title'),
-                status ? t('toast.status_activated_detail')  : t('toast.status_deactivated_detail'),
+                status ? t('toast.status_activated_title')  : t('toast.status_deactivated_title'),
+                status ? t('toast.status_activated_detail') : t('toast.status_deactivated_detail'),
             );
         },
 
@@ -148,7 +163,21 @@ export const UsecaseList = () => {
     );
 
     const actionsTemplate = (row: Usecase) => (
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+
+            {/* ── Linked cameras button ──────────────────────────── */}
+            <span title={t('actions.linked_cameras')}>
+                <FormButton
+                    label=""
+                    variant="ghost"
+                    size="sm"
+                    iconLeft="pi pi-video"
+                    ariaLabel={t('actions.linked_cameras')}
+                    onClick={() => openLinkedCameras(row)}
+                />
+            </span>
+
+            {/* ── Edit ──────────────────────────────────────────── */}
             <span title={t('actions.edit')}>
                 <FormButton
                     label=""
@@ -159,6 +188,8 @@ export const UsecaseList = () => {
                     onClick={() => navigate(`/usecases/edit/${row.id}`)}
                 />
             </span>
+
+            {/* ── Delete ────────────────────────────────────────── */}
             <span title={t('actions.delete')}>
                 <FormButton
                     label=""
@@ -169,6 +200,7 @@ export const UsecaseList = () => {
                     onClick={() => handleDelete(row)}
                 />
             </span>
+
         </div>
     );
 
@@ -177,7 +209,7 @@ export const UsecaseList = () => {
         { header: t('columns.name'),        body: nameTemplate,        sortable: true, sortField: 'name_en'        },
         { header: t('columns.description'), body: descriptionTemplate, sortable: true, sortField: 'description_en' },
         { header: t('columns.status'),      body: statusTemplate,      sortable: true, sortField: 'status'         },
-        { header: t('columns.actions'),     body: actionsTemplate,     style: { width: '10rem' }                   },
+        { header: t('columns.actions'),     body: actionsTemplate,     style: { width: '13rem' }                   },
     ];
 
     const tableHeader = (
@@ -201,6 +233,14 @@ export const UsecaseList = () => {
     return (
         <>
             <DeleteModalPopup.Host />
+
+            {/* ── Linked cameras modal ──────────────────────────────── */}
+            <LinkedCamerasModal
+                usecase={linkedCamerasUsecase}
+                visible={linkedCamerasVisible}
+                onHide={closeLinkedCameras}
+            />
+
             <div className="p-4">
                 <PrimeTable<Usecase>
                     data={data}

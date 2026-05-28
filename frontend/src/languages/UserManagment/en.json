@@ -24,6 +24,14 @@
     },
     "empty_message": "No users found.",
     "error_message": "Failed to load users.",
+    "filters": {
+      "role_label":    "Role",
+      "status_label":  "Status",
+      "all_roles":     "All Roles",
+      "all_statuses":  "All Statuses",
+      "clear":         "Clear Filters",
+      "result_count":  "{{count}} user(s) found"
+    },
     "toast": {
       "user_created_title": "User Created",
       "user_created_detail": "The new user has been added successfully.",

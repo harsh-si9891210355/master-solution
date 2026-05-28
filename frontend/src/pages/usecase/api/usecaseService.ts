@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type { Usecase, UsecaseFormValues } from '../types/index';
+import type { Usecase, UsecaseFormValues, LinkedCamera } from '../types/index';
 
 export const usecaseService = {
 
@@ -13,7 +13,7 @@ export const usecaseService = {
 
     // POST /api/v1/usecase        → create (no id)
     // POST /api/v1/usecase/:id    → update (with id)
-    saveUsecase: (data: UsecaseFormValues, id?: number) =>
+    saveUsecase: (data: UsecaseFormValues & { name_fr?: string; description_fr?: string }, id?: number) =>
         id
             ? api.post<Usecase>(`/usecase/${id}`, data)
             : api.post<Usecase>('/usecase', data),
@@ -25,4 +25,8 @@ export const usecaseService = {
     // DELETE /api/v1/usecase/:id
     deleteUsecase: (id: number) =>
         api.delete<{ message: string }>(`/usecase/${id}`),
+
+    // GET /api/v1/usecase/:id/linked-cameras  →  { cameras: LinkedCamera[] }
+    getLinkedCameras: (id: number) =>
+        api.get<{ cameras: LinkedCamera[] }>(`/usecase/${id}/linked-cameras`),
 };

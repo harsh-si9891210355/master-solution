@@ -24,6 +24,14 @@
     },
     "empty_message": "No se encontraron usuarios.",
     "error_message": "Error al cargar los usuarios.",
+    "filters": {
+      "role_label":    "Rol",
+      "status_label":  "Estado",
+      "all_roles":     "Todos los Roles",
+      "all_statuses":  "Todos los Estados",
+      "clear":         "Limpiar Filtros",
+      "result_count":  "{{count}} usuario(s) encontrado(s)"
+    },
     "toast": {
       "user_created_title": "Usuario Creado",
       "user_created_detail": "El nuevo usuario ha sido agregado correctamente.",

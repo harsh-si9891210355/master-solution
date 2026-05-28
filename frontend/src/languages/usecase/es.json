@@ -5,85 +5,87 @@
         "empty_message": "No se encontraron casos de uso.",
         "error_message": "Error al cargar los casos de uso.",
         "columns": {
-            "name":        "Nombre",
+            "name": "Nombre",
             "description": "Descripción",
-            "status":      "Estado",
-            "actions":     "Acciones"
+            "status": "Estado",
+            "actions": "Acciones"
         },
         "status": {
-            "active":   "Activo",
+            "active": "Activo",
             "inactive": "Inactivo"
         },
         "actions": {
-            "edit":   "Editar",
-            "delete": "Eliminar"
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "linked_cameras": "Cámaras Vinculadas"
         },
         "delete_dialog": {
-            "header":  "Eliminar Caso de Uso",
+            "header": "Eliminar Caso de Uso",
             "message": "¿Estás seguro de que deseas eliminar el caso de uso \"{{name}}\"?"
         },
         "toast": {
-            "created_title":          "Caso de Uso Creado",
-            "created_detail":         "El caso de uso fue creado exitosamente.",
-            "create_error_title":     "Error al Crear",
-            "create_error_detail":    "Ocurrió un error al crear el caso de uso.",
-            "updated_title":          "Caso de Uso Actualizado",
-            "updated_detail":         "El caso de uso fue actualizado exitosamente.",
-            "update_error_title":     "Error al Actualizar",
-            "update_error_detail":    "Ocurrió un error al actualizar el caso de uso.",
-            "deleted_title":          "Caso de Uso Eliminado",
-            "deleted_detail":         "El caso de uso fue eliminado exitosamente.",
-            "delete_error_title":     "Error al Eliminar",
-            "delete_error_detail":    "Ocurrió un error al eliminar el caso de uso.",
-            "status_activated_title":    "Estado Activado",
-            "status_activated_detail":   "El caso de uso ha sido activado.",
-            "status_deactivated_title":  "Estado Desactivado",
+            "created_title": "Caso de Uso Creado",
+            "created_detail": "El caso de uso fue creado exitosamente.",
+            "create_error_title": "Error al Crear",
+            "create_error_detail": "Ocurrió un error al crear el caso de uso.",
+            "updated_title": "Caso de Uso Actualizado",
+            "updated_detail": "El caso de uso fue actualizado exitosamente.",
+            "update_error_title": "Error al Actualizar",
+            "update_error_detail": "Ocurrió un error al actualizar el caso de uso.",
+            "deleted_title": "Caso de Uso Eliminado",
+            "deleted_detail": "El caso de uso fue eliminado exitosamente.",
+            "delete_error_title": "Error al Eliminar",
+            "delete_error_detail": "Ocurrió un error al eliminar el caso de uso.",
+            "status_activated_title": "Estado Activado",
+            "status_activated_detail": "El caso de uso ha sido activado.",
+            "status_deactivated_title": "Estado Desactivado",
             "status_deactivated_detail": "El caso de uso ha sido desactivado.",
-            "status_error_title":        "Error al Actualizar Estado",
-            "status_error_detail":       "Ocurrió un error al actualizar el estado."
+            "status_error_title": "Error al Actualizar Estado",
+            "status_error_detail": "Ocurrió un error al actualizar el estado."
         },
         "form": {
-            "add_title":           "Agregar Caso de Uso",
-            "edit_title":          "Editar Caso de Uso",
-            "add_subtitle":        "Complete los detalles para crear un nuevo caso de uso.",
-            "edit_subtitle":       "Actualiza los detalles del caso de uso a continuación.",
-            "loading":             "Cargando caso de uso...",
-            "back":                "Volver",
-            "cancel":              "Cancelar",
-            "add_submit":          "Agregar Caso de Uso",
-            "edit_submit":         "Actualizar Caso de Uso",
-            "section_name":        "Nombre del Caso de Uso",
+            "add_title": "Agregar Caso de Uso",
+            "edit_title": "Editar Caso de Uso",
+            "add_subtitle": "Complete los detalles para crear un nuevo caso de uso.",
+            "edit_subtitle": "Actualiza los detalles del caso de uso a continuación.",
+            "loading": "Cargando caso de uso...",
+            "back": "Volver",
+            "cancel": "Cancelar",
+            "add_submit": "Agregar Caso de Uso",
+            "edit_submit": "Actualizar Caso de Uso",
+            "section_name": "Nombre del Caso de Uso",
             "section_description": "Descripción",
             "fields": {
-                "name_en":        "Nombre (Inglés)",
-                "name_es":        "Nombre (Español)",
+                "name_en": "Nombre (Inglés)",
+                "name_es": "Nombre (Español)",
                 "description_en": "Descripción (Inglés)",
                 "description_es": "Descripción (Español)"
             },
             "placeholders": {
-                "name_en":        "Ingrese el nombre en inglés",
-                "name_es":        "Se completa automáticamente desde el inglés...",
+                "name_en": "Ingrese el nombre en inglés",
+                "name_es": "Se completa automáticamente desde el inglés...",
                 "description_en": "Ingrese la descripción en inglés",
                 "description_es": "Se completa automáticamente desde el inglés..."
             },
             "validation": {
-                "name_en_required":        "El nombre en inglés es obligatorio",
+                "name_en_required": "El nombre en inglés es obligatorio",
                 "description_en_required": "La descripción en inglés es obligatoria"
             }
         },
-        "modal": {
-            "title": "Seleccionar Casos de Uso",
-            "subtitle": "Elija los casos de uso activos para {{name}}.",
-            "subtitle_empty": "Elija los casos de uso activos para esta cámara.",
-            "loading": "Cargando casos de uso...",
-            "load_error": "No se pudieron cargar los casos de uso.",
-            "empty": "No hay casos de uso activos disponibles.",
-            "cancel": "Cancelar",
-            "save": "Guardar Casos de Uso",
-            "success_title": "Casos de Uso Actualizados",
-            "success_message": "Los casos de uso de la cámara se actualizaron correctamente.",
-            "error_title": "Error al Actualizar",
-            "error_message": "No se pudieron actualizar los casos de uso de la cámara."
+        "linked_cameras_modal": {
+            "title": "Cámaras Vinculadas",
+            "subtitle": "Cámaras asignadas al caso de uso \"{{name}}\"",
+            "loading": "Cargando cámaras...",
+            "load_error": "Error al cargar las cámaras vinculadas.",
+            "empty": "No hay cámaras vinculadas a este caso de uso.",
+            "close": "Cerrar",
+            "col_id": "ID Cámara",
+            "col_name": "Nombre de Cámara",
+            "col_status": "Estado",
+            "status_active": "Activo",
+            "status_inactive": "Inactivo",
+            "unnamed": "Cámara sin nombre",
+            "count": "{{count}} cámara(s) vinculada(s)"
         }
     }
 }
