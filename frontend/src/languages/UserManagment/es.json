@@ -1,0 +1,125 @@
+{
+  "user_management": {
+    "title": "Gestión de Usuarios",
+    "add_user": "Agregar Usuario",
+    "search_placeholder": "Buscar usuarios...",
+    "columns": {
+      "name": "Nombre",
+      "mobile": "Móvil",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "delete_dialog": {
+      "message": "¿Está seguro de que desea eliminar a {{firstName}} {{lastName}}?",
+      "header": "Confirmación de Eliminación"
+    },
+    "empty_message": "No se encontraron usuarios.",
+    "error_message": "Error al cargar los usuarios.",
+    "filters": {
+      "role_label":    "Rol",
+      "status_label":  "Estado",
+      "all_roles":     "Todos los Roles",
+      "all_statuses":  "Todos los Estados",
+      "clear":         "Limpiar Filtros",
+      "result_count":  "{{count}} usuario(s) encontrado(s)"
+    },
+    "toast": {
+      "user_created_title": "Usuario Creado",
+      "user_created_detail": "El nuevo usuario ha sido agregado correctamente.",
+      "user_create_error_title": "Error al Crear",
+      "user_create_error_detail": "No se pudo crear el usuario. Verifique los datos e intente de nuevo.",
+      "user_updated_title": "Usuario Actualizado",
+      "user_updated_detail": "Los datos del usuario se han guardado correctamente.",
+      "user_update_error_title": "Error al Actualizar",
+      "user_update_error_detail": "No se pudo actualizar el usuario. Intente de nuevo.",
+      "user_deleted_title": "Usuario Eliminado",
+      "user_deleted_detail": "El usuario ha sido eliminado correctamente.",
+      "user_delete_error_title": "Error al Eliminar",
+      "user_delete_error_detail": "No se pudo eliminar el usuario. Intente de nuevo.",
+      "status_activated_title": "Usuario Activado",
+      "status_activated_detail": "La cuenta del usuario ha sido activada.",
+      "status_deactivated_title": "Usuario Desactivado",
+      "status_deactivated_detail": "La cuenta del usuario ha sido desactivada.",
+      "status_error_title": "Error al Actualizar Estado",
+      "status_error_detail": "No se pudo actualizar el estado del usuario. Intente de nuevo."
+    },
+    "form": {
+      "sections": {
+        "account_credentials": "Credenciales de Cuenta",
+        "personal_info": "Información Personal",
+        "contact_role": "Contacto y Rol"
+      },
+      "add_title": "Agregar Usuario",
+      "edit_title": "Editar Usuario",
+      "add_subtitle": "Complete los detalles para crear un nuevo usuario",
+      "edit_subtitle": "Actualizar los detalles del usuario existente",
+      "loading": "Cargando usuario...",
+      "back": "Volver",
+      "cancel": "Cancelar",
+      "add_submit": "Agregar Usuario",
+      "edit_submit": "Actualizar Usuario",
+      "section_first_name": "Nombre",
+      "section_last_name": "Apellido",
+      "fields": {
+        "email": "Correo ",
+        "password": "Contraseña ",
+        "first_name": "Inglés ",
+        "first_name_es": "Español",
+        "first_name_fr": "Francés",
+        "last_name": "Inglés ",
+        "last_name_es": "Español",
+        "last_name_fr": "Francés",
+        "mobile_number": "Número de Móvil",
+        "role_code": "Rol",
+        "is_active": "Activo",
+        "status": "Estado"
+      },
+      "placeholders": {
+        "email": "tu@ejemplo.com",
+        "password": "••••••••",
+        "first_name": "John",
+        "first_name_es": "Juan",
+        "first_name_fr": "Jean",
+        "last_name": "Doe",
+        "last_name_es": "García",
+        "last_name_fr": "Dupont",
+        "mobile_number": "Número de móvil",
+        "role_code": "Seleccionar rol",
+        "role_code_loading": "Cargando roles...",
+        "is_active": "Seleccionar estado",
+        "status": "Seleccionar estado"
+      },
+      "validation": {
+        "email_required": "El correo es obligatorio",
+        "email_invalid": "Ingrese un correo electrónico válido",
+        "password_required": "La contraseña es obligatoria",
+        "password_min": "La contraseña debe tener al menos 8 caracteres",
+        "first_name_required": "El nombre es obligatorio",
+        "first_name_min": "Debe tener al menos 2 caracteres",
+        "first_name_en_required": "Requerido",
+        "last_name_required": "El apellido es obligatorio",
+        "last_name_min": "Debe tener al menos 2 caracteres",
+        "last_name_en_required": "Requerido",
+        "mobile_required": "El móvil es obligatorio",
+        "mobile_numeric": "El móvil solo debe contener números",
+        "mobile_length": "El móvil debe tener exactamente 10 dígitos",
+        "role_required": "El rol es obligatorio"
+      },
+      "options": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado"
+      }
+    }
+  }
+}

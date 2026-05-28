@@ -1,0 +1,13 @@
+{
+  "layout": {
+    "app_name": "Master Solution",
+    "nav": {
+      "dashboard": "Panel",
+      "events":    "Eventos",
+      "cameras":   "Cámaras",
+      "users":     "Usuarios",
+      "usecases":   "Casos de uso"
+    },
+    "logout": "Cerrar Sesión"
+  }
+}
