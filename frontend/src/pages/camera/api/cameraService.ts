@@ -4,7 +4,6 @@ import type { Camera, CameraFormValues, UpdateCameraUseCaseRequest } from '../ty
 export interface StreamInfo {
     camera_id:      number;
     stream_path:    string;
-    webrtc_url:     string;
     hls_url:        string;
     mediamtx_ready: boolean;
 }

@@ -51,8 +51,8 @@ services:
     container_name: master-solution-mediamtx
     ports:
       - "8554:8554"   # RTSP ingest
-      - "8888:8888"   # HLS playback
-      - "8889:8889"   # WebRTC (WHEP) — browser connects here
+      - "8888:8888"   # HLS live stream
+      - "9996:9996"   # HLS playback (DVR rewind)
       - "9997:9997"   # MediaMTX HTTP API — backend uses this
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
@@ -71,6 +71,19 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0 --port 8010
+
+  nginx:
+    image: nginx:alpine
+    container_name: master-solution-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+      - mediamtx
+    restart: unless-stopped
 
 volumes:
   postgres_data:

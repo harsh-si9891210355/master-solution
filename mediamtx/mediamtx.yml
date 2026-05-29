@@ -5,6 +5,10 @@ logDestinations: [stdout]
 api: yes
 apiAddress: :9997
 
+# Playback server — serves recorded fmp4 segments as HLS for DVR rewind
+playback: yes
+playbackAddress: :9996
+
 # Grant unauthenticated access to publish, read, and the HTTP API.
 # By default, newer MediaMTX does not include "api" in the any-user permissions.
 authMethod: internal
@@ -35,18 +39,19 @@ hlsSegmentCount: 7
 hlsSegmentDuration: 1s
 hlsPartDuration: 200ms
 
-# WebRTC server — WHEP endpoint used by the browser
-webrtc: yes
-webrtcAddress: :8889
+# WebRTC disabled — LL-HLS is used for both live and DVR playback
+webrtc: no
 
 # RTMP / SRT disabled
 rtmp: no
 srt: no
 
-# Default recording settings (applied per-path when backend enables recording)
+# NVR recording — enabled globally so every registered path records automatically.
+# recordPath uses %path (camera name) and %f (microsecond ID, required by MediaMTX).
+record: yes
+recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
 recordFormat: fmp4
-recordPartDuration: 200ms
-recordSegmentDuration: 1h
+recordSegmentDuration: 5m
 recordDeleteAfter: 168h
 
 # Paths are managed dynamically via the API from the backend.

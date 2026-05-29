@@ -36,17 +36,11 @@ class StreamService:
             return False
 
     def _upsert_path(self, path_name: str, rtsp_url: str) -> bool:
-        # sourceOnDemand: False — MediaMTX keeps the RTSP connection open at all
-        # times so recording is continuous. WebRTC sessions are still on-demand
-        # by nature (the browser initiates them when a viewer opens the modal).
+        # sourceOnDemand: False — keep RTSP always connected for continuous NVR.
+        # Recording settings (format, segments, retention) live in mediamtx.yml.
         payload = {
             "source": rtsp_url,
             "sourceOnDemand": False,
-            "record": True,
-            "recordPath": "/recordings/%path/%Y-%m-%d_%H-%M-%S",
-            "recordFormat": "fmp4",
-            "recordSegmentDuration": "1h",
-            "recordDeleteAfter": "168h",
         }
         try:
             if self._path_exists(path_name):
@@ -99,7 +93,6 @@ class StreamService:
         return {
             "camera_id": camera_id,
             "stream_path": path_name,
-            "webrtc_url": f"{settings.mediamtx_webrtc_url}/{path_name}/whep",
             "hls_url": f"{settings.mediamtx_hls_url}/{path_name}/index.m3u8",
             "mediamtx_ready": ok,
         }
