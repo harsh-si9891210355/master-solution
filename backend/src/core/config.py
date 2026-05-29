@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     # MediaMTX — internal API URL (within docker network)
     mediamtx_api_url: str = "http://mediamtx:9997"
-    # MediaMTX — relative path served through nginx/Vite proxy so remote clients work
-    mediamtx_hls_url: str = "/hls"
+    # Unified DVR HLS path served by nginx from disk (written by dvr-worker)
+    mediamtx_hls_url: str = "/streams"
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = "harsh.si9891210355@gmail.com"

@@ -13,18 +13,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  server: {
-    proxy: {
-      '/dvr-proxy': {
-        target: 'http://mediamtx:9996',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/dvr-proxy/, ''),
-      },
-      '/hls': {
-        target: 'http://mediamtx:8888',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/hls/, ''),
-      },
-    },
-  },
 });

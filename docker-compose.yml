@@ -50,13 +50,30 @@ services:
     image: bluenviron/mediamtx:latest
     container_name: master-solution-mediamtx
     ports:
-      - "8554:8554"   # RTSP ingest
-      - "8888:8888"   # HLS live stream
-      - "9996:9996"   # HLS playback (DVR rewind)
-      - "9997:9997"   # MediaMTX HTTP API — backend uses this
+      - "8554:8554"   # RTSP ingest from IP cameras
+      - "9997:9997"   # MediaMTX HTTP API — backend uses this to register paths
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
-      - ./recordings:/recordings
+    restart: unless-stopped
+
+  # DVR worker: one FFmpeg process per camera, writes rolling HLS fMP4
+  # playlists to ./recordings on the host; picks up new cameras by polling MediaMTX API.
+  dvr-worker:
+    build:
+      context: ./dvr-worker
+    container_name: master-solution-dvr-worker
+    depends_on:
+      - mediamtx
+    volumes:
+      - ./recordings:/var/www/hls
+    environment:
+      MEDIAMTX_API:     http://mediamtx:9997
+      MEDIAMTX_RTSP:    rtsp://mediamtx:8554
+      HLS_BASE:         /var/www/hls
+      SEGMENT_DURATION: "4"    # seconds per fMP4 segment
+      DVR_HOURS:        "2"    # rolling DVR window length
+      POLL_INTERVAL:    "15"   # seconds between MediaMTX path polls
+      RESTART_DELAY:    "5"    # seconds before restarting a failed FFmpeg
     restart: unless-stopped
 
   frontend:
@@ -79,10 +96,11 @@ services:
       - "8080:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./recordings:/var/www/hls:ro   # serve DVR HLS files written by dvr-worker
     depends_on:
       - frontend
       - backend
-      - mediamtx
+      - dvr-worker
     restart: unless-stopped
 
 volumes:

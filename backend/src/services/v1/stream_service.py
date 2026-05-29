@@ -36,8 +36,8 @@ class StreamService:
             return False
 
     def _upsert_path(self, path_name: str, rtsp_url: str) -> bool:
-        # sourceOnDemand: False — keep RTSP always connected for continuous NVR.
-        # Recording settings (format, segments, retention) live in mediamtx.yml.
+        # sourceOnDemand: False — keep RTSP always connected so dvr-worker
+        # can pull it via rtsp://mediamtx:8554/{path_name} at any time.
         payload = {
             "source": rtsp_url,
             "sourceOnDemand": False,
@@ -73,7 +73,7 @@ class StreamService:
         max_retries: int = 30,
         retry_delay: float = 2.0,
     ) -> dict:
-        """Wait for MediaMTX to come up, then register all cameras as on-demand paths."""
+        """Wait for MediaMTX to come up, then register all camera RTSP paths."""
         for attempt in range(1, max_retries + 1):
             if self._is_mediamtx_ready():
                 logger.info("MediaMTX ready — syncing camera paths (attempt %d)", attempt)
