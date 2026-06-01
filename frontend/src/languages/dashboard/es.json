@@ -3,6 +3,11 @@
     "title": "Panel de Analítica",
     "subtitle": "Todas las cámaras · Todos los casos de uso",
     "footer": "© 2025 SentinelAI · Todos los derechos reservados · Versión v2.0.0",
+    "tabs": {
+      "cameras": "Cámaras",
+      "users": "Usuarios",
+      "events": "Eventos"
+    },
     "layout": {
       "customize": "Personalizar diseño",
       "done": "Finalizar edición",
@@ -136,6 +141,91 @@
       "likes_icon": "👍",
       "dislikes_icon": "👎",
       "neutral_icon": "😐"
+    },
+    "cameras_tab": {
+      "kpis": {
+        "total": "Total de Cámaras",
+        "total_sub": "Todas las cámaras configuradas",
+        "online": "En línea",
+        "online_pct": "del total",
+        "offline": "Fuera de línea",
+        "offline_sub": "Requiere atención",
+        "maintenance": "Mantenimiento pendiente",
+        "maintenance_sub": "Revisiones programadas"
+      },
+      "avg_uptime": "Tiempo activo promedio: {{pct}}",
+      "health_trend": {
+        "title": "Tendencia de salud de cámaras",
+        "subtitle": "Conteo de cámaras en línea vs fuera de línea a lo largo del tiempo.",
+        "online_label": "En línea",
+        "offline_label": "Fuera de línea"
+      },
+      "location_coverage": {
+        "title": "Cobertura por ubicación",
+        "subtitle": "Número de cámaras desplegadas por ubicación.",
+        "cam_label": "cámaras"
+      },
+      "top_cameras": {
+        "title": "Cámaras principales por eventos",
+        "subtitle": "La longitud de la barra muestra eventos frente a la cámara principal.",
+        "of_total": "del total"
+      }
+    },
+    "users_tab": {
+      "kpis": {
+        "total": "Total de Usuarios",
+        "new_month": "+{{count}} este mes",
+        "active": "Usuarios Activos",
+        "active_month": "{{count}} activos este mes",
+        "pending": "Aprobaciones Pendientes",
+        "pending_today": "{{count}} agregados hoy",
+        "suspended": "Suspendidos",
+        "no_change": "Sin cambios"
+      },
+      "login_activity": {
+        "title": "Actividad de inicio de sesión",
+        "subtitle": "Sesiones de inicio de sesión diarias durante el período seleccionado.",
+        "tooltip_label": "Sesiones"
+      },
+      "by_role": {
+        "title": "Usuarios por rol",
+        "subtitle": "{{total}} usuarios en total en todos los roles.",
+        "total_label": "Usuarios"
+      }
+    },
+    "events_tab": {
+      "kpis": {
+        "total": "Total de Eventos",
+        "total_sub": "En el período seleccionado",
+        "resolved": "Resueltos",
+        "resolved_pct": "tasa de resolución",
+        "pending": "Pendientes",
+        "pending_sub": "En espera de acción",
+        "critical": "Críticos",
+        "critical_sub": "Prioridad alta"
+      },
+      "avg_resolution": "Tiempo promedio de resolución: {{mins}} mins",
+      "severity": {
+        "title": "Distribución por severidad",
+        "subtitle": "Distribución de eventos por nivel de severidad.",
+        "low": "Bajo",
+        "medium": "Medio",
+        "high": "Alto"
+      },
+      "top_locations": {
+        "title": "Principales ubicaciones de eventos",
+        "subtitle": "Ubicaciones con mayor número de eventos.",
+        "tooltip": "Eventos"
+      },
+      "recent": {
+        "title": "Eventos recientes",
+        "subtitle": "Últimos eventos capturados en todas las cámaras.",
+        "col_time": "Hora",
+        "col_event": "Evento",
+        "col_location": "Ubicación",
+        "col_camera": "Cámara",
+        "col_severity": "Severidad"
+      }
     }
   }
 }

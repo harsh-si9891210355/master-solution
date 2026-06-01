@@ -3,6 +3,11 @@
     "title": "Analytics Dashboard",
     "subtitle": "All cameras · All use cases",
     "footer": "© 2025 SentinelAI · All rights reserved · Version v2.0.0",
+    "tabs": {
+      "cameras": "Cameras",
+      "users": "Users",
+      "events": "Events"
+    },
     "layout": {
       "customize": "Customize Layout",
       "done": "Done Editing",
@@ -136,6 +141,91 @@
       "likes_icon": "👍",
       "dislikes_icon": "👎",
       "neutral_icon": "😐"
+    },
+    "cameras_tab": {
+      "kpis": {
+        "total": "Total Cameras",
+        "total_sub": "All configured cameras",
+        "online": "Online",
+        "online_pct": "of total",
+        "offline": "Offline",
+        "offline_sub": "Needs attention",
+        "maintenance": "Maintenance Due",
+        "maintenance_sub": "Scheduled checks"
+      },
+      "avg_uptime": "Average uptime: {{pct}}",
+      "health_trend": {
+        "title": "Camera Health Trend",
+        "subtitle": "Online vs offline camera counts over time.",
+        "online_label": "Online",
+        "offline_label": "Offline"
+      },
+      "location_coverage": {
+        "title": "Coverage by Location",
+        "subtitle": "Number of cameras deployed per location.",
+        "cam_label": "cams"
+      },
+      "top_cameras": {
+        "title": "Top Cameras by Events",
+        "subtitle": "Bar length shows events against the top camera.",
+        "of_total": "of total"
+      }
+    },
+    "users_tab": {
+      "kpis": {
+        "total": "Total Users",
+        "new_month": "+{{count}} this month",
+        "active": "Active Users",
+        "active_month": "{{count}} active this month",
+        "pending": "Pending Approvals",
+        "pending_today": "{{count}} added today",
+        "suspended": "Suspended",
+        "no_change": "No change"
+      },
+      "login_activity": {
+        "title": "Login Activity",
+        "subtitle": "Daily login sessions over the selected period.",
+        "tooltip_label": "Logins"
+      },
+      "by_role": {
+        "title": "Users by Role",
+        "subtitle": "{{total}} total users across all roles.",
+        "total_label": "Users"
+      }
+    },
+    "events_tab": {
+      "kpis": {
+        "total": "Total Events",
+        "total_sub": "In selected period",
+        "resolved": "Resolved",
+        "resolved_pct": "resolution rate",
+        "pending": "Pending",
+        "pending_sub": "Awaiting action",
+        "critical": "Critical",
+        "critical_sub": "High priority"
+      },
+      "avg_resolution": "Avg resolution time: {{mins}} mins",
+      "severity": {
+        "title": "Severity Breakdown",
+        "subtitle": "Distribution of events by severity level.",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "top_locations": {
+        "title": "Top Event Locations",
+        "subtitle": "Locations with the highest number of events.",
+        "tooltip": "Events"
+      },
+      "recent": {
+        "title": "Recent Events",
+        "subtitle": "Latest events captured across all cameras.",
+        "col_time": "Time",
+        "col_event": "Event",
+        "col_location": "Location",
+        "col_camera": "Camera",
+        "col_severity": "Severity"
+      }
     }
   }
 }

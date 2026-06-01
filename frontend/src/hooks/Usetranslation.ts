@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import type { SupportedLanguage, AppNamespace } from '../languages/index';
+import type { TFunction } from '@/pages/dashboard/types';
 
 export const useNsTranslation = (ns: AppNamespace) => {
     const { t: rawT, i18n } = useTranslation(ns);
     const queryClient = useQueryClient();
 
-    const t = rawT as (key: string, options?: Record<string, any>) => string;
+    const t: TFunction = (key, options) => (rawT as Function)(key, options);
 
     const resolvedLang = i18n.language?.slice(0, 2) as SupportedLanguage;
     const currentLang: SupportedLanguage =

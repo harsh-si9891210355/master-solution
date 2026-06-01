@@ -1,112 +1,142 @@
 {
     "summary": {
-      "totalEvents": 3847,
-      "todayEvents": 214,
-      "thisWeekEvents": 1123,
-      "thisMonthEvents": 3847,
-      "yesterdayEvents": 189,
-      "lastWeekEvents": 987,
-      "totalLikes": 1423,
-      "totalDislikes": 312,
-      "totalNeutral": 2112,
-      "aiInsight": "Activity spiked 13.2% today vs yesterday. Camera CAM-07 is generating the most alerts. Peak hours detected: 8–10 AM and 5–7 PM. 3 cameras offline — recommend immediate inspection."
+        "totalEvents": 3847,
+        "todayEvents": 214,
+        "thisWeekEvents": 1123,
+        "thisMonthEvents": 3847,
+        "yesterdayEvents": 189,
+        "lastWeekEvents": 987,
+        "totalLikes": 1423,
+        "totalDislikes": 312,
+        "totalNeutral": 2112,
+        "aiInsight": "Activity spiked 13.2% today vs yesterday. Camera CAM-07 is generating the most alerts. Peak hours detected: 8–10 AM and 5–7 PM. 3 cameras offline — recommend immediate inspection."
     },
-    "deviceStatus": {
-      "online": 5,
-      "offline": 189,
-      "total": 194
-    },
-    "reactions": {
-      "likes": 1423,
-      "dislikes": 312,
-      "neutral": 2112
-    },
+    "deviceStatus": { "online": 5, "offline": 189, "total": 194 },
+    "reactions": { "likes": 1423, "dislikes": 312, "neutral": 2112 },
     "eventsByMonth": [
-      { "month": "Jan", "events": 210 },
-      { "month": "Feb", "events": 340 },
-      { "month": "Mar", "events": 290 },
-      { "month": "Apr", "events": 480 },
-      { "month": "May", "events": 390 },
-      { "month": "Jun", "events": 530 },
-      { "month": "Jul", "events": 620 },
-      { "month": "Aug", "events": 710 },
-      { "month": "Sep", "events": 580 },
-      { "month": "Oct", "events": 490 },
-      { "month": "Nov", "events": 670 },
-      { "month": "Dec", "events": 214 }
+        { "month": "Jan", "events": 210 }, { "month": "Feb", "events": 340 },
+        { "month": "Mar", "events": 290 }, { "month": "Apr", "events": 480 },
+        { "month": "May", "events": 390 }, { "month": "Jun", "events": 530 },
+        { "month": "Jul", "events": 620 }, { "month": "Aug", "events": 710 },
+        { "month": "Sep", "events": 580 }, { "month": "Oct", "events": 490 },
+        { "month": "Nov", "events": 670 }, { "month": "Dec", "events": 214 }
     ],
     "eventsByHour": [
-      { "hour": "00", "events": 12 },
-      { "hour": "01", "events": 8 },
-      { "hour": "02", "events": 5 },
-      { "hour": "03", "events": 4 },
-      { "hour": "04", "events": 6 },
-      { "hour": "05", "events": 14 },
-      { "hour": "06", "events": 38 },
-      { "hour": "07", "events": 72 },
-      { "hour": "08", "events": 131 },
-      { "hour": "09", "events": 148 },
-      { "hour": "10", "events": 122 },
-      { "hour": "11", "events": 98 },
-      { "hour": "12", "events": 87 },
-      { "hour": "13", "events": 93 },
-      { "hour": "14", "events": 104 },
-      { "hour": "15", "events": 118 },
-      { "hour": "16", "events": 142 },
-      { "hour": "17", "events": 167 },
-      { "hour": "18", "events": 159 },
-      { "hour": "19", "events": 110 },
-      { "hour": "20", "events": 76 },
-      { "hour": "21", "events": 54 },
-      { "hour": "22", "events": 33 },
-      { "hour": "23", "events": 21 }
+        { "hour": "00", "events": 12 }, { "hour": "01", "events": 8  },
+        { "hour": "02", "events": 5  }, { "hour": "03", "events": 4  },
+        { "hour": "04", "events": 6  }, { "hour": "05", "events": 14 },
+        { "hour": "06", "events": 38 }, { "hour": "07", "events": 72 },
+        { "hour": "08", "events": 131}, { "hour": "09", "events": 148},
+        { "hour": "10", "events": 122}, { "hour": "11", "events": 98 },
+        { "hour": "12", "events": 87 }, { "hour": "13", "events": 93 },
+        { "hour": "14", "events": 104}, { "hour": "15", "events": 118},
+        { "hour": "16", "events": 142}, { "hour": "17", "events": 167},
+        { "hour": "18", "events": 159}, { "hour": "19", "events": 110},
+        { "hour": "20", "events": 76 }, { "hour": "21", "events": 54 },
+        { "hour": "22", "events": 33 }, { "hour": "23", "events": 21 }
     ],
     "eventTypeBreakdown": [
-      { "type": "Motion Detected",  "count": 1820, "color": "#F59E0B" },
-      { "type": "Intrusion Alert",  "count": 640,  "color": "#EF4444" },
-      { "type": "Face Recognized",  "count": 510,  "color": "#3B82F6" },
-      { "type": "Vehicle Detected", "count": 430,  "color": "#10B981" },
-      { "type": "Loitering",        "count": 280,  "color": "#8B5CF6" },
-      { "type": "PPE Violation",    "count": 167,  "color": "#F97316" }
+        { "type": "Motion Detected",  "count": 1820, "color": "#F59E0B" },
+        { "type": "Intrusion Alert",  "count": 640,  "color": "#EF4444" },
+        { "type": "Face Recognized",  "count": 510,  "color": "#3B82F6" },
+        { "type": "Vehicle Detected", "count": 430,  "color": "#10B981" },
+        { "type": "Loitering",        "count": 280,  "color": "#8B5CF6" },
+        { "type": "PPE Violation",    "count": 167,  "color": "#F97316" }
     ],
     "topCameras": [
-      { "id": "CAM-07", "location": "Main Gate",       "events": 487, "status": "online"  },
-      { "id": "CAM-02", "location": "Parking Lot A",   "events": 412, "status": "online"  },
-      { "id": "CAM-15", "location": "Warehouse Entry", "events": 389, "status": "online"  },
-      { "id": "CAM-11", "location": "Server Room",     "events": 301, "status": "offline" },
-      { "id": "CAM-04", "location": "Lobby",           "events": 278, "status": "online"  }
+        { "id": "CAM-07", "location": "Main Gate",       "events": 487, "status": "online"  },
+        { "id": "CAM-02", "location": "Parking Lot A",   "events": 412, "status": "online"  },
+        { "id": "CAM-15", "location": "Warehouse Entry", "events": 389, "status": "online"  },
+        { "id": "CAM-11", "location": "Server Room",     "events": 301, "status": "offline" },
+        { "id": "CAM-04", "location": "Lobby",           "events": 278, "status": "online"  }
     ],
     "comparisonMetrics": {
-      "todayVsYesterday": {
-        "today": 214,
-        "yesterday": 189,
-        "percentChange": 13.2
-      },
-      "weekVsLastWeek": {
-        "thisWeek": 1123,
-        "lastWeek": 987,
-        "percentChange": 13.8
-      },
-      "monthVsLastMonth": {
-        "thisMonth": 3847,
-        "lastMonth": 3210,
-        "percentChange": 19.8
-      }
+        "todayVsYesterday": { "today": 214, "yesterday": 189, "percentChange": 13.2 },
+        "weekVsLastWeek":   { "thisWeek": 1123, "lastWeek": 987,  "percentChange": 13.8 },
+        "monthVsLastMonth": { "thisMonth": 3847, "lastMonth": 3210, "percentChange": 19.8 }
     },
     "recentEvents": [
-      { "time": "05:31 AM", "event": "Motion Detected",  "location": "Main Gate",       "camera": "CAM-07", "severity": "low"    },
-      { "time": "05:28 AM", "event": "Intrusion Alert",  "location": "Warehouse Entry", "camera": "CAM-15", "severity": "high"   },
-      { "time": "05:22 AM", "event": "Vehicle Detected", "location": "Parking Lot A",   "camera": "CAM-02", "severity": "medium" },
-      { "time": "05:18 AM", "event": "Face Recognized",  "location": "Lobby",           "camera": "CAM-04", "severity": "low"    },
-      { "time": "05:11 AM", "event": "Loitering",        "location": "Main Gate",       "camera": "CAM-07", "severity": "medium" },
-      { "time": "05:03 AM", "event": "PPE Violation",    "location": "Server Room",     "camera": "CAM-11", "severity": "high"   },
-      { "time": "04:57 AM", "event": "Motion Detected",  "location": "Parking Lot A",   "camera": "CAM-02", "severity": "low"    }
+        { "time": "05:31 AM", "event": "Motion Detected",  "location": "Main Gate",       "camera": "CAM-07", "severity": "low"    },
+        { "time": "05:28 AM", "event": "Intrusion Alert",  "location": "Warehouse Entry", "camera": "CAM-15", "severity": "high"   },
+        { "time": "05:22 AM", "event": "Vehicle Detected", "location": "Parking Lot A",   "camera": "CAM-02", "severity": "medium" },
+        { "time": "05:18 AM", "event": "Face Recognized",  "location": "Lobby",           "camera": "CAM-04", "severity": "low"    },
+        { "time": "05:11 AM", "event": "Loitering",        "location": "Main Gate",       "camera": "CAM-07", "severity": "medium" },
+        { "time": "05:03 AM", "event": "PPE Violation",    "location": "Server Room",     "camera": "CAM-11", "severity": "high"   }
     ],
     "locationEventCount": [
-      { "location": "Main Gate",       "events": 1102 },
-      { "location": "Parking Lot A",   "events": 890  },
-      { "location": "Warehouse Entry", "events": 742  },
-      { "location": "Lobby",           "events": 610  },
-      { "location": "Server Room",     "events": 503  }
-    ]
-  }
+        { "location": "Main Gate",       "events": 1102 },
+        { "location": "Parking Lot A",   "events": 890  },
+        { "location": "Warehouse Entry", "events": 742  },
+        { "location": "Lobby",           "events": 610  },
+        { "location": "Server Room",     "events": 503  }
+    ],
+
+    "usersTab": {
+        "totalUsers":       128,
+        "activeUsers":      96,
+        "pendingApprovals": 12,
+        "suspendedUsers":   4,
+        "newThisMonth":     12,
+        "activeThisMonth":  8,
+        "pendingToday":     3,
+        "roleBreakdown": [
+            { "role": "Operator", "count": 52, "color": "#3B82F6" },
+            { "role": "Viewer",   "count": 38, "color": "#10B981" },
+            { "role": "Auditor",  "count": 24, "color": "#8B5CF6" },
+            { "role": "Admin",    "count": 14, "color": "#F59E0B" }
+        ],
+        "loginActivity": [
+            { "date": "14 May", "logins": 42 },
+            { "date": "15 May", "logins": 58 },
+            { "date": "16 May", "logins": 35 },
+            { "date": "17 May", "logins": 71 },
+            { "date": "18 May", "logins": 63 },
+            { "date": "19 May", "logins": 49 },
+            { "date": "20 May", "logins": 82 }
+        ]
+    },
+
+    "eventsTab": {
+        "totalEvents":       3847,
+        "resolvedEvents":    3102,
+        "pendingEvents":     620,
+        "criticalEvents":    125,
+        "avgResolutionMins": 18,
+        "severityBreakdown": [
+            { "severity": "low",    "count": 2210, "color": "#10B981" },
+            { "severity": "medium", "count": 1012, "color": "#F59E0B" },
+            { "severity": "high",   "count": 625,  "color": "#EF4444" }
+        ],
+        "topLocations": [
+            { "location": "Main Gate",       "events": 1102 },
+            { "location": "Parking Lot A",   "events": 890  },
+            { "location": "Warehouse Entry", "events": 742  },
+            { "location": "Lobby",           "events": 610  },
+            { "location": "Server Room",     "events": 503  }
+        ]
+    },
+
+    "camerasTab": {
+        "totalCameras":   194,
+        "onlineCameras":  5,
+        "offlineCameras": 189,
+        "maintenanceDue": 23,
+        "avgUptimePct":   97,
+        "healthTrend": [
+            { "date": "14 May", "online": 182, "offline": 12 },
+            { "date": "15 May", "online": 179, "offline": 15 },
+            { "date": "16 May", "online": 185, "offline": 9  },
+            { "date": "17 May", "online": 188, "offline": 6  },
+            { "date": "18 May", "online": 183, "offline": 11 },
+            { "date": "19 May", "online": 186, "offline": 8  },
+            { "date": "20 May", "online": 5,   "offline": 189}
+        ],
+        "locationCoverage": [
+            { "location": "Main Gate",       "events": 3 },
+            { "location": "Parking Lot A",   "events": 5 },
+            { "location": "Warehouse Entry", "events": 4 },
+            { "location": "Lobby",           "events": 2 },
+            { "location": "Server Room",     "events": 1 }
+        ]
+    }
+}
