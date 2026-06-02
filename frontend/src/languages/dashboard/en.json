@@ -23,7 +23,7 @@
       "monthly_trend": "Monthly Trend",
       "peak_hours": "Peak Hours",
       "event_types": "Event Types",
-      "top_cameras": "Top Cameras",
+      "top_cameras": "Camera Health Matrix",
       "status_reactions": "Status and Reactions"
     },
     "presets": {

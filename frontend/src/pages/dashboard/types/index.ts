@@ -25,7 +25,15 @@ export type DashboardWidgetId =
     | 'peak_hours'
     | 'event_types'
     | 'top_cameras'
-    | 'status_reactions';
+    | 'status_reactions'
+    | 'events_severity'
+    | 'events_recent'
+    | 'cameras_kpis'
+    | 'cameras_trend'
+    | 'cameras_hub'
+    | 'users_kpis'
+    | 'users_login'
+    | 'users_role';
 
 export type WidgetSpan = 'full' | 'half';
 
@@ -36,10 +44,20 @@ export interface DashboardWidget {
     content: React.ReactNode;
 }
 
+export interface CamerasTabProps {
+    data: CamerasTabData;
+    locale: string;
+}
+
 export interface ChartPoint {
     id: string;
     label: string;
     events: number;
+}
+
+export interface UsersTabProps {
+    data:   UsersTabData;
+    locale: string;
 }
 
 export type TrendLevel = 'month' | 'week' | 'day' | 'hour';
@@ -133,6 +151,14 @@ export interface LocationEventCount {
     events: number;
 }
 
+// Used by camerasTab.locationCoverage — richer than LocationEventCount
+export interface LocationCoverage {
+    location:    string;
+    online:      number;
+    maintenance: number;
+    offline:     number;
+}
+
 export interface DashboardSummary {
     totalEvents: number;
     todayEvents: number;
@@ -206,12 +232,12 @@ export interface CameraHealthPoint {
 }
 
 export interface CamerasTabData {
-    totalCameras: number;
-    onlineCameras: number;
-    offlineCameras: number;
-    maintenanceDue: number;
-    avgUptimePct: number;
-    topCameras: TopCamera[];
-    healthTrend: CameraHealthPoint[];
-    locationCoverage: LocationEventCount[];
+    totalCameras:    number;
+    onlineCameras:   number;
+    offlineCameras:  number;
+    maintenanceDue:  number;
+    avgUptimePct:    number;
+    topCameras:      TopCamera[];
+    healthTrend:     CameraHealthPoint[];
+    locationCoverage: LocationCoverage[];  // replaces LocationEventCount[] — includes online/maintenance/offline
 }

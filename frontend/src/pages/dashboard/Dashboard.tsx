@@ -7,9 +7,9 @@ import {
 
 import { useNsTranslation } from '@/hooks/Usetranslation';
 import { EventTrendPanel } from '@/pages/dashboard/EventTrendPanel';
-import { UsersTab } from '@/pages/dashboard/UsersTab';
-import { EventsTab } from '@/pages/dashboard/EventsTab';
-import { CamerasTab } from '@/pages/dashboard/CamersTab';
+import { UsersTab, UsersKpis, UsersLogin, UsersRole } from '@/pages/dashboard/UsersTab';
+import { EventsTab, EventsKpis, EventsRecent } from '@/pages/dashboard/EventsTab';
+import { CamerasTab, CamerasKpis, CamerasTrend, CamerasHub } from '@/pages/dashboard/CamersTab';
 import type {
     DashboardWidget,
     DashboardWidgetId,
@@ -26,14 +26,17 @@ import '../../assets/Style/dashboard.css';
 // ── Constants ─────────────────────────────────────────────────────────────────
 const DAY_MS = 86_400_000;
 const STORAGE_KEY_PREFIX = 'master-solution-dashboard-layout-v2';
-const MONTH_KEYS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'] as const;
-const PRESETS: Preset[] = ['today','yesterday','7d','30d','90d','custom'];
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'] as const;
+const PRESETS: Preset[] = ['today', 'yesterday', '7d', '30d', '90d', 'custom'];
 
 const EVENTS_WIDGET_IDS: DashboardWidgetId[] = [
-    'kpis', 'comparisons', 'monthly_trend', 'peak_hours', 'event_types',
+    'kpis', 'comparisons', 'monthly_trend', 'peak_hours', 'event_types', 'events_recent',
 ];
 const CAMERAS_WIDGET_IDS: DashboardWidgetId[] = [
-    'top_cameras', 'status_reactions',
+    'cameras_kpis', 'cameras_trend', 'cameras_hub', 'top_cameras', 'status_reactions',
+];
+const USERS_WIDGET_IDS: DashboardWidgetId[] = [
+    'users_kpis', 'users_login', 'users_role',
 ];
 
 const EVENT_TYPE_KEY_MAP: Record<string, string> = {
@@ -59,12 +62,12 @@ const getPresetRange = (preset: Preset): DateRange => {
     const today = toYMD(now);
     const minus = (days: number) => toYMD(new Date(now.getTime() - days * DAY_MS));
     switch (preset) {
-        case 'today':     return { from: today,     to: today     };
-        case 'yesterday': return { from: minus(1),  to: minus(1)  };
-        case '7d':        return { from: minus(6),  to: today     };
-        case '30d':       return { from: minus(29), to: today     };
-        case '90d':       return { from: minus(89), to: today     };
-        default:          return { from: minus(29), to: today     };
+        case 'today': return { from: today, to: today };
+        case 'yesterday': return { from: minus(1), to: minus(1) };
+        case '7d': return { from: minus(6), to: today };
+        case '30d': return { from: minus(29), to: today };
+        case '90d': return { from: minus(89), to: today };
+        default: return { from: minus(29), to: today };
     }
 };
 
@@ -162,9 +165,9 @@ function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: DateFilt
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 const TABS: { id: DashboardTab; icon: string; labelKey: string }[] = [
-    { id: 'events',  icon: '🔔', labelKey: 'tabs.events'  },
+    { id: 'events', icon: '🔔', labelKey: 'tabs.events' },
     { id: 'cameras', icon: '📹', labelKey: 'tabs.cameras' },
-    { id: 'users',   icon: '👥', labelKey: 'tabs.users'   },
+    { id: 'users', icon: '👥', labelKey: 'tabs.users' },
 ];
 
 function TabBar({ active, onChange, t }: {
@@ -273,15 +276,16 @@ export const Dashboard = () => {
     const { t, i18n } = useNsTranslation('dashboard');
     const locale = normalizeLocale(i18n.language);
 
-    const [activeTab,        setActiveTab]        = useState<DashboardTab>('events');
-    const [preset,           setPreset]           = useState<Preset>('30d');
-    const [range,            setRange]            = useState<DateRange>(getPresetRange('30d'));
-    const [isEditMode,       setIsEditMode]       = useState(false);
-    const [draggedWidgetId,  setDraggedWidgetId]  = useState<DashboardWidgetId | null>(null);
+    const [activeTab, setActiveTab] = useState<DashboardTab>('events');
+    const [preset, setPreset] = useState<Preset>('30d');
+    const [range, setRange] = useState<DateRange>(getPresetRange('30d'));
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [draggedWidgetId, setDraggedWidgetId] = useState<DashboardWidgetId | null>(null);
     const [hasUnsavedLayout, setHasUnsavedLayout] = useState(false);
 
-    const [eventsWidgetOrder,  setEventsWidgetOrder]  = useState<DashboardWidgetId[]>(EVENTS_WIDGET_IDS);
+    const [eventsWidgetOrder, setEventsWidgetOrder] = useState<DashboardWidgetId[]>(EVENTS_WIDGET_IDS);
     const [camerasWidgetOrder, setCamerasWidgetOrder] = useState<DashboardWidgetId[]>(CAMERAS_WIDGET_IDS);
+    const [usersWidgetOrder, setUsersWidgetOrder] = useState<DashboardWidgetId[]>(USERS_WIDGET_IDS);
 
     useEffect(() => {
         try {
@@ -295,6 +299,11 @@ export const Dashboard = () => {
                 const parsed = JSON.parse(savedCameras);
                 if (isValidWidgetOrder(parsed, CAMERAS_WIDGET_IDS)) setCamerasWidgetOrder(parsed);
             }
+            const savedUsers = window.localStorage.getItem(`${STORAGE_KEY_PREFIX}-users`);
+            if (savedUsers) {
+                const parsed = JSON.parse(savedUsers);
+                if (isValidWidgetOrder(parsed, USERS_WIDGET_IDS)) setUsersWidgetOrder(parsed);
+            }
         } catch {
             // ignore corrupt storage
         }
@@ -305,10 +314,10 @@ export const Dashboard = () => {
         if (nextPreset !== 'custom') setRange(getPresetRange(nextPreset));
     };
 
-    // Layout controls only shown on tabs that have draggable widgets
-    const tabHasWidgets = activeTab === 'events' || activeTab === 'cameras';
+    // Layout controls shown on all tabs since they all have draggable widgets now
+    const tabHasWidgets = true;
 
-    const currentOrder = activeTab === 'events' ? eventsWidgetOrder : camerasWidgetOrder;
+    const currentOrder = activeTab === 'events' ? eventsWidgetOrder : activeTab === 'cameras' ? camerasWidgetOrder : usersWidgetOrder;
 
     const saveLayout = () => {
         const key = `${STORAGE_KEY_PREFIX}-${activeTab}`;
@@ -318,9 +327,10 @@ export const Dashboard = () => {
     };
 
     const resetLayout = () => {
-        const defaults = activeTab === 'events' ? EVENTS_WIDGET_IDS : CAMERAS_WIDGET_IDS;
+        const defaults = activeTab === 'events' ? EVENTS_WIDGET_IDS : activeTab === 'cameras' ? CAMERAS_WIDGET_IDS : USERS_WIDGET_IDS;
         if (activeTab === 'events') setEventsWidgetOrder(defaults);
-        else setCamerasWidgetOrder(defaults);
+        else if (activeTab === 'cameras') setCamerasWidgetOrder(defaults);
+        else setUsersWidgetOrder(defaults);
         window.localStorage.removeItem(`${STORAGE_KEY_PREFIX}-${activeTab}`);
         setHasUnsavedLayout(false);
         setDraggedWidgetId(null);
@@ -328,7 +338,7 @@ export const Dashboard = () => {
 
     const moveWidget = (sourceId: DashboardWidgetId, targetId: DashboardWidgetId) => {
         if (sourceId === targetId) return;
-        const setter = activeTab === 'events' ? setEventsWidgetOrder : setCamerasWidgetOrder;
+        const setter = activeTab === 'events' ? setEventsWidgetOrder : activeTab === 'cameras' ? setCamerasWidgetOrder : setUsersWidgetOrder;
         setter(curr => {
             const next = [...curr];
             const srcIdx = next.indexOf(sourceId);
@@ -336,13 +346,17 @@ export const Dashboard = () => {
             if (srcIdx === -1 || tgtIdx === -1) return curr;
             const [moved] = next.splice(srcIdx, 1);
             next.splice(tgtIdx, 0, moved);
+
+            // Persist directly to localStorage on customization!
+            const key = `${STORAGE_KEY_PREFIX}-${activeTab}`;
+            window.localStorage.setItem(key, JSON.stringify(next));
+
             return next;
         });
-        setHasUnsavedLayout(true);
     };
 
-    const formatNumber  = (value: number) => value.toLocaleString(locale);
-    const formatDate    = (value: string) =>
+    const formatNumber = (value: number) => value.toLocaleString(locale);
+    const formatDate = (value: string) =>
         new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' })
             .format(new Date(`${value}T00:00:00`));
     const formatPercent = (value: number) =>
@@ -359,57 +373,57 @@ export const Dashboard = () => {
         return new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(Date.UTC(2026, idx, 1)));
     };
 
-    const days           = daysBetween(range.from, range.to);
-    const reactions      = data.reactions;
+    const days = daysBetween(range.from, range.to);
+    const reactions = data.reactions;
     const totalReactions = reactions.likes + reactions.dislikes + reactions.neutral;
 
     const scaled = useMemo(() => {
         const s = (v: number) => scale(v, days);
         return {
-            totalEvents:     s(data.summary.totalEvents),
-            thisWeekEvents:  s(data.summary.thisWeekEvents),
+            totalEvents: s(data.summary.totalEvents),
+            thisWeekEvents: s(data.summary.thisWeekEvents),
             thisMonthEvents: s(data.summary.thisMonthEvents),
-            dailyAvg:        Math.round(s(data.summary.totalEvents) / Math.max(days, 1)),
-            cmpCur:    s(data.comparisonMetrics.todayVsYesterday.today     ?? 0),
-            cmpPrev:   s(data.comparisonMetrics.todayVsYesterday.yesterday ?? 0),
-            weekCur:   s(data.comparisonMetrics.weekVsLastWeek.thisWeek    ?? 0),
-            weekPrev:  s(data.comparisonMetrics.weekVsLastWeek.lastWeek    ?? 0),
-            monthCur:  s(data.comparisonMetrics.monthVsLastMonth.thisMonth ?? 0),
+            dailyAvg: Math.round(s(data.summary.totalEvents) / Math.max(days, 1)),
+            cmpCur: s(data.comparisonMetrics.todayVsYesterday.today ?? 0),
+            cmpPrev: s(data.comparisonMetrics.todayVsYesterday.yesterday ?? 0),
+            weekCur: s(data.comparisonMetrics.weekVsLastWeek.thisWeek ?? 0),
+            weekPrev: s(data.comparisonMetrics.weekVsLastWeek.lastWeek ?? 0),
+            monthCur: s(data.comparisonMetrics.monthVsLastMonth.thisMonth ?? 0),
             monthPrev: s(data.comparisonMetrics.monthVsLastMonth.lastMonth ?? 0),
             eventsByMonth: data.eventsByMonth.map((item, index) => ({
                 ...item, label: localizeMonth(item.month),
                 monthIndex: index, monthKey: item.month, events: s(item.events),
             })),
-            eventsByHour:       data.eventsByHour.map(item => ({ ...item, events: s(item.events) })),
+            eventsByHour: data.eventsByHour.map(item => ({ ...item, events: s(item.events) })),
             eventTypeBreakdown: data.eventTypeBreakdown.map(item => ({ ...item, label: localizeEventType(item.type), count: s(item.count) })),
-            topCameras:         data.topCameras.map(item => ({ ...item, events: s(item.events) })),
+            topCameras: data.topCameras.map(item => ({ ...item, events: s(item.events) })),
         };
     }, [days, locale, t]);
 
-    const totalTypes   = scaled.eventTypeBreakdown.reduce((sum, item) => sum + item.count, 0);
+    const totalTypes = scaled.eventTypeBreakdown.reduce((sum, item) => sum + item.count, 0);
     const totalTopFive = scaled.topCameras.reduce((sum, item) => sum + item.events, 0);
-    const maxCam       = scaled.topCameras[0]?.events || 1;
-    const onlineRatio  = data.deviceStatus.total > 0
+    const maxCam = scaled.topCameras[0]?.events || 1;
+    const onlineRatio = data.deviceStatus.total > 0
         ? Math.round((data.deviceStatus.online / data.deviceStatus.total) * 100) : 0;
 
     const percentDelta = (cur: number, prev: number) =>
         prev === 0 ? 0 : Math.abs(Math.round(((cur - prev) / prev) * 100));
 
     const barColors = data.eventsByHour.map((_, i) =>
-        (i >= 8 && i <= 10) || (i >= 17 && i <= 19) ? '#F59E0B' : '#1E3A5F'
+        (i >= 8 && i <= 10) || (i >= 17 && i <= 19) ? '#F59E0B' : '#3B82F6'
     );
 
     const comparisonItems = [
-        { label: t('comparison.period_activity'),  current: scaled.cmpCur,   previous: scaled.cmpPrev,  percent: percentDelta(scaled.cmpCur,   scaled.cmpPrev),  currentLabel: t('comparison.this_period'), previousLabel: t('comparison.prior_period'), accent: '#3B82F6' },
-        { label: t('comparison.weekly_activity'),  current: scaled.weekCur,  previous: scaled.weekPrev, percent: percentDelta(scaled.weekCur,  scaled.weekPrev), currentLabel: t('comparison.this_week'),   previousLabel: t('comparison.last_week'),   accent: '#10B981' },
-        { label: t('comparison.monthly_activity'), current: scaled.monthCur, previous: scaled.monthPrev,percent: percentDelta(scaled.monthCur, scaled.monthPrev),currentLabel: t('comparison.this_month'),  previousLabel: t('comparison.last_month'),  accent: '#8B5CF6' },
+        { label: t('comparison.period_activity'), current: scaled.cmpCur, previous: scaled.cmpPrev, percent: percentDelta(scaled.cmpCur, scaled.cmpPrev), currentLabel: t('comparison.this_period'), previousLabel: t('comparison.prior_period'), accent: '#3B82F6' },
+        { label: t('comparison.weekly_activity'), current: scaled.weekCur, previous: scaled.weekPrev, percent: percentDelta(scaled.weekCur, scaled.weekPrev), currentLabel: t('comparison.this_week'), previousLabel: t('comparison.last_week'), accent: '#10B981' },
+        { label: t('comparison.monthly_activity'), current: scaled.monthCur, previous: scaled.monthPrev, percent: percentDelta(scaled.monthCur, scaled.monthPrev), currentLabel: t('comparison.this_month'), previousLabel: t('comparison.last_month'), accent: '#8B5CF6' },
     ];
 
     const kpiCards = [
-        { label: t('kpis.total_events'),  value: scaled.totalEvents,     sub: t('kpis.selected_days', { count: days }),                                                                                           accent: '#F59E0B' },
-        { label: t('kpis.daily_avg'),     value: scaled.dailyAvg,        sub: t('kpis.events_per_day'),                                                                                                           accent: '#3B82F6' },
-        { label: t('kpis.this_week'),     value: scaled.thisWeekEvents,  sub: t('kpis.vs_last_week',  { percent: formatPercent(percentDelta(scaled.weekCur,  scaled.weekPrev))  }),                               accent: '#10B981' },
-        { label: t('kpis.this_month'),    value: scaled.thisMonthEvents, sub: t('kpis.vs_last_month', { percent: formatPercent(percentDelta(scaled.monthCur, scaled.monthPrev)) }),                               accent: '#8B5CF6' },
+        { label: t('kpis.total_events'), value: scaled.totalEvents, sub: t('kpis.selected_days', { count: days }), accent: '#F59E0B' },
+        { label: t('kpis.daily_avg'), value: scaled.dailyAvg, sub: t('kpis.events_per_day'), accent: '#3B82F6' },
+        { label: t('kpis.this_week'), value: scaled.thisWeekEvents, sub: t('kpis.vs_last_week', { percent: formatPercent(percentDelta(scaled.weekCur, scaled.weekPrev)) }), accent: '#10B981' },
+        { label: t('kpis.this_month'), value: scaled.thisMonthEvents, sub: t('kpis.vs_last_month', { percent: formatPercent(percentDelta(scaled.monthCur, scaled.monthPrev)) }), accent: '#8B5CF6' },
     ];
 
     const aiInsightText = t('ai_banner.message', {
@@ -439,7 +453,7 @@ export const Dashboard = () => {
                 <div className="db-grid-3 db-grid-3--compact">
                     {comparisonItems.map(item => {
                         const ratio = item.current === 0 ? 0 : Math.round((item.previous / item.current) * 100);
-                        const isUp  = item.current >= item.previous;
+                        const isUp = item.current >= item.previous;
                         return (
                             <div key={item.label} className="db-cmp-card" style={{ border: `1px solid ${item.accent}22` }}>
                                 <div className="db-cmp-accent-bar" style={{ background: item.accent }} />
@@ -534,39 +548,56 @@ export const Dashboard = () => {
             id: 'top_cameras', title: t('widgets.top_cameras'), span: 'half',
             content: (
                 <div className="db-panel db-widget-panel">
-                    <p className="db-panel-title">{t('top_cameras.title')}</p>
-                    <p className="db-panel-sub">{t('top_cameras.subtitle')}</p>
-                    {scaled.topCameras.map((camera, i) => {
-                        const isOffline = camera.status === 'offline';
-                        const isTop     = i === 0;
-                        const share     = totalTopFive > 0 ? Math.round((camera.events / totalTopFive) * 100) : 0;
-                        const barPct    = Math.round((camera.events / maxCam) * 100);
-                        const barColor  = isOffline ? '#EF4444' : isTop ? '#F59E0B' : '#3B82F6';
-                        return (
-                            <div key={camera.id} className={`db-cam-row${isTop ? ' is-top' : ''}${isOffline ? ' is-offline' : ''}`}>
-                                <div className="db-cam-top-row">
-                                    <div className="db-cam-left">
-                                        <span className={`db-cam-rank${isTop ? ' is-top' : ''}`}>#{i + 1}</span>
-                                        <div>
-                                            <p className="db-cam-id">{camera.id}{isTop && <span className="db-cam-top-badge">{t('top_cameras.top_badge')}</span>}</p>
-                                            <p className="db-cam-location">{t('top_cameras.location_prefix')} {camera.location}</p>
-                                        </div>
-                                    </div>
-                                    <div className="db-cam-right">
-                                        <span className={`db-cam-status ${camera.status}`}>{isOffline ? t('status.offline_indicator') : t('status.online_indicator')}</span>
-                                        <div>
-                                            <p className="db-cam-events-val">{formatNumber(camera.events)}</p>
-                                            <p className="db-cam-events-label">{t('top_cameras.events_label')}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="db-cam-bar-row">
-                                    <div className="db-cam-bar-track"><div className="db-cam-bar-fill" style={{ width: `${barPct}%`, background: barColor }} /></div>
-                                    <span className="db-cam-share">{t('top_cameras.share_of_top_five', { percent: formatPercent(share) })}</span>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    <p className="db-panel-title">Camera Health Matrix (Quick View)</p>
+                    <p className="db-panel-sub">Real-time status grid for all 194 cameras. Hover for quick details.</p>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(13px, 1fr))',
+                        gap: 5,
+                        maxHeight: 180,
+                        overflowY: 'auto',
+                        paddingRight: 4,
+                        background: 'rgba(0,0,0,0.2)',
+                        padding: 12,
+                        borderRadius: 8,
+                        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)'
+                    }}>
+                        {Array.from({ length: 194 }).map((_, i) => {
+                            const id = i + 1;
+                            let status: 'online' | 'offline' | 'maintenance' = 'offline';
+                            if (id <= 5) status = 'online';
+                            else if (id <= 28) status = 'maintenance';
+
+                            const color = status === 'online' ? '#10b981' : status === 'offline' ? '#ef4444' : '#f59e0b';
+                            const camId = `CAM-${String(id).padStart(3, '0')}`;
+                            return (
+                                <div
+                                    key={i}
+                                    style={{
+                                        aspectRatio: '1',
+                                        borderRadius: 3,
+                                        background: color,
+                                        cursor: 'pointer',
+                                        boxShadow: `0 0 3px ${color}44`,
+                                        opacity: status === 'online' ? 1 : 0.75,
+                                        transition: 'all 0.15s ease'
+                                    }}
+                                    title={`${camId} (${status.toUpperCase()})`}
+                                />
+                            );
+                        })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 12, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} /> Online (5)
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 6px #ef4444' }} /> Offline (166)
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', boxShadow: '0 0 6px #f59e0b' }} /> Maint (23)
+                        </div>
+                    </div>
                 </div>
             ),
         },
@@ -586,9 +617,9 @@ export const Dashboard = () => {
                         <p className="db-reactions-title">{t('reactions.title')}</p>
                         <p className="db-reactions-sub">{t('reactions.total_responses', { count: formatNumber(totalReactions) })}</p>
                         {[
-                            { key: 'likes',    icon: t('reactions.likes_icon'),    num: reactions.likes,    cls: 'likes'    },
+                            { key: 'likes', icon: t('reactions.likes_icon'), num: reactions.likes, cls: 'likes' },
                             { key: 'dislikes', icon: t('reactions.dislikes_icon'), num: reactions.dislikes, cls: 'dislikes' },
-                            { key: 'neutral',  icon: t('reactions.neutral_icon'),  num: reactions.neutral,  cls: 'neutral'  },
+                            { key: 'neutral', icon: t('reactions.neutral_icon'), num: reactions.neutral, cls: 'neutral' },
                         ].map(r => (
                             <div key={r.key} className={`db-reaction-card ${r.cls}`}>
                                 <div className="db-reaction-icon">{r.icon}</div>
@@ -600,18 +631,51 @@ export const Dashboard = () => {
                             </div>
                         ))}
                         <div className="db-reaction-bar-track">
-                            <div className="db-reaction-bar-seg likes-seg"    style={{ width: `${Math.round((reactions.likes    / totalReactions) * 100)}%` }} />
-                            <div className="db-reaction-bar-seg neutral-seg"  style={{ width: `${Math.round((reactions.neutral  / totalReactions) * 100)}%` }} />
+                            <div className="db-reaction-bar-seg likes-seg" style={{ width: `${Math.round((reactions.likes / totalReactions) * 100)}%` }} />
+                            <div className="db-reaction-bar-seg neutral-seg" style={{ width: `${Math.round((reactions.neutral / totalReactions) * 100)}%` }} />
                             <div className="db-reaction-bar-seg dislikes-seg" style={{ width: `${Math.round((reactions.dislikes / totalReactions) * 100)}%` }} />
                         </div>
                     </div>
                 </div>
             ),
         },
+        // events_severity: {
+        //     id: 'events_severity', title: 'Events Severity Breakdown', span: 'full',
+        //     content: <EventsSeverity data={{ ...(data as any).eventsTab }} locale={locale} />
+        // },
+        events_recent: {
+            id: 'events_recent', title: 'Recent Events Index', span: 'full',
+            content: <EventsRecent data={{ ...(data as any).eventsTab, recentEvents: data.recentEvents }} locale={locale} />
+        },
+        cameras_kpis: {
+            id: 'cameras_kpis', title: 'Cameras Operational Health KPIs', span: 'full',
+            content: <CamerasKpis data={{ ...(data as any).camerasTab }} locale={locale} />
+        },
+        cameras_trend: {
+            id: 'cameras_trend', title: 'Cameras Health Trend & Operations Center', span: 'full',
+            content: <CamerasTrend data={{ ...(data as any).camerasTab }} locale={locale} />
+        },
+        cameras_hub: {
+            id: 'cameras_hub', title: 'Cameras Location Health Ledger', span: 'full',
+            content: <CamerasHub data={{ ...(data as any).camerasTab }} locale={locale} />
+        },
+        users_kpis: {
+            id: 'users_kpis', title: 'Users Performance & Approval KPIs', span: 'full',
+            content: <UsersKpis data={{ ...(data as any).usersTab }} locale={locale} />
+        },
+        users_login: {
+            id: 'users_login', title: 'Users Active Session Traffic Chart', span: 'half',
+            content: <UsersLogin data={{ ...(data as any).usersTab }} locale={locale} />
+        },
+        users_role: {
+            id: 'users_role', title: 'Users Department Role Breakdown', span: 'half',
+            content: <UsersRole data={{ ...(data as any).usersTab }} locale={locale} />
+        },
     };
 
-    const orderedEventsWidgets  = eventsWidgetOrder.map(id  => widgetsById[id]);
+    const orderedEventsWidgets = eventsWidgetOrder.map(id => widgetsById[id]);
     const orderedCamerasWidgets = camerasWidgetOrder.map(id => widgetsById[id]);
+    const orderedUsersWidgets = usersWidgetOrder.map(id => widgetsById[id]);
 
     return (
         <div className="db-page">
@@ -666,47 +730,41 @@ export const Dashboard = () => {
 
             {/* ── Events tab ──────────────────────────────────────────────── */}
             {activeTab === 'events' && (
-                <>
-                    <WidgetGrid
-                        widgets={orderedEventsWidgets}
-                        isEditMode={isEditMode}
-                        draggedId={draggedWidgetId}
-                        onDragStart={id => setDraggedWidgetId(id)}
-                        onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
-                        onDragEnd={() => setDraggedWidgetId(null)}
-                        t={t}
-                    />
-                    <EventsTab
-                        data={{ ...(data as any).eventsTab, recentEvents: data.recentEvents }}
-                        locale={locale}
-                        t={t}
-                    />
-                </>
+                <WidgetGrid
+                    widgets={orderedEventsWidgets}
+                    isEditMode={isEditMode}
+                    draggedId={draggedWidgetId}
+                    onDragStart={id => setDraggedWidgetId(id)}
+                    onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
+                    onDragEnd={() => setDraggedWidgetId(null)}
+                    t={t}
+                />
             )}
 
             {/* ── Cameras tab ─────────────────────────────────────────────── */}
             {activeTab === 'cameras' && (
-                <>
-                    <WidgetGrid
-                        widgets={orderedCamerasWidgets}
-                        isEditMode={isEditMode}
-                        draggedId={draggedWidgetId}
-                        onDragStart={id => setDraggedWidgetId(id)}
-                        onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
-                        onDragEnd={() => setDraggedWidgetId(null)}
-                        t={t}
-                    />
-                    <CamerasTab
-                        data={{ ...(data as any).camerasTab, topCameras: data.topCameras }}
-                        locale={locale}
-                        t={t}
-                    />
-                </>
+                <WidgetGrid
+                    widgets={orderedCamerasWidgets}
+                    isEditMode={isEditMode}
+                    draggedId={draggedWidgetId}
+                    onDragStart={id => setDraggedWidgetId(id)}
+                    onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
+                    onDragEnd={() => setDraggedWidgetId(null)}
+                    t={t}
+                />
             )}
 
             {/* ── Users tab ───────────────────────────────────────────────── */}
             {activeTab === 'users' && (
-                <UsersTab data={(data as any).usersTab} locale={locale} t={t} />
+                <WidgetGrid
+                    widgets={orderedUsersWidgets}
+                    isEditMode={isEditMode}
+                    draggedId={draggedWidgetId}
+                    onDragStart={id => setDraggedWidgetId(id)}
+                    onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
+                    onDragEnd={() => setDraggedWidgetId(null)}
+                    t={t}
+                />
             )}
 
             <div className="db-footer">{t('footer')}</div>

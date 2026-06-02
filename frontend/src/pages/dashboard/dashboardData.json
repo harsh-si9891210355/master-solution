@@ -132,11 +132,20 @@
             { "date": "20 May", "online": 5,   "offline": 189}
         ],
         "locationCoverage": [
-            { "location": "Main Gate",       "events": 3 },
-            { "location": "Parking Lot A",   "events": 5 },
-            { "location": "Warehouse Entry", "events": 4 },
-            { "location": "Lobby",           "events": 2 },
-            { "location": "Server Room",     "events": 1 }
+            { "location": "Main Gate",         "online": 2, "maintenance": 1, "offline": 9  },
+            { "location": "Parking Lot A",     "online": 1, "maintenance": 2, "offline": 14 },
+            { "location": "Warehouse Entry",   "online": 1, "maintenance": 3, "offline": 11 },
+            { "location": "Lobby",             "online": 0, "maintenance": 1, "offline": 8  },
+            { "location": "Server Room",       "online": 1, "maintenance": 0, "offline": 6  },
+            { "location": "Loading Bay A",     "online": 0, "maintenance": 2, "offline": 18 },
+            { "location": "Loading Bay B",     "online": 0, "maintenance": 1, "offline": 15 },
+            { "location": "Rooftop North",     "online": 0, "maintenance": 3, "offline": 12 },
+            { "location": "Rooftop South",     "online": 0, "maintenance": 2, "offline": 10 },
+            { "location": "Perimeter East",    "online": 0, "maintenance": 4, "offline": 21 },
+            { "location": "Perimeter West",    "online": 0, "maintenance": 2, "offline": 19 },
+            { "location": "Staff Entrance",    "online": 0, "maintenance": 1, "offline": 13 },
+            { "location": "Canteen",           "online": 0, "maintenance": 0, "offline": 7  },
+            { "location": "Emergency Exit A",  "online": 0, "maintenance": 1, "offline": 16 }
         ]
     }
 }
