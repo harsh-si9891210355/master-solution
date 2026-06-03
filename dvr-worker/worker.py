@@ -43,38 +43,56 @@ def hls_dir(cam_id: str) -> Path:
 
 
 def ffmpeg_cmd(cam_id: str) -> list[str]:
-    out       = hls_dir(cam_id)
+    out = hls_dir(cam_id)
+
+    # DVR segment count
     list_size = max(1, int(DVR_HOURS * 3600 / SEGMENT_DURATION))
+
     return [
-        "ffmpeg", "-y",
-        "-loglevel", "warning",
-        # Bypass internal I/O buffer so packets reach the muxer immediately.
-        "-fflags", "+nobuffer",
-        # Shorten probe to 1 s / 1 MB (default: 5 s / 5 MB) — eliminates the
-        # long black-screen delay before the first segment appears.
-        "-analyzeduration", "500000",
-        "-probesize",       "500000",
-        "-rtsp_transport", "tcp",
-        "-i", f"{MEDIAMTX_RTSP}/camera-{cam_id}",
-        "-map", "0:v:0",
-        "-c:v", "copy",
-        "-an",
-        # Restamp negative or discontinuous PTS/DTS to zero before fMP4
-        # packaging.  Without this, timestamp gaps from cameras that reset
-        # their clock on reconnect produce decoder artefacts (green blocks,
-        # pixelation) in the browser.
-        "-avoid_negative_ts", "make_zero",
-        "-f", "hls",
-        "-hls_time",      str(SEGMENT_DURATION),
-        "-hls_list_size", str(list_size),
-        # independent_segments — emits EXT-X-INDEPENDENT-SEGMENTS so players
-        # know every segment can be decoded without the preceding one; required
-        # for correct DVR seeking in fMP4 HLS.
-        "-hls_flags",     "delete_segments+append_list+program_date_time+independent_segments",
-        "-hls_segment_type",       "fmp4",
-        "-hls_fmp4_init_filename", "init.mp4",
-        "-hls_segment_filename",   str(out / "seg%06d.m4s"),
-        str(out / "index.m3u8"),
+        "ffmpeg",
+
+        "-y",                              # overwrite output
+        "-loglevel", "warning",            # warning logs only
+
+        "-fflags", "+genpts+nobuffer",     # generate pts + low buffer
+        "-use_wallclock_as_timestamps", "1", # stable timestamps
+        "-flags", "low_delay",             # low latency mode
+        "-avioflags", "direct",            # direct IO
+
+        "-analyzeduration", "500000",      # fast stream analysis
+        "-probesize", "500000",            # smaller probe size
+
+        "-rtsp_transport", "tcp",          # reliable RTSP transport
+
+        "-i", f"{MEDIAMTX_RTSP}/camera-{cam_id}",  # RTSP input
+
+        "-map", "0:v:0",                   # select video stream
+
+        "-c:v", "copy",                    # no video transcoding
+
+        "-an",                             # disable audio
+
+        "-avoid_negative_ts", "make_zero", # fix broken timestamps
+
+        "-f", "hls",                       # HLS output format
+
+        "-hls_time", str(SEGMENT_DURATION), # segment duration
+
+        "-hls_list_size", str(list_size), # DVR playlist size
+
+        "-hls_flags",
+        "delete_segments+append_list+program_date_time+independent_segments+split_by_time",
+        # delete old segments + append playlist +
+        # real timestamps + seekable segments + split_by_time forces exact timing.
+
+        "-hls_segment_type", "fmp4",       # fragmented mp4 segments
+
+        "-hls_fmp4_init_filename", "init.mp4", # init segment
+
+        "-hls_segment_filename",
+        str(out / "seg%06d.m4s"),          # segment naming pattern
+
+        str(out / "index.m3u8"),           # final playlist
     ]
 
 
