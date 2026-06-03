@@ -52,8 +52,8 @@ def ffmpeg_cmd(cam_id: str) -> list[str]:
         "-fflags", "+nobuffer",
         # Shorten probe to 1 s / 1 MB (default: 5 s / 5 MB) — eliminates the
         # long black-screen delay before the first segment appears.
-        "-analyzeduration", "1000000",
-        "-probesize",       "1000000",
+        "-analyzeduration", "500000",
+        "-probesize",       "500000",
         "-rtsp_transport", "tcp",
         "-i", f"{MEDIAMTX_RTSP}/camera-{cam_id}",
         "-map", "0:v:0",

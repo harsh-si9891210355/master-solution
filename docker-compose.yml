@@ -70,7 +70,7 @@ services:
       MEDIAMTX_API:     http://mediamtx:9997
       MEDIAMTX_RTSP:    rtsp://mediamtx:8554
       HLS_BASE:         /var/www/hls
-      SEGMENT_DURATION: "2"    # seconds per fMP4 segment — 2 s gives ~6 s live latency
+      SEGMENT_DURATION: "1"    # seconds per fMP4 segment — 2 s gives ~6 s live latency
       DVR_HOURS:        "2"    # rolling DVR window length
       POLL_INTERVAL:    "15"   # seconds between MediaMTX path polls
       RESTART_DELAY:    "5"    # seconds before restarting a failed FFmpeg
