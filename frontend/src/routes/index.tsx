@@ -11,6 +11,7 @@ import { CameraList }     from "@/pages/camera/CameraList";
 import { AddCameraForm }  from "@/pages/camera/CameraForm";
 import { UsecaseList }    from "@/pages/usecase/UsecaseList";   // ← new
 import { UsecaseForm }    from "@/pages/usecase/UsecaseForm";   // ← new
+import Dashboard from "@/pages/dashboard/Dashboard";
  
 export const router = createBrowserRouter([
   // ── Public routes ────────────────────────────────────────────────────────
@@ -26,7 +27,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: "/dashboard",            element: <div>Dashboard</div> },
+          { path: "/dashboard",            element: <Dashboard />       },
           { path: "/events",               element: <div>Events List</div> },
           { path: "/cameras",              element: <CameraList />    },
           { path: "/cameras/add",          element: <AddCameraForm /> },

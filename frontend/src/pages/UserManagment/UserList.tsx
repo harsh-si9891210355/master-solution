@@ -21,18 +21,18 @@ const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusT
     const [isToggling, setIsToggling] = useState(false);
 
     const handleClick = async () => {
-    if (isToggling) return;
-    setIsToggling(true);
-    try {
-        await onToggle(row.id, !row.is_active);
-    } finally {
-        setIsToggling(false);
-    }
-};
+        if (isToggling) return;
+        setIsToggling(true);
+        try {
+            await onToggle(row.id, !row.is_active);
+        } finally {
+            setIsToggling(false);
+        }
+    };
 
     return (
         <span title={row.is_active ? labelActive : labelInactive} className="inline-block">
-             <FormButton
+            <FormButton
                 type="button"
                 variant="ghost"
                 label=""
@@ -52,6 +52,9 @@ export const UsersList = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const toast = useToast();
+
+    // Show back button only when there is in-app history to return to
+    const canGoBack = window.history.length > 2;
 
     // ── Data ─────────────────────────────────────────────────────────────────
     const { data, isLoading, isError } = useQuery({
@@ -92,12 +95,8 @@ export const UsersList = () => {
 
         onSuccess: (_data, { is_active }) => {
             toast.success(
-                is_active
-                    ? t('toast.status_activated_title')
-                    : t('toast.status_deactivated_title'),
-                is_active
-                    ? t('toast.status_activated_detail')
-                    : t('toast.status_deactivated_detail')
+                is_active ? t('toast.status_activated_title')   : t('toast.status_deactivated_title'),
+                is_active ? t('toast.status_activated_detail')  : t('toast.status_deactivated_detail')
             );
         },
 
@@ -127,7 +126,7 @@ export const UsersList = () => {
         DeleteModalPopup.show({
             message: t('delete_dialog.message', {
                 firstName: first,
-                lastName: last,
+                lastName:  last,
                 defaultValue: `Are you sure you want to delete ${first} ${last}?`,
             }),
             header:    t('delete_dialog.header'),
@@ -162,30 +161,30 @@ export const UsersList = () => {
         />
     );
 
-const actionsTemplate = (row: UserList) => (
-    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        <span title={t('actions.edit')}>
-            <FormButton
-                label=""
-                variant="ghost"
-                size="sm"
-                iconLeft="pi pi-pencil"
-                ariaLabel={t('actions.edit')}
-                onClick={() => navigate(`/users/edit/${row.id}`)}
-            />
-        </span>
-        <span title={t('actions.delete')}>
-            <FormButton
-                label=""
-                variant="danger"
-                size="sm"
-                iconLeft="pi pi-trash"
-                ariaLabel={t('actions.delete')}
-                onClick={() => handleDelete(row)}
-            />
-        </span>
-    </div>
-);
+    const actionsTemplate = (row: UserList) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <span title={t('actions.edit')}>
+                <FormButton
+                    label=""
+                    variant="ghost"
+                    size="sm"
+                    iconLeft="pi pi-pencil"
+                    ariaLabel={t('actions.edit')}
+                    onClick={() => navigate(`/users/edit/${row.id}`)}
+                />
+            </span>
+            <span title={t('actions.delete')}>
+                <FormButton
+                    label=""
+                    variant="danger"
+                    size="sm"
+                    iconLeft="pi pi-trash"
+                    ariaLabel={t('actions.delete')}
+                    onClick={() => handleDelete(row)}
+                />
+            </span>
+        </div>
+    );
 
     // ── Columns ──────────────────────────────────────────────────────────────
     const columns: TableColumn<UserList>[] = [
@@ -196,15 +195,30 @@ const actionsTemplate = (row: UserList) => (
         { header: t('columns.actions'), body: actionsTemplate, style: { width: '12rem' }               },
     ];
 
+    // ── Table header slot ─────────────────────────────────────────────────────
     const tableHeader = (
         <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">{t('title')}</h2>
-            <FormButton
-                label={t('add_user')}
-                variant="primary"
-                iconLeft="pi pi-plus"
-                onClick={() => navigate('/users/add')}
-            />
+
+            <div className="flex items-center gap-2">
+                {/* Back button — only shown when in-app history exists */}
+                {canGoBack && (
+                    <FormButton
+                        label={t('actions.back', { defaultValue: 'Back' })}
+                        variant="ghost"
+                        size="sm"
+                        iconLeft="pi pi-arrow-left"
+                        ariaLabel={t('actions.back', { defaultValue: 'Go back' })}
+                        onClick={() => navigate(-1)}
+                    />
+                )}
+                <FormButton
+                    label={t('add_user')}
+                    variant="primary"
+                    iconLeft="pi pi-plus"
+                    onClick={() => navigate('/users/add')}
+                />
+            </div>
         </div>
     );
 
