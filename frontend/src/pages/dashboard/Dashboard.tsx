@@ -23,6 +23,16 @@ import type {
 import data from './dashboardData.json';
 import '../../assets/Style/dashboard.css';
 
+// ── Neon Aqua Cyber Teal Palette ─────────────────────────────────────────────
+const COLOR_PRIMARY     = '#06B6D4'; // Cyan           — total / primary
+const COLOR_ONLINE      = '#34D399'; // Bright Emerald — online / positive
+const COLOR_OFFLINE     = '#F472B6'; // Neon Pink      — offline / alert
+const COLOR_MAINTENANCE = '#A78BFA'; // Lavender       — maintenance / warning
+const COLOR_ACCENT      = '#818CF8'; // Soft Indigo    — accent
+const COLOR_PEAK        = '#A78BFA'; // Lavender       — peak hours bars
+const COLOR_NORMAL      = '#06B6D4'; // Cyan           — normal hours bars
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const DAY_MS = 86_400_000;
 const STORAGE_KEY_PREFIX = 'master-solution-dashboard-layout-v2';
@@ -260,10 +270,10 @@ function LayoutControls({ isEditMode, hasUnsaved, onToggle, onSave, onReset, t }
             <button type="button" className={`db-layout-btn ${isEditMode ? 'is-active' : ''}`} onClick={onToggle}>
                 {isEditMode ? t('layout.done') : t('layout.customize')}
             </button>
-            <button type="button" className="db-layout-btn db-layout-btn--secondary"
+            {/* <button type="button" className="db-layout-btn db-layout-btn--secondary"
                 onClick={onSave} disabled={!hasUnsaved}>
                 {t('layout.save')}
-            </button>
+            </button> */}
             <button type="button" className="db-layout-btn db-layout-btn--ghost" onClick={onReset}>
                 {t('layout.reset')}
             </button>
@@ -314,7 +324,6 @@ export const Dashboard = () => {
         if (nextPreset !== 'custom') setRange(getPresetRange(nextPreset));
     };
 
-    // Layout controls shown on all tabs since they all have draggable widgets now
     const tabHasWidgets = true;
 
     const currentOrder = activeTab === 'events' ? eventsWidgetOrder : activeTab === 'cameras' ? camerasWidgetOrder : usersWidgetOrder;
@@ -346,11 +355,8 @@ export const Dashboard = () => {
             if (srcIdx === -1 || tgtIdx === -1) return curr;
             const [moved] = next.splice(srcIdx, 1);
             next.splice(tgtIdx, 0, moved);
-
-            // Persist directly to localStorage on customization!
             const key = `${STORAGE_KEY_PREFIX}-${activeTab}`;
             window.localStorage.setItem(key, JSON.stringify(next));
-
             return next;
         });
     };
@@ -409,21 +415,24 @@ export const Dashboard = () => {
     const percentDelta = (cur: number, prev: number) =>
         prev === 0 ? 0 : Math.abs(Math.round(((cur - prev) / prev) * 100));
 
+    // ── Peak hours bar colors — new palette ───────────────────────────────────
     const barColors = data.eventsByHour.map((_, i) =>
-        (i >= 8 && i <= 10) || (i >= 17 && i <= 19) ? '#F59E0B' : '#3B82F6'
+        (i >= 8 && i <= 10) || (i >= 17 && i <= 19) ? COLOR_PEAK : COLOR_NORMAL
     );
 
+    // ── Comparison cards — new palette ────────────────────────────────────────
     const comparisonItems = [
-        { label: t('comparison.period_activity'), current: scaled.cmpCur, previous: scaled.cmpPrev, percent: percentDelta(scaled.cmpCur, scaled.cmpPrev), currentLabel: t('comparison.this_period'), previousLabel: t('comparison.prior_period'), accent: '#3B82F6' },
-        { label: t('comparison.weekly_activity'), current: scaled.weekCur, previous: scaled.weekPrev, percent: percentDelta(scaled.weekCur, scaled.weekPrev), currentLabel: t('comparison.this_week'), previousLabel: t('comparison.last_week'), accent: '#10B981' },
-        { label: t('comparison.monthly_activity'), current: scaled.monthCur, previous: scaled.monthPrev, percent: percentDelta(scaled.monthCur, scaled.monthPrev), currentLabel: t('comparison.this_month'), previousLabel: t('comparison.last_month'), accent: '#8B5CF6' },
+        { label: t('comparison.period_activity'),  current: scaled.cmpCur,   previous: scaled.cmpPrev,   percent: percentDelta(scaled.cmpCur,   scaled.cmpPrev),   currentLabel: t('comparison.this_period'), previousLabel: t('comparison.prior_period'), accent: COLOR_PRIMARY     },
+        { label: t('comparison.weekly_activity'),  current: scaled.weekCur,  previous: scaled.weekPrev,  percent: percentDelta(scaled.weekCur,  scaled.weekPrev),  currentLabel: t('comparison.this_week'),   previousLabel: t('comparison.last_week'),   accent: COLOR_ONLINE      },
+        { label: t('comparison.monthly_activity'), current: scaled.monthCur, previous: scaled.monthPrev, percent: percentDelta(scaled.monthCur, scaled.monthPrev), currentLabel: t('comparison.this_month'),  previousLabel: t('comparison.last_month'),  accent: COLOR_ACCENT      },
     ];
 
+    // ── KPI cards — new palette ───────────────────────────────────────────────
     const kpiCards = [
-        { label: t('kpis.total_events'), value: scaled.totalEvents, sub: t('kpis.selected_days', { count: days }), accent: '#F59E0B' },
-        { label: t('kpis.daily_avg'), value: scaled.dailyAvg, sub: t('kpis.events_per_day'), accent: '#3B82F6' },
-        { label: t('kpis.this_week'), value: scaled.thisWeekEvents, sub: t('kpis.vs_last_week', { percent: formatPercent(percentDelta(scaled.weekCur, scaled.weekPrev)) }), accent: '#10B981' },
-        { label: t('kpis.this_month'), value: scaled.thisMonthEvents, sub: t('kpis.vs_last_month', { percent: formatPercent(percentDelta(scaled.monthCur, scaled.monthPrev)) }), accent: '#8B5CF6' },
+        { label: t('kpis.total_events'), value: scaled.totalEvents,    sub: t('kpis.selected_days', { count: days }),                                                          accent: COLOR_PRIMARY     },
+        { label: t('kpis.daily_avg'),    value: scaled.dailyAvg,       sub: t('kpis.events_per_day'),                                                                          accent: COLOR_ACCENT      },
+        { label: t('kpis.this_week'),    value: scaled.thisWeekEvents,  sub: t('kpis.vs_last_week',  { percent: formatPercent(percentDelta(scaled.weekCur,  scaled.weekPrev))  }), accent: COLOR_ONLINE      },
+        { label: t('kpis.this_month'),   value: scaled.thisMonthEvents, sub: t('kpis.vs_last_month', { percent: formatPercent(percentDelta(scaled.monthCur, scaled.monthPrev)) }), accent: COLOR_MAINTENANCE },
     ];
 
     const aiInsightText = t('ai_banner.message', {
@@ -496,7 +505,7 @@ export const Dashboard = () => {
                     <p className="db-panel-sub">{t('panels.peak_hours.subtitle')}</p>
                     <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={scaled.eventsByHour} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                             <XAxis dataKey="hour" tick={{ fill: '#64748B', fontSize: 9 }} axisLine={false} tickLine={false}
                                 tickFormatter={v => parseInt(v, 10) % 6 === 0 ? `${v}${t('panels.peak_hours.hour_suffix')}` : ''} />
                             <YAxis tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -507,7 +516,10 @@ export const Dashboard = () => {
                         </BarChart>
                     </ResponsiveContainer>
                     <div className="db-legend">
-                        {[{ color: '#F59E0B', label: t('panels.peak_hours.legend_peak') }, { color: '#1E3A5F', label: t('panels.peak_hours.legend_normal') }].map(item => (
+                        {[
+                            { color: COLOR_PEAK,   label: t('panels.peak_hours.legend_peak')   },
+                            { color: COLOR_NORMAL, label: t('panels.peak_hours.legend_normal') },
+                        ].map(item => (
                             <div key={item.label} className="db-legend-item">
                                 <span className="db-legend-dot" style={{ background: item.color }} />{item.label}
                             </div>
@@ -544,6 +556,8 @@ export const Dashboard = () => {
                 </div>
             ),
         },
+
+        // ── top_cameras = Camera Health Matrix (the widget shown in screenshot) ──
         top_cameras: {
             id: 'top_cameras', title: t('widgets.top_cameras'), span: 'half',
             content: (
@@ -568,7 +582,13 @@ export const Dashboard = () => {
                             if (id <= 5) status = 'online';
                             else if (id <= 28) status = 'maintenance';
 
-                            const color = status === 'online' ? '#10b981' : status === 'offline' ? '#ef4444' : '#f59e0b';
+                            // ✅ New palette — was '#10b981' / '#ef4444' / '#f59e0b'
+                            const color = status === 'online'
+                                ? COLOR_ONLINE        // #34D399 Bright Emerald
+                                : status === 'offline'
+                                    ? COLOR_OFFLINE   // #F472B6 Neon Pink
+                                    : COLOR_MAINTENANCE; // #A78BFA Lavender
+
                             const camId = `CAM-${String(id).padStart(3, '0')}`;
                             return (
                                 <div
@@ -578,29 +598,34 @@ export const Dashboard = () => {
                                         borderRadius: 3,
                                         background: color,
                                         cursor: 'pointer',
-                                        boxShadow: `0 0 3px ${color}44`,
-                                        opacity: status === 'online' ? 1 : 0.75,
-                                        transition: 'all 0.15s ease'
+                                        boxShadow: `0 0 3px ${color}66`,
+                                        opacity: status === 'online' ? 1 : 0.80,
+                                        transition: 'all 0.15s ease',
                                     }}
                                     title={`${camId} (${status.toUpperCase()})`}
                                 />
                             );
                         })}
                     </div>
-                    <div style={{ display: 'flex', gap: 12, marginTop: 12, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
+                    {/* ✅ Legend — all colors from palette constants */}
+                    <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} /> Online (5)
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLOR_ONLINE,      boxShadow: `0 0 6px ${COLOR_ONLINE}`      }} />
+                            <span style={{ color: COLOR_ONLINE }}>Online (5)</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 6px #ef4444' }} /> Offline (166)
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLOR_OFFLINE,     boxShadow: `0 0 6px ${COLOR_OFFLINE}`     }} />
+                            <span style={{ color: COLOR_OFFLINE }}>Offline (166)</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', boxShadow: '0 0 6px #f59e0b' }} /> Maint (23)
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLOR_MAINTENANCE, boxShadow: `0 0 6px ${COLOR_MAINTENANCE}` }} />
+                            <span style={{ color: COLOR_MAINTENANCE }}>Maint (23)</span>
                         </div>
                     </div>
                 </div>
             ),
         },
+
         status_reactions: {
             id: 'status_reactions', title: t('widgets.status_reactions'), span: 'half',
             content: (
@@ -617,9 +642,9 @@ export const Dashboard = () => {
                         <p className="db-reactions-title">{t('reactions.title')}</p>
                         <p className="db-reactions-sub">{t('reactions.total_responses', { count: formatNumber(totalReactions) })}</p>
                         {[
-                            { key: 'likes', icon: t('reactions.likes_icon'), num: reactions.likes, cls: 'likes' },
+                            { key: 'likes',    icon: t('reactions.likes_icon'),    num: reactions.likes,    cls: 'likes'    },
                             { key: 'dislikes', icon: t('reactions.dislikes_icon'), num: reactions.dislikes, cls: 'dislikes' },
-                            { key: 'neutral', icon: t('reactions.neutral_icon'), num: reactions.neutral, cls: 'neutral' },
+                            { key: 'neutral',  icon: t('reactions.neutral_icon'),  num: reactions.neutral,  cls: 'neutral'  },
                         ].map(r => (
                             <div key={r.key} className={`db-reaction-card ${r.cls}`}>
                                 <div className="db-reaction-icon">{r.icon}</div>
@@ -631,18 +656,14 @@ export const Dashboard = () => {
                             </div>
                         ))}
                         <div className="db-reaction-bar-track">
-                            <div className="db-reaction-bar-seg likes-seg" style={{ width: `${Math.round((reactions.likes / totalReactions) * 100)}%` }} />
-                            <div className="db-reaction-bar-seg neutral-seg" style={{ width: `${Math.round((reactions.neutral / totalReactions) * 100)}%` }} />
+                            <div className="db-reaction-bar-seg likes-seg"   style={{ width: `${Math.round((reactions.likes    / totalReactions) * 100)}%` }} />
+                            <div className="db-reaction-bar-seg neutral-seg" style={{ width: `${Math.round((reactions.neutral  / totalReactions) * 100)}%` }} />
                             <div className="db-reaction-bar-seg dislikes-seg" style={{ width: `${Math.round((reactions.dislikes / totalReactions) * 100)}%` }} />
                         </div>
                     </div>
                 </div>
             ),
         },
-        // events_severity: {
-        //     id: 'events_severity', title: 'Events Severity Breakdown', span: 'full',
-        //     content: <EventsSeverity data={{ ...(data as any).eventsTab }} locale={locale} />
-        // },
         events_recent: {
             id: 'events_recent', title: 'Recent Events Index', span: 'full',
             content: <EventsRecent data={{ ...(data as any).eventsTab, recentEvents: data.recentEvents }} locale={locale} />
@@ -673,9 +694,9 @@ export const Dashboard = () => {
         },
     };
 
-    const orderedEventsWidgets = eventsWidgetOrder.map(id => widgetsById[id]);
+    const orderedEventsWidgets  = eventsWidgetOrder.map(id => widgetsById[id]);
     const orderedCamerasWidgets = camerasWidgetOrder.map(id => widgetsById[id]);
-    const orderedUsersWidgets = usersWidgetOrder.map(id => widgetsById[id]);
+    const orderedUsersWidgets   = usersWidgetOrder.map(id => widgetsById[id]);
 
     return (
         <div className="db-page">
@@ -709,7 +730,6 @@ export const Dashboard = () => {
                 />
             </div>
 
-            {/* ── AI Insight — pinned above tabs, visible on every tab ─────── */}
             <div className="db-ai-banner">
                 <div className="db-ai-icon">{t('ai_banner.icon')}</div>
                 <div>
@@ -721,50 +741,23 @@ export const Dashboard = () => {
                 </div>
             </div>
 
-            {/* ── Tab bar — below AI insight ───────────────────────────────── */}
             <TabBar
                 active={activeTab}
                 onChange={tab => { setActiveTab(tab); setIsEditMode(false); setDraggedWidgetId(null); }}
                 t={t}
             />
 
-            {/* ── Events tab ──────────────────────────────────────────────── */}
             {activeTab === 'events' && (
-                <WidgetGrid
-                    widgets={orderedEventsWidgets}
-                    isEditMode={isEditMode}
-                    draggedId={draggedWidgetId}
-                    onDragStart={id => setDraggedWidgetId(id)}
-                    onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
-                    onDragEnd={() => setDraggedWidgetId(null)}
-                    t={t}
-                />
+                <WidgetGrid widgets={orderedEventsWidgets}  isEditMode={isEditMode} draggedId={draggedWidgetId}
+                    onDragStart={id => setDraggedWidgetId(id)} onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)} onDragEnd={() => setDraggedWidgetId(null)} t={t} />
             )}
-
-            {/* ── Cameras tab ─────────────────────────────────────────────── */}
             {activeTab === 'cameras' && (
-                <WidgetGrid
-                    widgets={orderedCamerasWidgets}
-                    isEditMode={isEditMode}
-                    draggedId={draggedWidgetId}
-                    onDragStart={id => setDraggedWidgetId(id)}
-                    onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
-                    onDragEnd={() => setDraggedWidgetId(null)}
-                    t={t}
-                />
+                <WidgetGrid widgets={orderedCamerasWidgets} isEditMode={isEditMode} draggedId={draggedWidgetId}
+                    onDragStart={id => setDraggedWidgetId(id)} onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)} onDragEnd={() => setDraggedWidgetId(null)} t={t} />
             )}
-
-            {/* ── Users tab ───────────────────────────────────────────────── */}
             {activeTab === 'users' && (
-                <WidgetGrid
-                    widgets={orderedUsersWidgets}
-                    isEditMode={isEditMode}
-                    draggedId={draggedWidgetId}
-                    onDragStart={id => setDraggedWidgetId(id)}
-                    onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)}
-                    onDragEnd={() => setDraggedWidgetId(null)}
-                    t={t}
-                />
+                <WidgetGrid widgets={orderedUsersWidgets}   isEditMode={isEditMode} draggedId={draggedWidgetId}
+                    onDragStart={id => setDraggedWidgetId(id)} onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)} onDragEnd={() => setDraggedWidgetId(null)} t={t} />
             )}
 
             <div className="db-footer">{t('footer')}</div>

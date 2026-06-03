@@ -105,6 +105,13 @@ const DrilldownTooltip = ({
     );
 };
 
+// Neon aqua cyber teal palette
+// Drillable bars: primary #06B6D4 (Cyan) / accent #818CF8 (Soft Indigo) alternating
+// Hour/leaf level: #A78BFA (Lavender) — was amber #F59E0B
+const DRILL_COLOR_A = "#06B6D4"; // Cyan — even bars
+const DRILL_COLOR_B = "#818CF8"; // Soft Indigo — odd bars
+const LEAF_COLOR    = "#A78BFA"; // Lavender — deepest / hour level
+
 export const EventTrendPanel = ({ locale, monthlyData, hourlyTemplate, t }: EventTrendPanelProps) => {
     const [selectedMonthIndex, setSelectedMonthIndex] = useState<number | null>(null);
     const [selectedWeekIndex, setSelectedWeekIndex] = useState<number | null>(null);
@@ -244,7 +251,7 @@ export const EventTrendPanel = ({ locale, monthlyData, hourlyTemplate, t }: Even
 
             <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={chartData} margin={{ top: 5, right: 10, bottom: 0, left: -10 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                     <XAxis dataKey="label" tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip content={<DrilldownTooltip locale={locale} />} />
@@ -252,7 +259,7 @@ export const EventTrendPanel = ({ locale, monthlyData, hourlyTemplate, t }: Even
                         {chartData.map((item, index) => (
                             <Cell
                                 key={item.id}
-                                fill={canDrill ? (index % 2 === 0 ? "#3B82F6" : "#60A5FA") : "#F59E0B"}
+                                fill={canDrill ? (index % 2 === 0 ? DRILL_COLOR_A : DRILL_COLOR_B) : LEAF_COLOR}
                                 style={{ cursor: canDrill ? "pointer" : "default" }}
                             />
                         ))}

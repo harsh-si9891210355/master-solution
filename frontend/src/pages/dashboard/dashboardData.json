@@ -36,12 +36,12 @@
         { "hour": "22", "events": 33 }, { "hour": "23", "events": 21 }
     ],
     "eventTypeBreakdown": [
-        { "type": "Motion Detected",  "count": 1820, "color": "#F59E0B" },
-        { "type": "Intrusion Alert",  "count": 640,  "color": "#EF4444" },
-        { "type": "Face Recognized",  "count": 510,  "color": "#3B82F6" },
-        { "type": "Vehicle Detected", "count": 430,  "color": "#10B981" },
-        { "type": "Loitering",        "count": 280,  "color": "#8B5CF6" },
-        { "type": "PPE Violation",    "count": 167,  "color": "#F97316" }
+        { "type": "Motion Detected",  "count": 1820, "color": "#06B6D4" },
+        { "type": "Intrusion Alert",  "count": 640,  "color": "#F472B6" },
+        { "type": "Face Recognized",  "count": 510,  "color": "#818CF8" },
+        { "type": "Vehicle Detected", "count": 430,  "color": "#34D399" },
+        { "type": "Loitering",        "count": 280,  "color": "#A78BFA" },
+        { "type": "PPE Violation",    "count": 167,  "color": "#22D3EE" }
     ],
     "topCameras": [
         { "id": "CAM-07", "location": "Main Gate",       "events": 487, "status": "online"  },
@@ -80,10 +80,10 @@
         "activeThisMonth":  8,
         "pendingToday":     3,
         "roleBreakdown": [
-            { "role": "Operator", "count": 52, "color": "#3B82F6" },
-            { "role": "Viewer",   "count": 38, "color": "#10B981" },
-            { "role": "Auditor",  "count": 24, "color": "#8B5CF6" },
-            { "role": "Admin",    "count": 14, "color": "#F59E0B" }
+            { "role": "Operator", "count": 52, "color": "#06B6D4" },
+            { "role": "Viewer",   "count": 38, "color": "#34D399" },
+            { "role": "Auditor",  "count": 24, "color": "#818CF8" },
+            { "role": "Admin",    "count": 14, "color": "#A78BFA" }
         ],
         "loginActivity": [
             { "date": "14 May", "logins": 42 },
@@ -103,9 +103,9 @@
         "criticalEvents":    125,
         "avgResolutionMins": 18,
         "severityBreakdown": [
-            { "severity": "low",    "count": 2210, "color": "#10B981" },
-            { "severity": "medium", "count": 1012, "color": "#F59E0B" },
-            { "severity": "high",   "count": 625,  "color": "#EF4444" }
+            { "severity": "low",    "count": 2210, "color": "#34D399" },
+            { "severity": "medium", "count": 1012, "color": "#A78BFA" },
+            { "severity": "high",   "count": 625,  "color": "#F472B6" }
         ],
         "topLocations": [
             { "location": "Main Gate",       "events": 1102 },
