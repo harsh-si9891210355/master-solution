@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import type { DVRPlayerProps } from './types/index';
+import type { CameraEvent, DVRPlayerProps } from './types/index';
 
 type PlayerStatus = 'idle' | 'connecting' | 'playing' | 'error';
 
