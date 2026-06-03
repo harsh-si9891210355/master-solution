@@ -57,9 +57,8 @@ def ffmpeg_cmd(cam_id: str) -> list[str]:
         "-rtsp_transport", "tcp",
         "-i", f"{MEDIAMTX_RTSP}/camera-{cam_id}",
         "-map", "0:v:0",
-        "-map", "0:a:0?",
         "-c:v", "copy",
-        "-c:a", "copy",
+        "-an",
         # Restamp negative or discontinuous PTS/DTS to zero before fMP4
         # packaging.  Without this, timestamp gaps from cameras that reset
         # their clock on reconnect produce decoder artefacts (green blocks,
