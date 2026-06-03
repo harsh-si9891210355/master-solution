@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { signupSchema, type SignupFormValues } from "./types/index";
 import { FormInput } from "@/components/ui/FormInput";
 import { FormButton } from "../../components/ui/FormButton.tsx";
@@ -137,12 +137,18 @@ export const SignupForm = () => {
 
               <p className="auth-form-footer">
                 {t("signup.hasAccount")}{" "}
-                <FormButton
+                <Link
+                  to="/"
+                  className="lcb-forgot-link"
+                >
+                  {t("login.forgot")}
+                </Link>
+                {/* <FormButton
                   type="button"
                   variant="ghost"
                   label={t("signup.signIn")}
                   onClick={() => navigate("/")}
-                />
+                /> */}
               </p>
             </div>
           </form>

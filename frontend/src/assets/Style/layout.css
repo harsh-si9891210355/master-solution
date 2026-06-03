@@ -39,7 +39,10 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
-.sidebar__logo-icon i { color: #fff; font-size: 16px; }
+.sidebar__logo-icon i {
+  color: #fff;
+  font-size: 16px;
+}
 
 .sidebar__logo-name {
   font-size: 15px;
@@ -122,7 +125,9 @@
   transition: all 0.15s ease;
 }
 
-.sidebar__logout-btn:hover { background: rgba(239, 68, 68, 0.1); }
+.sidebar__logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
 
 /* ── Main content area ──────────────────────────────────────────────────── */
 .main-area {
@@ -150,10 +155,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #f1f5f9;
-  border-radius: 9999px;
   padding: 4px;
-  border: 1px solid var(--border);
 }
 
 .app-header__lang-btn {
@@ -265,7 +267,7 @@
   padding: 28px 32px 0;
 }
 
-.form-section + .form-section {
+.form-section+.form-section {
   padding-top: 20px;
 }
 
@@ -327,7 +329,9 @@
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.07);
 }
 
-.usecase-row__field { flex: 1; }
+.usecase-row__field {
+  flex: 1;
+}
 
 .usecase-header {
   display: flex;
@@ -375,14 +379,22 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 680px) {
-  .app-main { padding: 16px; }
+  .app-main {
+    padding: 16px;
+  }
 
   .form-grid-2,
-  .form-grid-3 { grid-template-columns: 1fr; }
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
 
-  .form-section { padding: 20px 20px 0; }
+  .form-section {
+    padding: 20px 20px 0;
+  }
 
-  .form-card-header { padding: 18px 20px 16px; }
+  .form-card-header {
+    padding: 18px 20px 16px;
+  }
 
   .form-actions {
     padding: 16px 20px 20px;
@@ -460,7 +472,7 @@
   height: 16px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s;
 }
 
@@ -498,7 +510,7 @@
 }
 
 .sidebar__nav-btn--active.p-button {
-  background: linear-gradient(90deg, rgba(37,99,235,0.25) 0%, rgba(37,99,235,0.08) 100%) !important;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0.08) 100%) !important;
   border-left-color: #2563eb !important;
   color: #93c5fd !important;
   font-weight: 600 !important;
