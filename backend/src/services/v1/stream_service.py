@@ -5,108 +5,78 @@ import httpx
 from sqlalchemy.orm import Session
 
 from src.core.config import settings
-from src.crud.camera import get_all_cameras
 
 logger = logging.getLogger(__name__)
 
 
 class StreamService:
 
-    def _path_name(self, camera_id: int) -> str:
-        return f"camera-{camera_id}"
+    def get_stream_info(self, camera_id: int, rtsp_url: str) -> dict:
+        """Return the HLS URL for a camera and its current stream state."""
+        hls_url     = f"/streams/camera-{camera_id}/index.m3u8"
+        stream_state = "unknown"
 
-    def _is_mediamtx_ready(self) -> bool:
+        # Best-effort: query media-service for live status.
+        # If media-service is unreachable the HLS URL is still returned so
+        # hls.js can attempt to play (it shows its own error if files are absent).
         try:
             resp = httpx.get(
-                f"{settings.mediamtx_api_url}/v3/config/global/get",
-                timeout=3.0,
+                f"{settings.media_service_url}/streams/{camera_id}",
+                timeout=2.0,
             )
-            return resp.status_code == 200
-        except Exception:
-            return False
-
-    def _path_exists(self, path_name: str) -> bool:
-        try:
-            resp = httpx.get(
-                f"{settings.mediamtx_api_url}/v3/config/paths/get/{path_name}",
-                timeout=5.0,
-            )
-            return resp.status_code == 200
-        except Exception:
-            return False
-
-    def _upsert_path(self, path_name: str, rtsp_url: str) -> bool:
-        # sourceOnDemand: False — keep RTSP always connected so dvr-worker
-        # can pull it via rtsp://mediamtx:8554/{path_name} at any time.
-        payload = {
-            "source": rtsp_url,
-            "sourceOnDemand": False,
-        }
-        try:
-            if self._path_exists(path_name):
-                resp = httpx.patch(
-                    f"{settings.mediamtx_api_url}/v3/config/paths/patch/{path_name}",
-                    json=payload,
-                    timeout=5.0,
-                )
-            else:
-                resp = httpx.post(
-                    f"{settings.mediamtx_api_url}/v3/config/paths/add/{path_name}",
-                    json=payload,
-                    timeout=5.0,
-                )
-            if resp.status_code not in (200, 201):
-                logger.warning(
-                    "MediaMTX returned %s for path %s: %s",
-                    resp.status_code, path_name, resp.text,
-                )
-                return False
-            logger.info("Registered MediaMTX path: %s → %s", path_name, rtsp_url)
-            return True
+            if resp.status_code == 200:
+                stream_state = resp.json().get("state", "unknown")
         except Exception as exc:
-            logger.error("Failed to upsert MediaMTX path %s: %s", path_name, exc)
-            return False
+            logger.debug("media-service status check skipped for camera-%d: %s", camera_id, exc)
+
+        return {
+            "camera_id":    camera_id,
+            "hls_url":      hls_url,
+            "stream_state": stream_state,
+        }
 
     async def wait_and_sync(
         self,
-        db: Session,
-        max_retries: int = 30,
-        retry_delay: float = 2.0,
+        db: Session,           # kept for call-site compatibility
+        max_retries: int = 10,
+        retry_delay: float = 3.0,
     ) -> dict:
-        """Wait for MediaMTX to come up, then register all camera RTSP paths."""
+        """Ask media-service to do an immediate DB reconcile.
+
+        Retries until media-service is reachable (it may still be starting up).
+        Falls through silently — media-service has its own poll loop that will
+        pick up cameras on the next POLL_INTERVAL tick regardless.
+        """
         for attempt in range(1, max_retries + 1):
-            if self._is_mediamtx_ready():
-                logger.info("MediaMTX ready — syncing camera paths (attempt %d)", attempt)
-                return self.sync_all_cameras(db)
-            logger.info(
-                "MediaMTX not reachable yet, retrying in %.0fs (attempt %d/%d)…",
-                retry_delay, attempt, max_retries,
-            )
+            try:
+                async with httpx.AsyncClient(timeout=5) as client:
+                    resp = await client.post(f"{settings.media_service_url}/streams/sync")
+                    resp.raise_for_status()
+                    logger.info("media-service sync triggered (attempt %d)", attempt)
+                    return resp.json()
+            except Exception as exc:
+                logger.info(
+                    "media-service not reachable yet, retrying in %.0fs (attempt %d/%d): %s",
+                    retry_delay, attempt, max_retries, exc,
+                )
             await asyncio.sleep(retry_delay)
 
-        logger.warning("MediaMTX never became ready; camera paths not synced at startup.")
+        logger.warning(
+            "media-service unreachable after %d attempts; "
+            "streams will sync on their own schedule.",
+            max_retries,
+        )
         return {"synced": 0, "skipped": 0}
 
-    def get_stream_info(self, camera_id: int, rtsp_url: str) -> dict:
-        path_name = self._path_name(camera_id)
-        ok = self._upsert_path(path_name, rtsp_url)
-        return {
-            "camera_id": camera_id,
-            "stream_path": path_name,
-            "hls_url": f"{settings.mediamtx_hls_url}/{path_name}/index.m3u8",
-            "mediamtx_ready": ok,
-        }
-
     def sync_all_cameras(self, db: Session) -> dict:
-        cameras = get_all_cameras(db)
-        synced, skipped = 0, 0
-        for camera in cameras:
-            if camera.rtsp_url and camera.status:
-                if self._upsert_path(self._path_name(camera.id), camera.rtsp_url):
-                    synced += 1
-                else:
-                    skipped += 1
-            else:
-                skipped += 1
-        logger.info("Camera sync complete — synced: %d, skipped: %d", synced, skipped)
-        return {"synced": synced, "skipped": skipped}
+        """Synchronous variant — used by the /stream/sync REST endpoint."""
+        try:
+            resp = httpx.post(
+                f"{settings.media_service_url}/streams/sync",
+                timeout=5.0,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as exc:
+            logger.error("media-service sync request failed: %s", exc)
+            return {"error": str(exc)}

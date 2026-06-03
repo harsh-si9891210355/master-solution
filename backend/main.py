@@ -55,12 +55,12 @@ def health_check():
 
 
 async def _sync_cameras_background() -> None:
-    """Wait for MediaMTX to be ready then register every active camera as an on-demand path."""
+    """Ping media-service to trigger an immediate DB reconcile after startup."""
     db = SessionLocal()
     try:
         await StreamService().wait_and_sync(db)
     except Exception:
-        logger.exception("Background camera-sync to MediaMTX failed.")
+        logger.exception("Background camera-sync to media-service failed.")
     finally:
         db.close()
 
@@ -83,8 +83,9 @@ async def on_startup() -> None:
 
     app.state.translation_service = translation_service
 
-    # Register camera RTSP paths in MediaMTX without blocking startup.
-    # The task retries until MediaMTX is reachable (up to ~60 s).
+    # Ask media-service to sync cameras from DB without blocking startup.
+    # Falls through silently if media-service isn't ready yet — it has its
+    # own poll loop and will pick up all cameras on the next tick.
     asyncio.create_task(_sync_cameras_background())
 
 

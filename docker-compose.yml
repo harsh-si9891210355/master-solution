@@ -46,34 +46,34 @@ services:
       - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-  mediamtx:
-    image: bluenviron/mediamtx:latest
-    container_name: master-solution-mediamtx
-    ports:
-      - "8554:8554"   # RTSP ingest from IP cameras
-      - "9997:9997"   # MediaMTX HTTP API — backend uses this to register paths
-    volumes:
-      - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
-    restart: unless-stopped
-
-  # DVR worker: one FFmpeg process per camera, writes rolling HLS fMP4
-  # playlists to ./recordings on the host; picks up new cameras by polling MediaMTX API.
-  dvr-worker:
+  # Media service: connects directly to the DB, runs one FFmpeg process per
+  # active camera, writes rolling HLS fMP4 playlists to ./recordings, and
+  # exposes a REST API for health + stream status.
+  media-service:
     build:
-      context: ./dvr-worker
-    container_name: master-solution-dvr-worker
+      context: ./media-service
+    container_name: master-solution-media-service
     depends_on:
-      - mediamtx
+      db-init:
+        condition: service_completed_successfully
     volumes:
       - ./recordings:/var/www/hls
     environment:
-      MEDIAMTX_API:     http://mediamtx:9997
-      MEDIAMTX_RTSP:    rtsp://mediamtx:8554
+      DATABASE_URL:     postgresql://postgres:postgres@db:5432/master_solution
       HLS_BASE:         /var/www/hls
-      SEGMENT_DURATION: "2"    # seconds per fMP4 segment — 2 s gives ~6 s live latency
-      DVR_HOURS:        "2"    # rolling DVR window length
-      POLL_INTERVAL:    "15"   # seconds between MediaMTX path polls
-      RESTART_DELAY:    "5"    # seconds before restarting a failed FFmpeg
+      SEGMENT_DURATION: "2"
+      DVR_HOURS:        "2"
+      POLL_INTERVAL:    "15"
+      RESTART_DELAY:    "5"
+      MAX_BACKOFF:      "60"
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
     restart: unless-stopped
 
   frontend:
@@ -100,7 +100,7 @@ services:
     depends_on:
       - frontend
       - backend
-      - dvr-worker
+      - media-service
     restart: unless-stopped
 
 volumes:

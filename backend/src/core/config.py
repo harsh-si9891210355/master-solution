@@ -13,10 +13,8 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     access_token_expire_minutes: int = 60
-    # MediaMTX — internal API URL (within docker network)
-    mediamtx_api_url: str = "http://mediamtx:9997"
-    # Unified DVR HLS path served by nginx from disk (written by dvr-worker)
-    mediamtx_hls_url: str = "/streams"
+    # Media service — manages RTSP→HLS pipeline (internal docker network URL)
+    media_service_url: str = "http://media-service:8001"
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = "harsh.si9891210355@gmail.com"
