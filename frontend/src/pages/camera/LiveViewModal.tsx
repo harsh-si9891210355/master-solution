@@ -5,10 +5,20 @@ import type { Camera } from './types/index';
 import type { StreamInfo } from './api/cameraService';
 import { cameraService } from './api/cameraService';
 
+export interface CameraEvent {
+    id: string | number;
+    timestamp: Date;
+    type: string;
+    label: string;
+    icon: string;   // PrimeIcons class, e.g. 'pi-eye'
+    color: string;  // Tailwind bg-* class, e.g. 'bg-purple-500'
+}
+
 interface LiveViewModalProps {
     camera: Camera | null;
     visible: boolean;
     onHide: () => void;
+    events?: CameraEvent[];
 }
 
 type StreamStatus = 'idle' | 'connecting' | 'playing' | 'error';
@@ -18,7 +28,16 @@ const DVR_WINDOW_MIN = 120;
 // Within this many seconds of the live edge the player is considered "live".
 const LIVE_EDGE_THRESHOLD_S = 30;
 
-export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) => {
+// Demo event markers — replace by passing real events via the `events` prop from your backend.
+const DEMO_EVENTS: CameraEvent[] = [
+    { id: 1, timestamp: new Date(Date.now() - 100 * 60 * 1000), type: 'motion', label: 'Motion detected',  icon: 'pi-eye',                  color: 'bg-purple-500' },
+    { id: 2, timestamp: new Date(Date.now() -  75 * 60 * 1000), type: 'person', label: 'Person detected',  icon: 'pi-user',                 color: 'bg-blue-500'   },
+    { id: 3, timestamp: new Date(Date.now() -  50 * 60 * 1000), type: 'alert',  label: 'Alert triggered',  icon: 'pi-exclamation-triangle', color: 'bg-red-500'    },
+    { id: 4, timestamp: new Date(Date.now() -  20 * 60 * 1000), type: 'person', label: 'Person detected',  icon: 'pi-user',                 color: 'bg-blue-500'   },
+    { id: 5, timestamp: new Date(Date.now() -   8 * 60 * 1000), type: 'motion', label: 'Motion detected',  icon: 'pi-eye',                  color: 'bg-purple-500' },
+];
+
+export const LiveViewModal = ({ camera, visible, onHide, events = DEMO_EVENTS }: LiveViewModalProps) => {
     const videoRef      = useRef<HTMLVideoElement>(null);
     const hlsRef        = useRef<Hls | null>(null);
     const streamInfoRef = useRef<StreamInfo | null>(null);
@@ -26,12 +45,14 @@ export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) =
     const rafRef        = useRef<number | null>(null);
     // Blocks the rAF position tracker from overwriting slider while user drags.
     const isSeekingRef  = useRef(false);
+    const timelineRef   = useRef<HTMLDivElement>(null);
+    const isDraggingRef = useRef(false);
 
-    const [status, setStatus]           = useState<StreamStatus>('idle');
-    const [errorMsg, setErrorMsg]       = useState<string | null>(null);
-    const [sliderValue, setSliderValue] = useState(DVR_WINDOW_MIN);
-    const [timeLabel, setTimeLabel]     = useState('LIVE');
-    const [isAtLiveEdge, setIsAtLiveEdge] = useState(true);
+    const [status, setStatus]                         = useState<StreamStatus>('idle');
+    const [errorMsg, setErrorMsg]                     = useState<string | null>(null);
+    const [sliderValue, setSliderValue]               = useState(DVR_WINDOW_MIN);
+    const [timeLabel, setTimeLabel]                   = useState('LIVE');
+    const [isAtLiveEdge, setIsAtLiveEdge]             = useState(true);
     // Actual available DVR window (seconds), updated once seekable range is known.
     const [availableWindowMin, setAvailableWindowMin] = useState(DVR_WINDOW_MIN);
 
@@ -47,12 +68,11 @@ export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) =
         const tick = () => {
             const v = videoRef.current;
             if (v && !isSeekingRef.current && v.seekable.length > 0) {
-                const end = v.seekable.end(0);
+                const end   = v.seekable.end(0);
                 const start = v.seekable.start(0);
-                const windowSec = end - start;
 
                 // Keep displayed window label in sync with actual available range.
-                setAvailableWindowMin(Math.max(1, Math.round(windowSec / 60)));
+                setAvailableWindowMin(Math.max(1, Math.round((end - start) / 60)));
 
                 // How far behind live are we?
                 const lagSec = end - v.currentTime;
@@ -135,15 +155,23 @@ export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) =
 
         if (Hls.isSupported()) {
             const hls = new Hls({
-                // Standard (not LL) HLS — our segments are 4 s fMP4, not EXT-X-PART.
                 lowLatencyMode: false,
-                // Start at the live edge.
                 startPosition: -1,
-                // Keep up to 60 s of back-buffer for fast backwards seeking.
+                // Back-buffer: keep 60 s so DVR rewind doesn't re-fetch segments.
                 backBufferLength: 60,
-                maxBufferLength: 30,
+                // Forward buffer: 12 s is plenty for live; avoids holding excess
+                // memory for a stream that will never pause for long.
+                maxBufferLength: 12,
+                maxMaxBufferLength: 20,
+                // 3 segments behind live: with 2 s segments = 6 s latency.
                 liveSyncDurationCount: 3,
-                liveMaxLatencyDurationCount: 10,
+                liveMaxLatencyDurationCount: 7,
+                // Tolerate up to 0.5 s gap without stalling (handles the tiny
+                // discontinuity at a segment boundary after a camera reconnect).
+                maxBufferHole: 0.5,
+                // Check for a frozen playhead every 3 s and nudge it forward.
+                highBufferWatchdogPeriod: 3,
+                nudgeMaxRetry: 5,
             });
             hlsRef.current = hls;
             hls.loadSource(si.hls_url);
@@ -210,6 +238,51 @@ export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) =
     const nudge = (deltaMin: number) =>
         handleSliderChange(Math.max(0, Math.min(DVR_WINDOW_MIN, sliderValue + deltaMin)));
 
+    // ── Custom timeline drag (pointer capture) ────────────────────────────────
+
+    const clientXToValue = (clientX: number): number => {
+        const el = timelineRef.current;
+        if (!el) return 0;
+        const rect = el.getBoundingClientRect();
+        return Math.max(0, Math.min(DVR_WINDOW_MIN,
+            ((clientX - rect.left) / rect.width) * DVR_WINDOW_MIN
+        ));
+    };
+
+    const handleTrackPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (status !== 'playing') return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        isDraggingRef.current = true;
+        isSeekingRef.current  = true;
+        setSliderValue(clientXToValue(e.clientX));
+    };
+
+    const handleTrackPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isDraggingRef.current) return;
+        setSliderValue(clientXToValue(e.clientX));
+    };
+
+    const handleTrackPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isDraggingRef.current) return;
+        isDraggingRef.current = false;
+        handleSliderChange(clientXToValue(e.clientX));
+    };
+
+    // ── Event marker helpers ──────────────────────────────────────────────────
+
+    // Convert a wall-clock event timestamp to a 0–100% position on the timeline bar.
+    // 0% = oldest (DVR_WINDOW_MIN minutes ago), 100% = live edge (now).
+    const eventToPercent = (ev: CameraEvent): number => {
+        const minutesAgo = (Date.now() - ev.timestamp.getTime()) / 60000;
+        return ((DVR_WINDOW_MIN - minutesAgo) / DVR_WINDOW_MIN) * 100;
+    };
+
+    const seekToEvent = (ev: CameraEvent) => {
+        const minutesAgo = (Date.now() - ev.timestamp.getTime()) / 60000;
+        const sliderVal  = Math.max(0, Math.min(DVR_WINDOW_MIN, DVR_WINDOW_MIN - minutesAgo));
+        handleSliderChange(sliderVal);
+    };
+
     // ── Render ────────────────────────────────────────────────────────────────
 
     const statusDot: Record<StreamStatus, string> = {
@@ -218,6 +291,9 @@ export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) =
         playing:    isAtLiveEdge ? 'bg-green-500' : 'bg-purple-500',
         error:      'bg-red-500',
     };
+
+    const fillPct    = `${(sliderValue / DVR_WINDOW_MIN) * 100}%`;
+    const visibleEvs = events.filter(ev => { const p = eventToPercent(ev); return p >= 0 && p <= 100; });
 
     return (
         <Dialog
@@ -303,18 +379,90 @@ export const LiveViewModal = ({ camera, visible, onHide }: LiveViewModalProps) =
                         <span>NOW →</span>
                     </div>
 
-                    {/* Left = oldest available, right = live edge */}
-                    <input
-                        type="range"
-                        min={0}
-                        max={DVR_WINDOW_MIN}
-                        step={0.1}
-                        value={Math.round(sliderValue * 10) / 10}
-                        onChange={e => handleSliderChange(Number(e.target.value))}
-                        disabled={status !== 'playing'}
-                        className="w-full accent-purple-600 cursor-pointer disabled:cursor-not-allowed"
-                        title="Drag left to rewind, right for live"
-                    />
+                    {/* Event icon row + draggable scrub bar */}
+                    <div className="relative" style={{ paddingTop: '36px' }}>
+
+                        {/* Event markers: icon badge above the track, tick mark on the track */}
+                        {visibleEvs.map(ev => {
+                            const pct = eventToPercent(ev);
+                            return (
+                                <div
+                                    key={ev.id}
+                                    className="absolute top-0 flex flex-col items-center group z-10"
+                                    style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}
+                                >
+                                    {/* Clickable event badge */}
+                                    <button
+                                        className={`relative w-6 h-6 rounded-full flex items-center justify-center
+                                                    text-white shadow-md ${ev.color}
+                                                    hover:scale-125 active:scale-110 transition-transform
+                                                    disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                                        onClick={() => seekToEvent(ev)}
+                                        disabled={status !== 'playing'}
+                                        onPointerDown={e => e.stopPropagation()}
+                                    >
+                                        <i className={`pi ${ev.icon}`} style={{ fontSize: '9px' }} />
+
+                                        {/* Tooltip — shown on group hover, appears above the badge */}
+                                        <div
+                                            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30
+                                                        bg-gray-900 text-white rounded-lg px-2.5 py-2
+                                                        whitespace-nowrap text-left shadow-xl
+                                                        opacity-0 group-hover:opacity-100 pointer-events-none
+                                                        transition-opacity duration-150"
+                                        >
+                                            <div className="text-xs font-semibold">{ev.label}</div>
+                                            <div className="text-[10px] text-gray-400 mt-0.5">
+                                                {ev.timestamp.toLocaleTimeString([], {
+                                                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                                                })}
+                                            </div>
+                                            {/* Downward caret */}
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2
+                                                            border-4 border-transparent border-t-gray-900" />
+                                        </div>
+                                    </button>
+
+                                    {/* Thin connector from badge down to the track */}
+                                    <div className={`w-px h-2 ${ev.color} opacity-60`} />
+                                </div>
+                            );
+                        })}
+
+                        {/* Draggable scrub track */}
+                        <div
+                            ref={timelineRef}
+                            className={`relative h-3 rounded-full select-none overflow-visible
+                                        ${status === 'playing' ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                            style={{ background: '#e5e7eb' }}
+                            onPointerDown={handleTrackPointerDown}
+                            onPointerMove={handleTrackPointerMove}
+                            onPointerUp={handleTrackPointerUp}
+                        >
+                            {/* Played-portion fill */}
+                            <div
+                                className="absolute inset-y-0 left-0 bg-purple-500 rounded-full pointer-events-none"
+                                style={{ width: fillPct }}
+                            />
+
+                            {/* Coloured tick marks on the track at each event position */}
+                            {visibleEvs.map(ev => (
+                                <div
+                                    key={ev.id}
+                                    className={`absolute top-0 bottom-0 w-0.5 -translate-x-1/2 ${ev.color} opacity-80 pointer-events-none`}
+                                    style={{ left: `${eventToPercent(ev)}%` }}
+                                />
+                            ))}
+
+                            {/* Scrub thumb */}
+                            <div
+                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2
+                                           w-4 h-4 bg-white border-2 border-purple-600 rounded-full
+                                           shadow pointer-events-none z-10"
+                                style={{ left: fillPct }}
+                            />
+                        </div>
+                    </div>
 
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                         <button

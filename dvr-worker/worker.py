@@ -47,24 +47,31 @@ def ffmpeg_cmd(cam_id: str) -> list[str]:
     list_size = max(1, int(DVR_HOURS * 3600 / SEGMENT_DURATION))
     return [
         "ffmpeg", "-y",
-        # Show only warnings/errors in docker logs; suppress progress lines.
         "-loglevel", "warning",
+        # Bypass internal I/O buffer so packets reach the muxer immediately.
+        "-fflags", "+nobuffer",
+        # Shorten probe to 1 s / 1 MB (default: 5 s / 5 MB) — eliminates the
+        # long black-screen delay before the first segment appears.
+        "-analyzeduration", "1000000",
+        "-probesize",       "1000000",
         "-rtsp_transport", "tcp",
         "-i", f"{MEDIAMTX_RTSP}/camera-{cam_id}",
-        # Video always required; audio optional (many CCTV cams have none).
-        # '?' must trail the full specifier: 0:a:0? not 0:a?:0
         "-map", "0:v:0",
         "-map", "0:a:0?",
         "-c:v", "copy",
-        # Copy audio as-is into fMP4 — avoids transcode errors (Opus, G.711, etc.)
         "-c:a", "copy",
+        # Restamp negative or discontinuous PTS/DTS to zero before fMP4
+        # packaging.  Without this, timestamp gaps from cameras that reset
+        # their clock on reconnect produce decoder artefacts (green blocks,
+        # pixelation) in the browser.
+        "-avoid_negative_ts", "make_zero",
         "-f", "hls",
         "-hls_time",      str(SEGMENT_DURATION),
         "-hls_list_size", str(list_size),
-        # delete_segments   – auto-delete files that leave the rolling window
-        # append_list       – resume sequence numbering after restart (no gaps)
-        # program_date_time – EXT-X-PROGRAM-DATE-TIME for wall-clock DVR seeking
-        "-hls_flags",     "delete_segments+append_list+program_date_time",
+        # independent_segments — emits EXT-X-INDEPENDENT-SEGMENTS so players
+        # know every segment can be decoded without the preceding one; required
+        # for correct DVR seeking in fMP4 HLS.
+        "-hls_flags",     "delete_segments+append_list+program_date_time+independent_segments",
         "-hls_segment_type",       "fmp4",
         "-hls_fmp4_init_filename", "init.mp4",
         "-hls_segment_filename",   str(out / "seg%06d.m4s"),
