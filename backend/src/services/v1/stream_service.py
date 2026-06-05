@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
 import httpx
 from sqlalchemy.orm import Session
@@ -11,6 +13,19 @@ logger = logging.getLogger(__name__)
 
 
 class StreamService:
+    def _stream_config(self) -> dict:
+        return {
+            "recording_poll_interval_ms": settings.stream_recording_poll_interval_ms,
+            "live_edge_threshold_s": settings.stream_live_edge_threshold_s,
+            "playback_format": settings.stream_playback_format,
+            "playback_padding_before_s": settings.stream_playback_padding_before_s,
+            "playback_padding_after_s": settings.stream_playback_padding_after_s,
+            "playback_min_duration_s": settings.stream_playback_min_duration_s,
+            "playback_max_duration_s": settings.stream_playback_max_duration_s,
+        }
+
+    def _join_public_url(self, base_url: str, path: str) -> str:
+        return f"{base_url.rstrip('/')}/{path.lstrip('/')}"
 
     def _path_name(self, camera_id: int) -> str:
         return f"camera-{camera_id}"
@@ -36,8 +51,8 @@ class StreamService:
             return False
 
     def _upsert_path(self, path_name: str, rtsp_url: str) -> bool:
-        # sourceOnDemand: False — keep RTSP always connected so dvr-worker
-        # can pull it via rtsp://mediamtx:8554/{path_name} at any time.
+        # Keep the upstream RTSP source connected so MediaMTX can serve live
+        # WebRTC immediately and continue recording without extra warm-up time.
         payload = {
             "source": rtsp_url,
             "sourceOnDemand": False,
@@ -93,8 +108,55 @@ class StreamService:
         return {
             "camera_id": camera_id,
             "stream_path": path_name,
-            "hls_url": f"{settings.mediamtx_hls_url}/{path_name}/index.m3u8",
+            "live_webrtc_url": self._join_public_url(
+                settings.mediamtx_webrtc_public_url,
+                f"{path_name}/",
+            ),
+            "playback_get_base_url": (
+                f"{self._join_public_url(settings.mediamtx_playback_public_url, 'get')}"
+                f"?{urlencode({'path': path_name, 'format': settings.stream_playback_format})}"
+            ),
             "mediamtx_ready": ok,
+            "stream_config": self._stream_config(),
+        }
+
+    def get_recording_spans(self, camera_id: int, rtsp_url: str) -> dict:
+        path_name = self._path_name(camera_id)
+        self._upsert_path(path_name, rtsp_url)
+        spans: list[dict] = []
+
+        try:
+            resp = httpx.get(
+                f"{settings.mediamtx_playback_api_url}/list",
+                params={"path": path_name},
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+
+            for item in resp.json():
+                start_raw = item["start"]
+                duration = float(item["duration"])
+                start_dt = datetime.fromisoformat(start_raw.replace("Z", "+00:00"))
+                end_dt = start_dt + timedelta(seconds=duration)
+                spans.append(
+                    {
+                        "start": start_dt.isoformat(),
+                        "end": end_dt.isoformat(),
+                        "duration": duration,
+                    }
+                )
+        except Exception as exc:
+            logger.error("Failed to list MediaMTX recordings for %s: %s", path_name, exc)
+
+        return {
+            "camera_id": camera_id,
+            "stream_path": path_name,
+            "playback_get_base_url": (
+                f"{self._join_public_url(settings.mediamtx_playback_public_url, 'get')}"
+                f"?{urlencode({'path': path_name, 'format': settings.stream_playback_format})}"
+            ),
+            "spans": spans,
+            "stream_config": self._stream_config(),
         }
 
     def sync_all_cameras(self, db: Session) -> dict:

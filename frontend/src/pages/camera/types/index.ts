@@ -1,3 +1,5 @@
+import type { StreamConfig } from '../api/cameraService';
+
 export interface CameraUsecase {
     usecase_id: number;
     is_active:  boolean;
@@ -52,14 +54,12 @@ export interface CameraEvent {
 }
 
 export interface DVRPlayerProps {
-    /** HLS manifest URL. Pass null while the parent is still fetching it. */
-    hlsUrl: string | null;
+    cameraId?: number;
+    liveWebrtcUrl: string | null;
+    playbackGetBaseUrl?: string | null;
     rtspUrl?: string;
     events?: CameraEvent[];
-    /** Rolling DVR window in minutes — must match DVR_HOURS in dvr-worker. */
-    dvrWindowMin?: number;
-    /** Segment duration in seconds — must match SEGMENT_DURATION in dvr-worker. */
-    segmentDurationS?: number;
+    streamConfig?: StreamConfig | null;
 }
 
 export interface LiveViewModalProps {

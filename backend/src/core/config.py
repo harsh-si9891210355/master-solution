@@ -15,8 +15,16 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     # MediaMTX — internal API URL (within docker network)
     mediamtx_api_url: str = "http://mediamtx:9997"
-    # Unified DVR HLS path served by nginx from disk (written by dvr-worker)
-    mediamtx_hls_url: str = "/streams"
+    mediamtx_playback_api_url: str = "http://mediamtx:9996"
+    mediamtx_webrtc_public_url: str = "http://localhost:8889"
+    mediamtx_playback_public_url: str = "http://localhost:9996"
+    stream_recording_poll_interval_ms: int = 15000
+    stream_live_edge_threshold_s: int = 20
+    stream_playback_format: str = "fmp4"
+    stream_playback_padding_before_s: int = 30
+    stream_playback_padding_after_s: int = 300
+    stream_playback_min_duration_s: int = 60
+    stream_playback_max_duration_s: int = 900
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = "harsh.si9891210355@gmail.com"

@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/{camera_id}", dependencies=[Depends(require_permission("camera:read"))])
 def get_stream_info(camera_id: int, db: Session = Depends(get_db)):
-    """Ensure a MediaMTX path exists for the camera and return WebRTC stream info."""
+    """Ensure a MediaMTX path exists for the camera and return playback URLs."""
     camera = get_camera_by_id(db, camera_id)
     if not camera:
         raise HTTPException(status_code=404, detail="Camera not found")
@@ -19,6 +19,18 @@ def get_stream_info(camera_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Camera has no RTSP URL configured")
 
     return StreamService().get_stream_info(camera_id, camera.rtsp_url)
+
+
+@router.get("/{camera_id}/recordings", dependencies=[Depends(require_permission("camera:read"))])
+def get_recordings(camera_id: int, db: Session = Depends(get_db)):
+    """Return recorded timespans for a camera from MediaMTX playback."""
+    camera = get_camera_by_id(db, camera_id)
+    if not camera:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    if not camera.rtsp_url:
+        raise HTTPException(status_code=400, detail="Camera has no RTSP URL configured")
+
+    return StreamService().get_recording_spans(camera_id, camera.rtsp_url)
 
 
 @router.post("/sync", dependencies=[Depends(require_permission("camera:read"))])

@@ -1,11 +1,37 @@
 import api from '@/lib/api';
 import type { Camera, CameraFormValues, UpdateCameraUseCaseRequest } from '../types/index';
 
+export interface StreamConfig {
+    recording_poll_interval_ms: number;
+    live_edge_threshold_s: number;
+    playback_format: string;
+    playback_padding_before_s: number;
+    playback_padding_after_s: number;
+    playback_min_duration_s: number;
+    playback_max_duration_s: number;
+}
+
 export interface StreamInfo {
-    camera_id:      number;
-    stream_path:    string;
-    hls_url:        string;
-    mediamtx_ready: boolean;
+    camera_id:             number;
+    stream_path:           string;
+    live_webrtc_url:       string;
+    playback_get_base_url: string;
+    mediamtx_ready:        boolean;
+    stream_config:         StreamConfig;
+}
+
+export interface RecordingSpan {
+    start: string;
+    end: string;
+    duration: number;
+}
+
+export interface RecordingSpansResponse {
+    camera_id:             number;
+    stream_path:           string;
+    playback_get_base_url: string;
+    spans:                 RecordingSpan[];
+    stream_config:         StreamConfig;
 }
 
 export const cameraService = {
@@ -17,4 +43,5 @@ export const cameraService = {
     updateStatus:    (id: number, status: boolean)     => api.patch<{ message: string }>(`/camera/${id}/status`, { status }),
     updateCameraUseCase: (id: number, data: UpdateCameraUseCaseRequest) => api.post<Camera>(`/camera/${id}/update_camera_usecase`, data),
     getStreamInfo:   (id: number)                      => api.get<StreamInfo>(`/stream/${id}`),
+    getRecordingSpans: (id: number)                    => api.get<RecordingSpansResponse>(`/stream/${id}/recordings`),
 };
