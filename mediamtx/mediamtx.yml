@@ -20,6 +20,10 @@ authInternalUsers:
         path:
       - action: api
         path:
+      - action: metrics
+        path:
+      - action: pprof
+        path:
 
 # RTSP ingest from IP cameras.
 rtsp: yes
@@ -43,12 +47,20 @@ srt: no
 playback: yes
 playbackAddress: :9996
 
+# Metrics for monitoring and alerting.
+metrics: yes
+metricsAddress: :9998
+
+# Performance profiling for debugging and optimization.
+pprof: yes
+pprofAddress: :9999
+
 # Record every path to disk with fragmented MP4 segments.
 pathDefaults:
   record: yes
   recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
   recordFormat: fmp4
-  recordPartDuration: 500ms
+  recordPartDuration: 1s
   recordSegmentDuration: 1h
   recordDeleteAfter: 12h
 

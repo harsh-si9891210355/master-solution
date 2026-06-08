@@ -56,6 +56,8 @@ services:
       - "9996:9996"   # MediaMTX recorded playback API
       - "8189:8189/udp" # MediaMTX WebRTC media transport (UDP)
       - "8189:8189"   # MediaMTX WebRTC media transport (TCP fallback)
+      - "9998:9998"   # MediaMTX metrics for monitoring and alerting
+      - "9999:9999"   # MediaMTX performance profiling for debugging and optimization
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
       - ./recordings:/recordings
