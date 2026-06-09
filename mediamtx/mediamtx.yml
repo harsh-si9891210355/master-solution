@@ -1,3 +1,8 @@
+# Fallback values. At runtime the entrypoint forces logLevel=debug and
+# logDestinations=stdout (via MTX_LOGLEVEL / MTX_LOGDESTINATIONS), then splits
+# stdout by level into weekly files under /logs/mediamtx:
+#   debug_<week-start>_to_<week-end>.log   (DEB / ERR)
+#   logger_<week-start>_to_<week-end>.log  (INF / WAR)
 logLevel: info
 logDestinations: [stdout]
 

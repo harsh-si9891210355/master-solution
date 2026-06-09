@@ -40,14 +40,18 @@ services:
         condition: service_completed_successfully
     env_file:
       - ./backend/.env
+    environment:
+      LOG_DIR: /logs/backend
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./logs/backend:/logs/backend
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   mediamtx:
-    image: bluenviron/mediamtx:latest
+    build:
+      context: ./mediamtx
     container_name: master-solution-mediamtx
     ports:
       - "8554:8554"   # RTSP ingest from IP cameras
@@ -61,6 +65,7 @@ services:
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
       - ./recordings:/recordings
+      - ./logs/mediamtx:/logs/mediamtx
     restart: unless-stopped
 
   frontend:
