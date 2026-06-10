@@ -28,8 +28,94 @@ class StreamService:
         return f"{base_url.rstrip('/')}/{path.lstrip('/')}"
 
     def _path_name(self, camera_id: int) -> str:
+        """Live path — full-quality source, served over WebRTC."""
         return f"camera-{camera_id}"
 
+    def _rec_path_name(self, camera_id: int) -> str:
+        """Reduced-quality sibling path that FFmpeg publishes to and MediaMTX records."""
+        return f"camera-{camera_id}-rec"
+
+    def _recording_path_name(self, camera_id: int) -> str:
+        """Path that actually holds recordings used for playback."""
+        if settings.rec_enabled:
+            return self._rec_path_name(camera_id)
+        return self._path_name(camera_id)
+
+    # -- FFmpeg transcode command ---------------------------------------------
+    def _build_record_command(self, path_name: str) -> str:
+        """FFmpeg command (run via the live path's runOnReady) that reads the
+        full-quality live path, downscales / re-encodes it per the REC_* config,
+        and republishes it to the recorded sibling path."""
+        src = f"rtsp://localhost:8554/{path_name}"
+        dst = f"rtsp://localhost:8554/{path_name}-rec"
+
+        filters = [f"scale=-2:{settings.rec_height}"]
+        if settings.rec_fps and settings.rec_fps > 0:
+            filters.append(f"fps={settings.rec_fps}")
+
+        if settings.rec_encoder.lower() == "nvenc":
+            video_enc = ["-c:v", "h264_nvenc", "-preset", "p4", "-tune", "ll"]
+        else:
+            video_enc = ["-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency"]
+
+        cmd = [
+            "ffmpeg", "-nostdin", "-loglevel", "warning",
+            "-rtsp_transport", "tcp", "-i", src,
+            "-an",                              # drop audio
+            "-vf", ",".join(filters),
+            *video_enc,
+            "-g", "50",
+            "-pix_fmt", "yuv420p",
+        ]
+        if settings.rec_video_bitrate:
+            br = settings.rec_video_bitrate
+            cmd += ["-b:v", br, "-maxrate", br, "-bufsize", br]
+        if settings.rec_extra_ffmpeg_flags:
+            cmd += settings.rec_extra_ffmpeg_flags.split()
+        cmd += ["-f", "rtsp", "-rtsp_transport", "tcp", dst]
+        return " ".join(cmd)
+
+    # -- MediaMTX path payloads -----------------------------------------------
+    def _record_settings(self) -> dict:
+        return {
+            "record": True,
+            "recordPath": settings.rec_record_path,
+            "recordFormat": settings.rec_record_format,
+            "recordPartDuration": settings.rec_part_duration,
+            "recordSegmentDuration": settings.rec_segment_duration,
+            "recordDeleteAfter": f"{settings.rec_retention_hours}h",
+        }
+
+    def _live_payload(self, camera_id: int, rtsp_url: str) -> dict:
+        # Keep the upstream RTSP source connected so MediaMTX can serve live
+        # WebRTC immediately and the transcode can start without warm-up.
+        payload = {
+            "source": rtsp_url,
+            "sourceOnDemand": False,
+        }
+        if settings.rec_enabled:
+            # Live path is not recorded directly; a transcoded sibling is.
+            # recordPath/Format are still set (with record: False) so the
+            # playback server can locate legacy full-quality recordings made
+            # before the transcode switch and surface them on the timeline.
+            payload["record"] = False
+            payload["recordPath"] = settings.rec_record_path
+            payload["recordFormat"] = settings.rec_record_format
+            payload["runOnReady"] = self._build_record_command(self._path_name(camera_id))
+            payload["runOnReadyRestart"] = True
+        else:
+            # Legacy: record the live stream directly at full source quality.
+            payload.update(self._record_settings())
+        return payload
+
+    def _rec_payload(self) -> dict:
+        # A "publisher" path that waits for FFmpeg to publish the downscaled
+        # stream, and records it per the REC_* config.
+        payload = {"source": "publisher"}
+        payload.update(self._record_settings())
+        return payload
+
+    # -- MediaMTX API ---------------------------------------------------------
     def _is_mediamtx_ready(self) -> bool:
         try:
             resp = httpx.get(
@@ -50,13 +136,7 @@ class StreamService:
         except Exception:
             return False
 
-    def _upsert_path(self, path_name: str, rtsp_url: str) -> bool:
-        # Keep the upstream RTSP source connected so MediaMTX can serve live
-        # WebRTC immediately and continue recording without extra warm-up time.
-        payload = {
-            "source": rtsp_url,
-            "sourceOnDemand": False,
-        }
+    def _api_upsert(self, path_name: str, payload: dict) -> bool:
         try:
             if self._path_exists(path_name):
                 resp = httpx.patch(
@@ -76,11 +156,28 @@ class StreamService:
                     resp.status_code, path_name, resp.text,
                 )
                 return False
-            logger.info("Registered MediaMTX path: %s → %s", path_name, rtsp_url)
             return True
         except Exception as exc:
             logger.error("Failed to upsert MediaMTX path %s: %s", path_name, exc)
             return False
+
+    def _upsert_path(self, camera_id: int, rtsp_url: str) -> bool:
+        """Register the live path (and, when transcoding is enabled, the recorded
+        sibling). The recorded path is created first so it is configured with
+        record=yes before FFmpeg starts publishing to it."""
+        ok = True
+        if settings.rec_enabled:
+            ok = self._api_upsert(self._rec_path_name(camera_id), self._rec_payload()) and ok
+        ok = self._api_upsert(
+            self._path_name(camera_id), self._live_payload(camera_id, rtsp_url)
+        ) and ok
+        if ok:
+            logger.info(
+                "Registered MediaMTX path: %s → %s (rec=%s, encoder=%s, %sp)",
+                self._path_name(camera_id), rtsp_url, settings.rec_enabled,
+                settings.rec_encoder, settings.rec_height,
+            )
+        return ok
 
     async def wait_and_sync(
         self,
@@ -104,7 +201,8 @@ class StreamService:
 
     def get_stream_info(self, camera_id: int, rtsp_url: str) -> dict:
         path_name = self._path_name(camera_id)
-        ok = self._upsert_path(path_name, rtsp_url)
+        rec_path = self._recording_path_name(camera_id)
+        ok = self._upsert_path(camera_id, rtsp_url)
         return {
             "camera_id": camera_id,
             "stream_path": path_name,
@@ -112,19 +210,19 @@ class StreamService:
                 settings.mediamtx_webrtc_public_url,
                 f"{path_name}/",
             ),
-            "playback_get_base_url": (
-                f"{self._join_public_url(settings.mediamtx_playback_public_url, 'get')}"
-                f"?{urlencode({'path': path_name, 'format': settings.stream_playback_format})}"
-            ),
+            "playback_get_base_url": self._playback_base_url(rec_path),
             "mediamtx_ready": ok,
             "stream_config": self._stream_config(),
         }
 
-    def get_recording_spans(self, camera_id: int, rtsp_url: str) -> dict:
-        path_name = self._path_name(camera_id)
-        self._upsert_path(path_name, rtsp_url)
-        spans: list[dict] = []
+    def _playback_base_url(self, path_name: str) -> str:
+        return (
+            f"{self._join_public_url(settings.mediamtx_playback_public_url, 'get')}"
+            f"?{urlencode({'path': path_name, 'format': settings.stream_playback_format})}"
+        )
 
+    def _list_spans_for_path(self, path_name: str) -> list[dict]:
+        spans: list[dict] = []
         try:
             resp = httpx.get(
                 f"{settings.mediamtx_playback_api_url}/list",
@@ -133,6 +231,7 @@ class StreamService:
             )
             resp.raise_for_status()
 
+            base_url = self._playback_base_url(path_name)
             for item in resp.json():
                 start_raw = item["start"]
                 duration = float(item["duration"])
@@ -143,18 +242,36 @@ class StreamService:
                         "start": start_dt.isoformat(),
                         "end": end_dt.isoformat(),
                         "duration": duration,
+                        # Each span carries the path it lives on so the player can
+                        # request playback from the correct recording.
+                        "path": path_name,
+                        "playback_get_base_url": base_url,
                     }
                 )
         except Exception as exc:
             logger.error("Failed to list MediaMTX recordings for %s: %s", path_name, exc)
+        return spans
+
+    def get_recording_spans(self, camera_id: int, rtsp_url: str) -> dict:
+        self._upsert_path(camera_id, rtsp_url)
+        rec_path = self._recording_path_name(camera_id)
+
+        # Merge recordings from the active recording path and, when transcoding
+        # is enabled, the legacy full-quality path — so footage recorded before
+        # the transcode switch still appears on the rewind timeline.
+        paths = [rec_path]
+        if settings.rec_enabled and self._path_name(camera_id) != rec_path:
+            paths.append(self._path_name(camera_id))
+
+        spans: list[dict] = []
+        for path_name in paths:
+            spans.extend(self._list_spans_for_path(path_name))
+        spans.sort(key=lambda s: s["start"])
 
         return {
             "camera_id": camera_id,
-            "stream_path": path_name,
-            "playback_get_base_url": (
-                f"{self._join_public_url(settings.mediamtx_playback_public_url, 'get')}"
-                f"?{urlencode({'path': path_name, 'format': settings.stream_playback_format})}"
-            ),
+            "stream_path": rec_path,
+            "playback_get_base_url": self._playback_base_url(rec_path),
             "spans": spans,
             "stream_config": self._stream_config(),
         }
@@ -164,7 +281,7 @@ class StreamService:
         synced, skipped = 0, 0
         for camera in cameras:
             if camera.rtsp_url and camera.status:
-                if self._upsert_path(self._path_name(camera.id), camera.rtsp_url):
+                if self._upsert_path(camera.id, camera.rtsp_url):
                     synced += 1
                 else:
                     skipped += 1

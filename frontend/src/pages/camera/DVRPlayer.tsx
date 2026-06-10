@@ -853,8 +853,12 @@ export const DVRPlayer = ({
                     ) / 1000
                 );
 
+            const baseUrl =
+                span.playback_get_base_url ??
+                playbackGetBaseUrl;
+
             const src =
-                `${playbackGetBaseUrl}` +
+                `${baseUrl}` +
                 `&start=${encodeURIComponent(
                     new Date(
                         clipStartMs

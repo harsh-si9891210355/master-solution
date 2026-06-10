@@ -67,6 +67,14 @@ services:
       - ./recordings:/recordings
       - ./logs/mediamtx:/logs/mediamtx
     restart: unless-stopped
+    # --- GPU / NVENC recording (production) ---
+    # The FFmpeg transcode runs inside this container. For hardware (NVENC)
+    # encoding, set REC_ENCODER=nvenc in backend/.env AND uncomment below
+    # (requires an NVIDIA GPU + NVIDIA Container Toolkit on the host):
+    #   gpus: all
+    #   environment:
+    #     NVIDIA_VISIBLE_DEVICES: all
+    #     NVIDIA_DRIVER_CAPABILITIES: compute,video
 
   frontend:
     build:

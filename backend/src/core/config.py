@@ -25,6 +25,34 @@ class Settings(BaseSettings):
     stream_playback_padding_after_s: int = 300
     stream_playback_min_duration_s: int = 60
     stream_playback_max_duration_s: int = 900
+
+    # --- Recording transcode -------------------------------------------------
+    # MediaMTX never re-encodes, so to store recordings at a lower quality than
+    # the live stream we run an FFmpeg transcode (launched via the live path's
+    # runOnReady) that publishes a reduced-quality "<path>-rec" sibling, and we
+    # record only that sibling. All knobs below are env-configurable.
+    #
+    # rec_enabled=False falls back to the old behaviour: record the live path
+    # directly at full source quality (no transcode).
+    rec_enabled: bool = True
+    # Encoder: "cpu" -> libx264, "nvenc" -> h264_nvenc (needs NVIDIA GPU + toolkit).
+    rec_encoder: str = "cpu"
+    # Target recording height in pixels (width auto, keeps aspect): 480, 360, 240…
+    rec_height: int = 480
+    # Recording frame rate; 0 keeps the camera's source fps.
+    rec_fps: int = 15
+    # Keep only the last X hours of recordings (MediaMTX recordDeleteAfter).
+    rec_retention_hours: int = 12
+    # Optional constant target bitrate, e.g. "800k". Empty = encoder default (CRF/CQ).
+    rec_video_bitrate: str = ""
+    # Extra FFmpeg flags appended verbatim to the transcode command (space-separated).
+    rec_extra_ffmpeg_flags: str = ""
+    # MediaMTX record storage settings for the recorded sibling path.
+    rec_record_path: str = "/recordings/%path/%Y-%m-%d_%H-%M-%S-%f"
+    rec_record_format: str = "fmp4"
+    rec_part_duration: str = "1s"
+    rec_segment_duration: str = "1h"
+
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str = "harsh.si9891210355@gmail.com"

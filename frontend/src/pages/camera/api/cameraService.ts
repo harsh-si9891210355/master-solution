@@ -24,6 +24,11 @@ export interface RecordingSpan {
     start: string;
     end: string;
     duration: number;
+    // Path this span was recorded on, and the playback URL for it. Present so the
+    // timeline can merge the transcoded (-rec) and legacy full-res recordings and
+    // play each span from the correct path.
+    path?: string;
+    playback_get_base_url?: string;
 }
 
 export interface RecordingSpansResponse {

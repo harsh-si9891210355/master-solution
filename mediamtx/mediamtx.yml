@@ -60,14 +60,14 @@ metricsAddress: :9998
 pprof: yes
 pprofAddress: :9999
 
-# Record every path to disk with fragmented MP4 segments.
+# Recording is configured per-path by the backend via the HTTP API, not here.
+# Each camera gets a live path (record: no, served over WebRTC) plus a
+# transcoded "<path>-rec" sibling (record: yes) that stores a reduced-quality
+# copy. recordPath / recordDeleteAfter / format are set on those paths from the
+# backend's REC_* settings. Default everything to no-record so any stray path
+# is not recorded at full quality.
 pathDefaults:
-  record: yes
-  recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
-  recordFormat: fmp4
-  recordPartDuration: 1s
-  recordSegmentDuration: 1h
-  recordDeleteAfter: 12h
+  record: no
 
 # Paths are managed dynamically via the API from the backend.
 paths: {}
