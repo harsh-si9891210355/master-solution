@@ -1,3 +1,5 @@
+import type { StreamConfig } from '../api/cameraService';
+
 export interface CameraUsecase {
     usecase_id: number;
     is_active:  boolean;
@@ -16,6 +18,7 @@ export interface Camera {
     height:             number;
     fps:                string;
     rtsp_url:           string | null;
+    substream_rtsp_url: string | null;
     status:             boolean;
     status_modified_by: number;
     usecases:           CameraUsecase[];
@@ -33,6 +36,7 @@ export interface CameraFormValues {
     height:             number;
     fps:                string;
     rtsp_url:           string | null;
+    substream_rtsp_url: string | null;
     status:             boolean;
     status_modified_by: number;
     usecases:           CameraUsecase[];
@@ -40,4 +44,29 @@ export interface CameraFormValues {
 
 export interface UpdateCameraUseCaseRequest {
     usecases: CameraUsecase[];
+}
+
+export interface CameraEvent {
+    id: string | number;
+    timestamp: Date;
+    type: string;
+    label: string;
+    icon: string;   // PrimeIcons class, e.g. 'pi-eye'
+    color: string;  // Tailwind bg-* class, e.g. 'bg-purple-500'
+}
+
+export interface DVRPlayerProps {
+    cameraId?: number;
+    liveWebrtcUrl: string | null;
+    playbackGetBaseUrl?: string | null;
+    rtspUrl?: string;
+    events?: CameraEvent[];
+    streamConfig?: StreamConfig | null;
+}
+
+export interface LiveViewModalProps {
+    camera: Camera | null;
+    visible: boolean;
+    onHide: () => void;
+    events?: CameraEvent[];
 }

@@ -8,6 +8,7 @@ from src.routes.v1.user import router as user_router
 from src.routes.v1.permission import router as permission_router
 from src.routes.v1.roles import router as roles_router
 from src.routes.v1.translation import router as translation_router
+from src.routes.v1.stream import router as stream_router
 
 
 v1_router = APIRouter()
@@ -21,3 +22,4 @@ v1_router.include_router(event_router, prefix="/event", tags=["Event"])
 v1_router.include_router(permission_router, prefix="/permission", tags=["Permission"])
 v1_router.include_router(roles_router, prefix="/roles", tags=["Roles"])
 v1_router.include_router(translation_router, tags=["Translation"])
+v1_router.include_router(stream_router, prefix="/stream", tags=["Stream"])

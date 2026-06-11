@@ -84,11 +84,15 @@ CREATE TABLE IF NOT EXISTS cameras (
     height DOUBLE PRECISION,
     fps VARCHAR(50) NOT NULL DEFAULT '5',
     rtspurl VARCHAR(255),
+    substream_rtspurl VARCHAR(255),
     status BOOLEAN NOT NULL DEFAULT TRUE,
     status_modified_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     last_modified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migration for existing databases: add the optional substream URL column.
+ALTER TABLE cameras ADD COLUMN IF NOT EXISTS substream_rtspurl VARCHAR(255);
 
 CREATE TABLE IF NOT EXISTS camera_translations (
     id SERIAL PRIMARY KEY,

@@ -34,6 +34,7 @@ export const AddCameraForm = () => {
             codec: '', resolution: '',
             height: 0, fps: '',
             rtsp_url: '',
+            substream_rtsp_url: '',
             status: true,
             status_modified_by: user?.id ?? 1,
             usecases: [],
@@ -69,6 +70,7 @@ export const AddCameraForm = () => {
                 height:              cameraData.height,
                 fps:                 cameraData.fps,
                 rtsp_url:            cameraData.rtsp_url ?? '',
+                substream_rtsp_url:  cameraData.substream_rtsp_url ?? '',
                 status:              cameraData.status,
                 status_modified_by:  cameraData.status_modified_by,
                 usecases:            cameraData.usecases,
@@ -196,6 +198,7 @@ export const AddCameraForm = () => {
             name_fr:            normalizeOptionalText(data.name_fr),
             location_id:        data.location_id,
             rtsp_url:           normalizeOptionalText(data.rtsp_url),
+            substream_rtsp_url: normalizeOptionalText(data.substream_rtsp_url),
             status_modified_by: user?.id ?? 1,
             usecases:           data.usecases ?? [],
         };
@@ -308,6 +311,12 @@ export const AddCameraForm = () => {
                                 placeholder={t('form.placeholders.rtsp_url')}
                                 rules={{ required: t('form.validation.rtsp_required') }}
                                 error={errors.rtsp_url?.message}
+                            />
+                            <FormInput<CameraFormValues>
+                                name="substream_rtsp_url" control={control}
+                                label={t('form.fields.substream_rtsp_url')}
+                                placeholder={t('form.placeholders.substream_rtsp_url')}
+                                error={errors.substream_rtsp_url?.message}
                             />
                         </div>
                     </div>

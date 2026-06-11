@@ -15,8 +15,9 @@ class LoggingConfig:
         if self.logger.hasHandlers():
             self.logger.handlers.clear()
 
-        # Ensure "logs" directory exists
-        log_directory = "logs"
+        # Log directory — configurable via LOG_DIR so containers can write to a
+        # host-mounted path (e.g. /logs/backend) while local runs fall back to ./logs
+        log_directory = os.environ.get("LOG_DIR", "logs")
         os.makedirs(log_directory, exist_ok=True)
 
         week_start, week_end = self.get_week_dates()
