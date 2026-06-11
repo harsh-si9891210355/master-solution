@@ -6,7 +6,8 @@
     "tabs": {
       "cameras": "Cameras",
       "users": "Users",
-      "events": "Events"
+      "events": "Events",
+      "ai": "AI Insight"
     },
     "layout": {
       "customize": "Customize Layout",
@@ -47,6 +48,72 @@
       "label": "AI Insight",
       "badge": "GPT-Powered",
       "message": "Showing {{count}} day data ({{from}} → {{to}}). {{insight}}"
+    },
+    "ai_insight_tab": {
+      "title": "AI Insight Command Center",
+      "live_badge": "Live · 30d",
+      "updated": "Updated just now · auto-refreshes every 5 min",
+      "full_summary_btn": "Full summary",
+      "top_actions_btn": "Top 3 actions",
+      "recommended_actions": "Recommended actions",
+      "activity_feed_title": "Activity signal feed",
+      "view_command": "Command",
+      "view_timeline": "Timeline",
+      "view_health": "Health",
+      "filter_all": "All",
+      "filter_critical": "Critical",
+      "filter_watch": "Watch",
+      "filter_ok": "OK",
+      "domains": {
+        "events": "Events",
+        "cameras": "Cameras",
+        "users": "Users"
+      },
+      "severity": {
+        "critical": "Critical",
+        "watch": "Watch",
+        "action": "Action",
+        "ok": "OK"
+      },
+      "health": {
+        "events_title": "Events health",
+        "cameras_title": "Camera health",
+        "users_title": "User health",
+        "score_label": "/ 100",
+        "resolution_rate": "Resolution rate",
+        "critical_open": "Critical open",
+        "avg_resolve": "Avg resolve",
+        "online_rate": "Online rate",
+        "offline": "Offline",
+        "avg_uptime": "Avg uptime",
+        "active_rate": "Active rate",
+        "pending_queue": "Pending queue",
+        "suspended": "Suspended"
+      },
+      "events_domain": {
+        "headline": "Activity spiked +13.2% today vs yesterday. CAM-07 at Main Gate is generating the highest alert volume. Peak traffic clusters at 8–10 AM and 5–7 PM. 81% resolution rate maintained.",
+        "kpi_total": "Total Events",
+        "kpi_resolved": "Resolved",
+        "kpi_pending": "Pending",
+        "kpi_critical": "Critical",
+        "bar_label": "Event type distribution"
+      },
+      "cameras_domain": {
+        "headline": "Only 5 of 194 cameras are currently online. 166 units offline across 14 zones — Perimeter East is worst with 21 down. 23 in scheduled maintenance. Immediate field inspection required.",
+        "kpi_total": "Total Fleet",
+        "kpi_online": "Online",
+        "kpi_offline": "Offline",
+        "kpi_maintenance": "Maintenance",
+        "bar_label": "Fleet health ratio"
+      },
+      "users_domain": {
+        "headline": "12 pending approvals with 3 new today — immediate action required. 96 of 128 users active this month at 75% engagement. Login traffic peaked on May 17 at 71 sessions. Operators lead at 41%.",
+        "kpi_total": "Total Users",
+        "kpi_active": "Active",
+        "kpi_pending": "Pending",
+        "kpi_suspended": "Suspended",
+        "bar_label": "Role distribution"
+      }
     },
     "kpis": {
       "total_events": "Total Events",
@@ -151,7 +218,8 @@
         "offline": "Offline",
         "offline_sub": "Needs attention",
         "maintenance": "Maintenance Due",
-        "maintenance_sub": "Scheduled checks"
+        "maintenance_sub": "Scheduled checks",
+        "view_all": "View all"
       },
       "avg_uptime": "Average uptime: {{pct}}",
       "health_trend": {

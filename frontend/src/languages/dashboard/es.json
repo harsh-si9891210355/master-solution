@@ -6,7 +6,8 @@
     "tabs": {
       "cameras": "Cámaras",
       "users": "Usuarios",
-      "events": "Eventos"
+      "events": "Eventos",
+      "ai": "Información IA"
     },
     "layout": {
       "customize": "Personalizar diseño",
@@ -47,6 +48,72 @@
       "label": "Información de IA",
       "badge": "Impulsado por GPT",
       "message": "Mostrando {{count}} día(s) de datos ({{from}} → {{to}}). {{insight}}"
+    },
+    "ai_insight_tab": {
+      "title": "Centro de Comando de IA",
+      "live_badge": "En vivo · 30d",
+      "updated": "Actualizado ahora · se actualiza cada 5 min",
+      "full_summary_btn": "Resumen completo",
+      "top_actions_btn": "Top 3 acciones",
+      "recommended_actions": "Acciones recomendadas",
+      "activity_feed_title": "Feed de señales de actividad",
+      "view_command": "Comando",
+      "view_timeline": "Línea de tiempo",
+      "view_health": "Salud",
+      "filter_all": "Todos",
+      "filter_critical": "Crítico",
+      "filter_watch": "Vigilar",
+      "filter_ok": "OK",
+      "domains": {
+        "events": "Eventos",
+        "cameras": "Cámaras",
+        "users": "Usuarios"
+      },
+      "severity": {
+        "critical": "Crítico",
+        "watch": "Vigilar",
+        "action": "Acción",
+        "ok": "OK"
+      },
+      "health": {
+        "events_title": "Salud de eventos",
+        "cameras_title": "Salud de cámaras",
+        "users_title": "Salud de usuarios",
+        "score_label": "/ 100",
+        "resolution_rate": "Tasa de resolución",
+        "critical_open": "Críticos abiertos",
+        "avg_resolve": "Resolución media",
+        "online_rate": "Tasa en línea",
+        "offline": "Fuera de línea",
+        "avg_uptime": "Tiempo activo medio",
+        "active_rate": "Tasa activa",
+        "pending_queue": "Cola pendiente",
+        "suspended": "Suspendidos"
+      },
+      "events_domain": {
+        "headline": "La actividad aumentó un +13.2% hoy frente a ayer. CAM-07 en la Puerta Principal genera el mayor volumen de alertas. Los picos de tráfico se concentran entre las 8–10 AM y las 5–7 PM. Tasa de resolución del 81% mantenida.",
+        "kpi_total": "Total de Eventos",
+        "kpi_resolved": "Resueltos",
+        "kpi_pending": "Pendientes",
+        "kpi_critical": "Críticos",
+        "bar_label": "Distribución por tipo de evento"
+      },
+      "cameras_domain": {
+        "headline": "Solo 5 de 194 cámaras están actualmente en línea. 166 unidades fuera de línea en 14 zonas — Perímetro Este es la peor zona con 21 unidades caídas. 23 en mantenimiento programado. Se requiere inspección de campo inmediata.",
+        "kpi_total": "Flota Total",
+        "kpi_online": "En línea",
+        "kpi_offline": "Fuera de línea",
+        "kpi_maintenance": "Mantenimiento",
+        "bar_label": "Ratio de salud de la flota"
+      },
+      "users_domain": {
+        "headline": "12 aprobaciones pendientes con 3 nuevas hoy — acción inmediata requerida. 96 de 128 usuarios activos este mes con un 75% de participación. El tráfico de inicio de sesión alcanzó su pico el 17 de mayo con 71 sesiones. Los Operadores lideran con un 41%.",
+        "kpi_total": "Total de Usuarios",
+        "kpi_active": "Activos",
+        "kpi_pending": "Pendientes",
+        "kpi_suspended": "Suspendidos",
+        "bar_label": "Distribución por rol"
+      }
     },
     "kpis": {
       "total_events": "Eventos Totales",
@@ -151,7 +218,8 @@
         "offline": "Fuera de línea",
         "offline_sub": "Requiere atención",
         "maintenance": "Mantenimiento pendiente",
-        "maintenance_sub": "Revisiones programadas"
+        "maintenance_sub": "Revisiones programadas",
+        "view_all": "Ver todas"
       },
       "avg_uptime": "Tiempo activo promedio: {{pct}}",
       "health_trend": {

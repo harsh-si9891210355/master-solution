@@ -16,7 +16,7 @@ export interface DateFilterBarProps {
     t: TFunction;
 }
 
-export type DashboardTab = 'events' | 'cameras' | 'users';
+export type DashboardTab = 'events' | 'cameras' | 'users' | 'ai';
 
 export type DashboardWidgetId =
     | 'kpis'
