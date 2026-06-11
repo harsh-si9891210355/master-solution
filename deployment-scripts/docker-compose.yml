@@ -1,3 +1,7 @@
+# Unified deployment compose for the Master Solution stack.
+# Run from this directory:  docker compose up -d
+# Paths are relative to deployment-scripts/; app source (backend, frontend,
+# recordings, logs) lives one level up at the repo root (../).
 services:
   db:
     image: postgres:16-alpine
@@ -23,8 +27,8 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./create_db_tables.sql:/docker-entrypoint-initdb.d/create_db_tables.sql:ro
-      - ./insert_default_data.sql:/docker-entrypoint-initdb.d/insert_default_data.sql:ro
+      - ./db-init/create_db_tables.sql:/docker-entrypoint-initdb.d/create_db_tables.sql:ro
+      - ./db-init/insert_default_data.sql:/docker-entrypoint-initdb.d/insert_default_data.sql:ro
     command: >
       sh -c "
       psql postgresql://postgres:postgres@db:5432/master_solution -f /docker-entrypoint-initdb.d/create_db_tables.sql &&
@@ -33,20 +37,20 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ../backend
     container_name: master-solution-backend
     depends_on:
       db-init:
         condition: service_completed_successfully
     env_file:
-      - ./backend/.env
+      - ../backend/.env
     environment:
       LOG_DIR: /logs/backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
-      - ./logs/backend:/logs/backend
+      - ../backend:/app
+      - ../logs/backend:/logs/backend
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   mediamtx:
@@ -64,8 +68,8 @@ services:
       - "9999:9999"   # MediaMTX performance profiling for debugging and optimization
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
-      - ./recordings:/recordings
-      - ./logs/mediamtx:/logs/mediamtx
+      - ../recordings:/recordings
+      - ../logs/mediamtx:/logs/mediamtx
     restart: unless-stopped
     # --- GPU / NVENC recording (production) ---
     # The FFmpeg transcode runs inside this container. For hardware (NVENC)
@@ -78,14 +82,14 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
     container_name: master-solution-frontend
     depends_on:
       - backend
     ports:
       - "8010:8010"
     volumes:
-      - ./frontend:/app
+      - ../frontend:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0 --port 8010
 
@@ -102,5 +106,72 @@ services:
       - mediamtx
     restart: unless-stopped
 
+  # --- Monitoring stack (merged from monitoring/docker-compose.yml) ---
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  loki:
+    image: grafana/loki
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    ports:
+      - "9080:9080"
+    command:
+      - -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"   # host port moved 8080 -> 8081 to avoid clash with nginx (8080:80)
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+
 volumes:
   postgres_data:
+  grafana-storage:
+  prometheus-data:
+  loki-data:
