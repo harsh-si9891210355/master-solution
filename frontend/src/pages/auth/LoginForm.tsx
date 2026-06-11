@@ -2,7 +2,7 @@ import { useAuthStore } from "@/store/authStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FormInput } from "@/components/ui/FormInput";
 import { FormButton } from "@/components/ui/FormButton";
 import { loginSchema, type LoginFormValues } from "./types/index";
@@ -37,8 +37,8 @@ export const LoginForm = () => {
     onSuccess: (response) => {
       setAuth(response.data.access_token, response.data.user);
       toast.success(
-       t("login.toast.success_title"),
-       t("login.toast.success_detail")
+        t("login.toast.success_title"),
+        t("login.toast.success_detail")
       );
       navigate("/dashboard");
     },
@@ -90,7 +90,7 @@ export const LoginForm = () => {
               label={t("login.email")}
               control={control}
               error={errors.email?.message}
-              placeholder={t("login.emailPlaceholder")}
+            // placeholder={t("login.emailPlaceholder")}
             />
             <FormInput<LoginFormValues>
               name="password"
@@ -101,12 +101,19 @@ export const LoginForm = () => {
             />
 
             <div className="lcb-forgot">
-              <FormButton
+              <Link
+                to="/forgotpassword"
+                className="lcb-forgot-link"
+              >
+                {t("login.forgot")}
+              </Link>
+
+              {/* <FormButton
                 type="button"
                 variant="ghost"
                 label={t("login.forgot")}
                 onClick={() => navigate("/forgotpassword")}
-              />
+              /> */}
             </div>
 
             <FormButton
@@ -120,13 +127,19 @@ export const LoginForm = () => {
 
           {/* ── Footer ────────────────────────────────────────────────────── */}
           <p className="lcb-footer">
-            {t("login.noAccount")}{" "}
-            <FormButton
+
+            {/* <FormButton
               type="button"
               variant="ghost"
               label={t("login.createOne")}
               onClick={() => navigate("/signup")}
-            />
+            /> */}
+            <Link
+              to="/signup"
+              className="lcb-forgot-link"
+            >
+              {t("login.noAccount")} {t("login.createOne")}{" "}
+            </Link>
           </p>
 
           {/* ── Language switcher ─────────────────────────────────────────── */}

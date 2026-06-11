@@ -2,13 +2,14 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
 
 from src.models.camera import Camera, CameraTranslation
+from src.models.location import Location
 
 
 def get_camera_by_id(db: Session, camera_id: int) -> Camera | None:
     return (
         db.query(Camera)
         .options(
-            selectinload(Camera.location),
+            selectinload(Camera.location).selectinload(Location.translations),
             selectinload(Camera.translations),
             selectinload(Camera.camera_usecases),
         )
@@ -35,7 +36,7 @@ def get_camera_by_name(
         db.query(Camera)
         .join(Camera.translations)
         .options(
-            selectinload(Camera.location),
+            selectinload(Camera.location).selectinload(Location.translations),
             selectinload(Camera.translations),
             selectinload(Camera.camera_usecases),
         )
@@ -48,7 +49,7 @@ def get_all_cameras(db: Session) -> list[Camera]:
     return (
         db.query(Camera)
         .options(
-            selectinload(Camera.location),
+            selectinload(Camera.location).selectinload(Location.translations),
             selectinload(Camera.translations),
             selectinload(Camera.camera_usecases),
         )

@@ -12,6 +12,8 @@ import enCamera         from "./camera/en.json";
 import esCamera         from "./camera/es.json";
 import enUsecase        from "./usecase/en.json";   
 import esUsecase        from "./usecase/es.json";  
+import enDashboard      from "./dashboard/en.json";
+import esDashboard      from "./dashboard/es.json";
 
 export const SUPPORTED_LANGUAGES = [
     { code: "en", label: "English", flag: "🇺🇸" },
@@ -20,7 +22,7 @@ export const SUPPORTED_LANGUAGES = [
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 
-export type AppNamespace = "auth" | "user_management" | "layout" | "camera" | "usecase"; 
+export type AppNamespace = "auth" | "user_management" | "layout" | "camera" | "usecase" | "dashboard"; 
 
 const resources = {
     en: {
@@ -29,6 +31,7 @@ const resources = {
         layout:          enLayout.layout,
         camera:          enCamera.camera,
         usecase:         enUsecase.usecase,  
+        dashboard:       enDashboard.dashboard,
     },
     es: {
         auth:            esAuth.auth,
@@ -36,6 +39,7 @@ const resources = {
         layout:          esLayout.layout,
         camera:          esCamera.camera,
         usecase:         esUsecase.usecase,  
+        dashboard:       esDashboard.dashboard,
     },
 };
 
@@ -46,7 +50,7 @@ i18n
         resources,
         fallbackLng: "en",
         defaultNS: "auth",
-        ns: ["auth", "user_management", "layout", "camera", "usecase"] satisfies AppNamespace[],
+        ns: ["auth", "user_management", "layout", "camera", "usecase", "dashboard"] satisfies AppNamespace[],
         detection: {
             order: ["localStorage"],
             caches: ["localStorage"],

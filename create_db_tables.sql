@@ -22,9 +22,17 @@ CREATE TABLE IF NOT EXISTS usecase_translations (
 
 CREATE TABLE IF NOT EXISTS locations (
     id SERIAL PRIMARY KEY,
-    name_en VARCHAR(255) UNIQUE NOT NULL,
-    name_es VARCHAR(255) UNIQUE NOT NULL,
-    name_fr VARCHAR(255) UNIQUE NOT NULL
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    last_modified_by INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS location_translations (
+    id SERIAL PRIMARY KEY,
+    location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+    language_code VARCHAR(10) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    CONSTRAINT uq_location_translation_language UNIQUE (location_id, language_code)
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -40,6 +48,20 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE constraint_name = 'fk_locations_last_modified_by'
+        AND table_name = 'locations'
+    ) THEN
+        ALTER TABLE locations
+        ADD CONSTRAINT fk_locations_last_modified_by
+        FOREIGN KEY (last_modified_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS users_token (
     userid INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -171,7 +193,10 @@ CREATE TABLE IF NOT EXISTS incident_comments (
 CREATE INDEX IF NOT EXISTS idx_roles_code ON roles(code);
 CREATE INDEX IF NOT EXISTS idx_usecase_translations_usecase_id ON usecase_translations(usecase_id);
 CREATE INDEX IF NOT EXISTS idx_usecase_translations_language_code ON usecase_translations(language_code);
-CREATE INDEX IF NOT EXISTS idx_locations_name_en ON locations(name_en);
+CREATE INDEX IF NOT EXISTS idx_location_translations_location_id ON location_translations(location_id);
+CREATE INDEX IF NOT EXISTS idx_location_translations_language_code ON location_translations(language_code);
+CREATE INDEX IF NOT EXISTS idx_location_translations_name ON location_translations(name);
+CREATE INDEX IF NOT EXISTS idx_locations_last_modified_by ON locations(last_modified_by);
 CREATE INDEX IF NOT EXISTS idx_camera_translations_camera_id ON camera_translations(camera_id);
 CREATE INDEX IF NOT EXISTS idx_camera_translations_language_code ON camera_translations(language_code);
 CREATE INDEX IF NOT EXISTS idx_camera_translations_name ON camera_translations(name);

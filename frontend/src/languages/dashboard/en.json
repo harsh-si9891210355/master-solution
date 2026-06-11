@@ -1,0 +1,231 @@
+{
+  "dashboard": {
+    "title": "Analytics Dashboard",
+    "subtitle": "All cameras · All use cases",
+    "footer": "© 2025 SentinelAI · All rights reserved · Version v2.0.0",
+    "tabs": {
+      "cameras": "Cameras",
+      "users": "Users",
+      "events": "Events"
+    },
+    "layout": {
+      "customize": "Customize Layout",
+      "done": "Done Editing",
+      "save": "Save Layout",
+      "reset": "Reset Layout",
+      "helper": "Drag the dashboard sections to reorder them, then save your layout to keep it in this browser.",
+      "drag_label": "Drag to move"
+    },
+    "widgets": {
+      "ai_insight": "AI Insight",
+      "kpis": "KPIs",
+      "comparisons": "Comparisons",
+      "monthly_trend": "Monthly Trend",
+      "peak_hours": "Peak Hours",
+      "event_types": "Event Types",
+      "top_cameras": "Camera Health Matrix",
+      "status_reactions": "Status and Reactions"
+    },
+    "presets": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "custom": "Custom"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "arrow": "→",
+      "badge_icon": "📅",
+      "range_summary": "{{from}} → {{to}}",
+      "days_short": "{{count}}d"
+    },
+    "ai_banner": {
+      "icon": "🤖",
+      "label": "AI Insight",
+      "badge": "GPT-Powered",
+      "message": "Showing {{count}} day data ({{from}} → {{to}}). {{insight}}"
+    },
+    "kpis": {
+      "total_events": "Total Events",
+      "daily_avg": "Daily Avg",
+      "this_week": "This Week",
+      "this_month": "This Month",
+      "selected_days": "{{count}}d selected",
+      "events_per_day": "events per day",
+      "vs_last_week": "{{percent}} vs last week",
+      "vs_last_month": "{{percent}} vs last month"
+    },
+    "comparison": {
+      "period_activity": "Period Activity",
+      "weekly_activity": "Weekly Activity",
+      "monthly_activity": "Monthly Activity",
+      "this_period": "This period",
+      "prior_period": "Prior period",
+      "this_week": "This week",
+      "last_week": "Last week",
+      "this_month": "This month",
+      "last_month": "Last month",
+      "up_arrow": "▲",
+      "down_arrow": "▼",
+      "diff_vs_period": "{{direction}}{{amount}} vs {{period}}"
+    },
+    "panels": {
+      "monthly_trend": {
+        "title": "Event Trend - Monthly",
+        "subtitle": "Each point represents total events in that month for the selected period."
+      },
+      "peak_hours": {
+        "title": "Peak Activity Hours",
+        "subtitle": "Each bar represents events in that hour. Amber highlights the busiest periods.",
+        "legend_peak": "Peak hours (8-10am, 5-7pm)",
+        "legend_normal": "Normal hours",
+        "hour_suffix": "h"
+      },
+      "event_types": {
+        "title": "Event Type Breakdown",
+        "subtitle": "Bigger slices indicate more frequent events. Hover for the exact count."
+      }
+    },
+    "drilldown": {
+      "all_months": "All months",
+      "back": "Back",
+      "reset": "Reset",
+      "month_hint": "Click a month to drill down into week-wise event counts.",
+      "week_hint": "Showing weekly totals for {{month}}. Click a week to view daily activity.",
+      "day_hint": "Showing day-wise totals for {{week}}. Click a day to view hourly activity.",
+      "hour_hint": "Showing hourly activity for {{day}}.",
+      "week_label": "Week {{index}}"
+    },
+    "event_types": {
+      "motion_detected": "Motion Detected",
+      "intrusion_alert": "Intrusion Alert",
+      "face_recognized": "Face Recognized",
+      "vehicle_detected": "Vehicle Detected",
+      "loitering": "Loitering",
+      "ppe_violation": "PPE Violation"
+    },
+    "top_cameras": {
+      "title": "Top Cameras by Events",
+      "subtitle": "Bar length shows events against the top camera. Percentage shows share of the top five total.",
+      "top_badge": "TOP",
+      "location_prefix": "📍",
+      "events_label": "events",
+      "share_of_top_five": "{{percent}} of top-5",
+      "summary": {
+        "top_five_events": "Events from top 5",
+        "most_active_camera": "Most active camera",
+        "need_attention": "Need attention",
+        "need_attention_value": "{{count}} offline"
+      }
+    },
+    "status": {
+      "title": "Camera Status",
+      "online": "Online",
+      "offline": "Offline",
+      "online_indicator": "● Online",
+      "offline_indicator": "● Offline",
+      "online_ratio": "Online ratio",
+      "total_devices": "{{count}} total devices",
+      "online_icon": "📹",
+      "offline_icon": "📷"
+    },
+    "reactions": {
+      "title": "Event Reactions",
+      "total_responses": "{{count}} total responses",
+      "likes": "Total Likes",
+      "dislikes": "Total Dislikes",
+      "neutral": "Total Neutral",
+      "likes_icon": "👍",
+      "dislikes_icon": "👎",
+      "neutral_icon": "😐"
+    },
+    "cameras_tab": {
+      "kpis": {
+        "total": "Total Cameras",
+        "total_sub": "All configured cameras",
+        "online": "Online",
+        "online_pct": "of total",
+        "offline": "Offline",
+        "offline_sub": "Needs attention",
+        "maintenance": "Maintenance Due",
+        "maintenance_sub": "Scheduled checks"
+      },
+      "avg_uptime": "Average uptime: {{pct}}",
+      "health_trend": {
+        "title": "Camera Health Trend",
+        "subtitle": "Online vs offline camera counts over time.",
+        "online_label": "Online",
+        "offline_label": "Offline"
+      },
+      "location_coverage": {
+        "title": "Coverage by Location",
+        "subtitle": "Number of cameras deployed per location.",
+        "cam_label": "cams"
+      },
+      "top_cameras": {
+        "title": "Top Cameras by Events",
+        "subtitle": "Bar length shows events against the top camera.",
+        "of_total": "of total"
+      }
+    },
+    "users_tab": {
+      "kpis": {
+        "total": "Total Users",
+        "new_month": "+{{count}} this month",
+        "active": "Active Users",
+        "active_month": "{{count}} active this month",
+        "pending": "Pending Approvals",
+        "pending_today": "{{count}} added today",
+        "suspended": "Suspended",
+        "no_change": "No change"
+      },
+      "login_activity": {
+        "title": "Login Activity",
+        "subtitle": "Daily login sessions over the selected period.",
+        "tooltip_label": "Logins"
+      },
+      "by_role": {
+        "title": "Users by Role",
+        "subtitle": "{{total}} total users across all roles.",
+        "total_label": "Users"
+      }
+    },
+    "events_tab": {
+      "kpis": {
+        "total": "Total Events",
+        "total_sub": "In selected period",
+        "resolved": "Resolved",
+        "resolved_pct": "resolution rate",
+        "pending": "Pending",
+        "pending_sub": "Awaiting action",
+        "critical": "Critical",
+        "critical_sub": "High priority"
+      },
+      "avg_resolution": "Avg resolution time: {{mins}} mins",
+      "severity": {
+        "title": "Severity Breakdown",
+        "subtitle": "Distribution of events by severity level.",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "top_locations": {
+        "title": "Top Event Locations",
+        "subtitle": "Locations with the highest number of events.",
+        "tooltip": "Events"
+      },
+      "recent": {
+        "title": "Recent Events",
+        "subtitle": "Latest events captured across all cameras.",
+        "col_time": "Time",
+        "col_event": "Event",
+        "col_location": "Location",
+        "col_camera": "Camera",
+        "col_severity": "Severity"
+      }
+    }
+  }
+}
