@@ -35,9 +35,21 @@ class StreamService:
         """Reduced-quality sibling path that FFmpeg publishes to and MediaMTX records."""
         return f"camera-{camera_id}-rec"
 
-    def _recording_path_name(self, camera_id: int) -> str:
-        """Path that actually holds recordings used for playback."""
+    def _rec_mode(self, substream_url: str | None) -> str:
+        """How recordings are produced for a camera:
+        - "substream": record the camera's low-quality substream directly (no FFmpeg)
+        - "transcode": FFmpeg downscales the main stream into the -rec sibling
+        - "direct":    record the main stream as-is at full quality
+        """
+        if substream_url and settings.rec_prefer_substream:
+            return "substream"
         if settings.rec_enabled:
+            return "transcode"
+        return "direct"
+
+    def _recording_path_name(self, camera_id: int, substream_url: str | None = None) -> str:
+        """Path that actually holds recordings used for playback."""
+        if self._rec_mode(substream_url) in ("substream", "transcode"):
             return self._rec_path_name(camera_id)
         return self._path_name(camera_id)
 
@@ -86,32 +98,35 @@ class StreamService:
             "recordDeleteAfter": f"{settings.rec_retention_hours}h",
         }
 
-    def _live_payload(self, camera_id: int, rtsp_url: str) -> dict:
+    def _live_payload(self, camera_id: int, rtsp_url: str, mode: str) -> dict:
         # Keep the upstream RTSP source connected so MediaMTX can serve live
-        # WebRTC immediately and the transcode can start without warm-up.
+        # WebRTC immediately and any transcode can start without warm-up.
         payload = {
             "source": rtsp_url,
             "sourceOnDemand": False,
         }
-        if settings.rec_enabled:
-            # Live path is not recorded directly; a transcoded sibling is.
-            # recordPath/Format are still set (with record: False) so the
-            # playback server can locate legacy full-quality recordings made
-            # before the transcode switch and surface them on the timeline.
-            payload["record"] = False
-            payload["recordPath"] = settings.rec_record_path
-            payload["recordFormat"] = settings.rec_record_format
+        if mode == "direct":
+            # Record the live stream directly at full source quality.
+            payload.update(self._record_settings())
+            return payload
+
+        # substream / transcode: the live path is not recorded itself; a sibling
+        # path holds the recordings. recordPath/Format are still set (with
+        # record: False) so the playback server can locate legacy full-quality
+        # recordings made before the switch and surface them on the timeline.
+        payload["record"] = False
+        payload["recordPath"] = settings.rec_record_path
+        payload["recordFormat"] = settings.rec_record_format
+        if mode == "transcode":
             payload["runOnReady"] = self._build_record_command(self._path_name(camera_id))
             payload["runOnReadyRestart"] = True
-        else:
-            # Legacy: record the live stream directly at full source quality.
-            payload.update(self._record_settings())
         return payload
 
-    def _rec_payload(self) -> dict:
-        # A "publisher" path that waits for FFmpeg to publish the downscaled
-        # stream, and records it per the REC_* config.
-        payload = {"source": "publisher"}
+    def _rec_payload(self, source: str, on_demand: bool = False) -> dict:
+        # The recorded sibling path. `source` is either "publisher" (FFmpeg pushes
+        # the downscaled stream) or the camera's substream RTSP URL (recorded
+        # directly with no transcode).
+        payload = {"source": source, "sourceOnDemand": on_demand}
         payload.update(self._record_settings())
         return payload
 
@@ -161,20 +176,31 @@ class StreamService:
             logger.error("Failed to upsert MediaMTX path %s: %s", path_name, exc)
             return False
 
-    def _upsert_path(self, camera_id: int, rtsp_url: str) -> bool:
-        """Register the live path (and, when transcoding is enabled, the recorded
-        sibling). The recorded path is created first so it is configured with
-        record=yes before FFmpeg starts publishing to it."""
+    def _upsert_path(
+        self, camera_id: int, rtsp_url: str, substream_url: str | None = None
+    ) -> bool:
+        """Register the live path plus, for substream/transcode modes, the
+        recorded sibling. The recorded path is created first so it is configured
+        with record=yes before a publisher/source starts feeding it."""
+        mode = self._rec_mode(substream_url)
         ok = True
-        if settings.rec_enabled:
-            ok = self._api_upsert(self._rec_path_name(camera_id), self._rec_payload()) and ok
+        if mode == "substream":
+            # Record the camera's low-quality substream directly — no FFmpeg.
+            ok = self._api_upsert(
+                self._rec_path_name(camera_id), self._rec_payload(substream_url)
+            ) and ok
+        elif mode == "transcode":
+            # FFmpeg (launched by the live path) publishes the downscaled stream.
+            ok = self._api_upsert(
+                self._rec_path_name(camera_id), self._rec_payload("publisher")
+            ) and ok
         ok = self._api_upsert(
-            self._path_name(camera_id), self._live_payload(camera_id, rtsp_url)
+            self._path_name(camera_id), self._live_payload(camera_id, rtsp_url, mode)
         ) and ok
         if ok:
             logger.info(
-                "Registered MediaMTX path: %s → %s (rec=%s, encoder=%s, %sp)",
-                self._path_name(camera_id), rtsp_url, settings.rec_enabled,
+                "Registered MediaMTX path: %s → %s (mode=%s, encoder=%s, %sp)",
+                self._path_name(camera_id), rtsp_url, mode,
                 settings.rec_encoder, settings.rec_height,
             )
         return ok
@@ -199,10 +225,12 @@ class StreamService:
         logger.warning("MediaMTX never became ready; camera paths not synced at startup.")
         return {"synced": 0, "skipped": 0}
 
-    def get_stream_info(self, camera_id: int, rtsp_url: str) -> dict:
+    def get_stream_info(
+        self, camera_id: int, rtsp_url: str, substream_url: str | None = None
+    ) -> dict:
         path_name = self._path_name(camera_id)
-        rec_path = self._recording_path_name(camera_id)
-        ok = self._upsert_path(camera_id, rtsp_url)
+        rec_path = self._recording_path_name(camera_id, substream_url)
+        ok = self._upsert_path(camera_id, rtsp_url, substream_url)
         return {
             "camera_id": camera_id,
             "stream_path": path_name,
@@ -252,15 +280,17 @@ class StreamService:
             logger.error("Failed to list MediaMTX recordings for %s: %s", path_name, exc)
         return spans
 
-    def get_recording_spans(self, camera_id: int, rtsp_url: str) -> dict:
-        self._upsert_path(camera_id, rtsp_url)
-        rec_path = self._recording_path_name(camera_id)
+    def get_recording_spans(
+        self, camera_id: int, rtsp_url: str, substream_url: str | None = None
+    ) -> dict:
+        self._upsert_path(camera_id, rtsp_url, substream_url)
+        rec_path = self._recording_path_name(camera_id, substream_url)
 
-        # Merge recordings from the active recording path and, when transcoding
-        # is enabled, the legacy full-quality path — so footage recorded before
-        # the transcode switch still appears on the rewind timeline.
+        # Merge recordings from the active recording path and, when it differs
+        # from the live path, the legacy full-quality path — so footage recorded
+        # before the switch still appears on the rewind timeline.
         paths = [rec_path]
-        if settings.rec_enabled and self._path_name(camera_id) != rec_path:
+        if self._path_name(camera_id) != rec_path:
             paths.append(self._path_name(camera_id))
 
         spans: list[dict] = []
@@ -281,7 +311,7 @@ class StreamService:
         synced, skipped = 0, 0
         for camera in cameras:
             if camera.rtsp_url and camera.status:
-                if self._upsert_path(camera.id, camera.rtsp_url):
+                if self._upsert_path(camera.id, camera.rtsp_url, camera.substream_rtsp_url):
                     synced += 1
                 else:
                     skipped += 1

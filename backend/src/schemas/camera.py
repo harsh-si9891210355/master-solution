@@ -18,6 +18,7 @@ class CameraCreate(BaseModel):
     height: float | None = None
     fps: str = Field(default="5", min_length=1, max_length=50)
     rtsp_url: str | None = Field(default=None, max_length=255)
+    substream_rtsp_url: str | None = Field(default=None, max_length=255)
     status: bool = True
     status_modified_by: int
     usecases: list[CameraUseCaseAssignment] = []
@@ -33,6 +34,7 @@ class CameraUpdate(BaseModel):
     height: float | None = None
     fps: str | None = Field(default=None, min_length=1, max_length=50)
     rtsp_url: str | None = Field(default=None, max_length=255)
+    substream_rtsp_url: str | None = Field(default=None, max_length=255)
     status: bool | None = None
     status_modified_by: int | None = None
     usecases: list[CameraUseCaseAssignment] | None = None
@@ -56,6 +58,7 @@ class CameraResponse(BaseModel):
     height: float | None
     fps: str
     rtsp_url: str | None
+    substream_rtsp_url: str | None = None
     status: bool
     status_modified_by: int
     usecases: list[CameraUseCaseResponse]

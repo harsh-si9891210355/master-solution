@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     # rec_enabled=False falls back to the old behaviour: record the live path
     # directly at full source quality (no transcode).
     rec_enabled: bool = True
+    # If a camera has a low-quality substream URL configured, record that directly
+    # (no FFmpeg / zero transcode CPU) instead of transcoding the main stream.
+    # Set False to ignore substreams and always use the transcode path.
+    rec_prefer_substream: bool = True
     # Encoder: "cpu" -> libx264, "nvenc" -> h264_nvenc (needs NVIDIA GPU + toolkit).
     rec_encoder: str = "cpu"
     # Target recording height in pixels (width auto, keeps aspect): 480, 360, 240…

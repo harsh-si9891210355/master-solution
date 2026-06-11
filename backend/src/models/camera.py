@@ -16,6 +16,9 @@ class Camera(Base):
     height: Mapped[float | None] = mapped_column(Float, nullable=True)
     fps: Mapped[str] = mapped_column(String(50), default="5", nullable=False)
     rtsp_url: Mapped[str | None] = mapped_column("rtspurl", String(255), nullable=True)
+    # Optional low-quality substream URL. When set, recordings are pulled from it
+    # directly (no transcode) instead of re-encoding the main rtsp_url.
+    substream_rtsp_url: Mapped[str | None] = mapped_column("substream_rtspurl", String(255), nullable=True)
     status: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     status_modified_by: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT", onupdate="CASCADE"),

@@ -18,6 +18,7 @@ export interface Camera {
     height:             number;
     fps:                string;
     rtsp_url:           string | null;
+    substream_rtsp_url: string | null;
     status:             boolean;
     status_modified_by: number;
     usecases:           CameraUsecase[];
@@ -35,6 +36,7 @@ export interface CameraFormValues {
     height:             number;
     fps:                string;
     rtsp_url:           string | null;
+    substream_rtsp_url: string | null;
     status:             boolean;
     status_modified_by: number;
     usecases:           CameraUsecase[];

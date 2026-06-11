@@ -18,7 +18,7 @@ def get_stream_info(camera_id: int, db: Session = Depends(get_db)):
     if not camera.rtsp_url:
         raise HTTPException(status_code=400, detail="Camera has no RTSP URL configured")
 
-    return StreamService().get_stream_info(camera_id, camera.rtsp_url)
+    return StreamService().get_stream_info(camera_id, camera.rtsp_url, camera.substream_rtsp_url)
 
 
 @router.get("/{camera_id}/recordings", dependencies=[Depends(require_permission("camera:read"))])
@@ -30,7 +30,7 @@ def get_recordings(camera_id: int, db: Session = Depends(get_db)):
     if not camera.rtsp_url:
         raise HTTPException(status_code=400, detail="Camera has no RTSP URL configured")
 
-    return StreamService().get_recording_spans(camera_id, camera.rtsp_url)
+    return StreamService().get_recording_spans(camera_id, camera.rtsp_url, camera.substream_rtsp_url)
 
 
 @router.post("/sync", dependencies=[Depends(require_permission("camera:read"))])

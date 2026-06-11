@@ -69,6 +69,7 @@ def create_camera(
     height: float | None,
     fps: str,
     rtsp_url: str | None,
+    substream_rtsp_url: str | None,
     status: bool,
     status_modified_by: int,
 ) -> Camera:
@@ -79,6 +80,7 @@ def create_camera(
         height=height,
         fps=fps,
         rtsp_url=rtsp_url,
+        substream_rtsp_url=substream_rtsp_url,
         status=status,
         status_modified_by=status_modified_by,
     )
@@ -101,6 +103,7 @@ def update_camera(
     height: float | None = None,
     fps: str | None = None,
     rtsp_url: str | None = None,
+    substream_rtsp_url: str | None = None,
     status: bool | None = None,
     status_modified_by: int | None = None,
 ) -> Camera:
@@ -116,6 +119,8 @@ def update_camera(
         camera.fps = fps
     if rtsp_url is not None:
         camera.rtsp_url = rtsp_url
+    if substream_rtsp_url is not None:
+        camera.substream_rtsp_url = substream_rtsp_url
     if status is not None:
         camera.status = status
     if status_modified_by is not None:
