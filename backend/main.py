@@ -27,12 +27,14 @@ from src.middleware.language import LanguageMiddleware
 from src.routes.router import api_router
 from src.services.translation import TranslationService
 from src.services.translation.exceptions import TranslationInitializationError
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = LoggingConfig().setup_logging()
 
 # Initialize FastAPI application
 app = FastAPI(title=settings.app_name, version="1.0.0", debug=settings.debug)
 
+Instrumentator().instrument(app).expose(app)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
