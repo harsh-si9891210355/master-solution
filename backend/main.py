@@ -30,6 +30,7 @@ from src.routes.router import api_router
 from src.services.translation import TranslationService
 from src.services.translation.exceptions import TranslationInitializationError
 from prometheus_fastapi_instrumentator import Instrumentator
+from src.core.metrics import collect_business_metrics_loop
 
 logger = LoggingConfig().setup_logging()
 
@@ -88,6 +89,10 @@ async def on_startup() -> None:
     # Register camera RTSP paths in MediaMTX without blocking startup.
     # The task retries until MediaMTX is reachable (up to ~60 s).
     asyncio.create_task(_sync_cameras_background())
+
+    # Periodically refresh business-level Prometheus gauges (active users,
+    # camera fleet size, open incidents, …) for Grafana.
+    asyncio.create_task(collect_business_metrics_loop())
 
 
 @app.exception_handler(RequestValidationError)

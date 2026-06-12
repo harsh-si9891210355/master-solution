@@ -9,15 +9,22 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
+  # Discover every running container via the Docker API and stream its logs.
+  # This gives us real container / compose-service labels (instead of just
+  # "job=docker"), so logs are filterable per service in Grafana.
   - job_name: docker
-
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: docker
-          host: local
-          __path__: /var/lib/docker/containers/*/*-json.log
-
-    pipeline_stages:
-      - docker: {}
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/(.*)"
+        target_label: container
+      - source_labels: ["__meta_docker_container_label_com_docker_compose_service"]
+        target_label: compose_service
+      - source_labels: ["__meta_docker_container_label_com_docker_compose_project"]
+        target_label: compose_project
+      - source_labels: ["__meta_docker_container_log_stream"]
+        target_label: stream
+      - target_label: job
+        replacement: docker
