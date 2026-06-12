@@ -1,3 +1,4 @@
+import { CSSProperties } from "react";
 import { Controller, Control, FieldValues, Path } from "react-hook-form";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
@@ -12,12 +13,14 @@ interface SelectOption {
 interface FormInputProps<T extends FieldValues> {
   name: Path<T>;
   control: Control<T>;
-  label: string;
+  label?: string;
   type?: "text" | "password" | "dropdown" | "number";
   error?: string;
   placeholder?: string;
   rules?: object;
   options?: SelectOption[];
+  className?: string;
+  style?: CSSProperties;
 }
 
 export const FormInput = <T extends FieldValues>({
@@ -29,21 +32,33 @@ export const FormInput = <T extends FieldValues>({
   placeholder,
   rules,
   options = [],
+  className,
+  style,
 }: FormInputProps<T>) => {
-  return (
-    <div className="flex flex-col gap-2 mb-4">
-      <label
-        htmlFor={name}
-        className={classNames("font-medium text-sm text-gray-700", {
-          "text-red-500": !!error,
-        })}
-      >
-        {label}
+  // Unified field look — beige fill with a blue border, matching the
+  // login / sign-up design (border turns red when the field has an error).
+  const fieldStyle: CSSProperties = {
+    background: "#F9F6EE",
+    border: `1.5px solid ${error ? "#e24c4c" : "#1447e6"}`,
+    ...style,
+  };
+  const fieldClass = classNames("w-full px-4 py-3 text-sm", className);
 
-        {rules && "required" in rules && (
-          <span className="text-red-500 ml-1">*</span>
-        )}
-      </label>
+  return (
+    <div className="flex flex-col gap-1.5 mb-4">
+      {label && (
+        <label
+          htmlFor={name}
+          className={classNames("font-medium text-sm text-gray-700", {
+            "text-red-500": !!error,
+          })}
+        >
+          {label}
+          {rules && "required" in rules && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
+        </label>
+      )}
 
       <Controller
         name={name}
@@ -58,8 +73,9 @@ export const FormInput = <T extends FieldValues>({
                 placeholder={placeholder}
                 toggleMask
                 feedback={false}
-                className={classNames({ "p-invalid": !!error })}
-                pt={{ input: { className: "w-full p-3" } }}
+                className="w-full"
+                inputClassName={fieldClass}
+                inputStyle={fieldStyle}
               />
             );
           }
@@ -71,6 +87,7 @@ export const FormInput = <T extends FieldValues>({
                 id={name}
                 options={options}
                 placeholder={placeholder}
+                style={fieldStyle}
                 className={classNames("w-full", { "p-invalid": !!error })}
               />
             );
@@ -82,7 +99,8 @@ export const FormInput = <T extends FieldValues>({
               {...field}
               id={name}
               placeholder={placeholder}
-              className={classNames("p-3", { "p-invalid": !!error })}
+              style={fieldStyle}
+              className={fieldClass}
             />
           );
         }}

@@ -3,11 +3,16 @@
     "app_name": "Master Solution",
     "nav": {
       "dashboard": "Panel",
-      "events":    "Eventos",
-      "cameras":   "Cámaras",
-      "users":     "Usuarios",
-      "usecases":   "Casos de uso"
+      "events": "Eventos",
+      "cameras": "Cámaras",
+      "users": "Usuarios",
+      "usecases": "Casos de uso",
+      "settings": "ajustes"
     },
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "logout_confirm_header": "Confirmar Cierre de Sesión",
+    "logout_confirm_message": "¿Está seguro de que desea cerrar sesión?",
+    "logout_ok": "Aceptar",
+    "logout_cancel": "Cancelar"
   }
 }

@@ -1,13 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { z } from "zod";
 import { FormInput } from "@/components/ui/FormInput";
-import { FormButton } from "@/components/ui/FormButton";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 import { authService } from "./api/authService";
 import { useNsTranslation } from "@/hooks/Usetranslation";
 import { useToast } from "@/components/ui/ToastProvider";
+import "../../assets/Style/auth.css";
 
 export const ForgotPassword = () => {
     const navigate = useNavigate();
@@ -54,82 +55,66 @@ export const ForgotPassword = () => {
     const onSubmit = (data: ForgotPasswordValues) => sendReset(data);
 
     return (
-        <div className="auth-page">
-            <div className="auth-orb auth-orb--tr" />
-            <div className="auth-orb auth-orb--bl" />
-
-            <div className="auth-card">
-                <div className="auth-card__accent" />
-                <div className="auth-card__body">
-
-                    {/* Header */}
-                    <div className="auth-header">
-                        <div className="auth-icon-badge">
-                            <i className="pi pi-key" />
-                        </div>
-                        <div className="auth-header__text">
-                            <h2>{t("forgotPassword.title")}</h2>
-                            <p>{t("forgotPassword.subtitle")}</p>
-                        </div>
-                    </div>
-
-                    {/* Error banner */}
-                    {isError && (
-                        <div className="auth-banner auth-banner--error">
-                            <i className="pi pi-exclamation-circle" />
-                            <p>
-                                {(error as any)?.response?.data?.message ??
-                                    t("forgotPassword.error_banner")}
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
-                        <FormInput<ForgotPasswordValues>
-                            name="email"
-                            control={control}
-                            label={t("forgotPassword.email")}
-                            placeholder={t("forgotPassword.emailPlaceholder")}
-                            rules={{
-                                required: t("forgotPassword.validation.email_required"),
-                            }}
-                            error={errors.email?.message}
-                        />
-                        <div className="auth-form__submit-row">
-                            <FormButton
-                                label={t("forgotPassword.submit")}
-                                variant="primary"
-                                type="submit"
-                                fullWidth
-                                loading={isPending}
-                                iconLeft="pi pi-send"
-                            />
-                        </div>
-                    </form>
-
-                    {/* Back to sign in */}
-                    <div className="auth-back-link-wrapper">
-                        <FormButton
-                            label={t("forgotPassword.backToSignIn")}
-                            variant="ghost"
-                            iconLeft="pi pi-arrow-left"
-                            onClick={() => navigate("/")}
-                        />
-                    </div>
-
-                    {/* Footer note */}
-                    <p className="auth-footer-note">
-                        {t("forgotPassword.footerNote")}{" "}
-                        <FormButton
-                            label={t("forgotPassword.footerLink")}
-                            variant="ghost"
-                            onClick={() => navigate("/")}
-                        />
-                    </p>
-
-                </div>
+        <AuthLayout>
+            {/* Heading */}
+            <div className="mb-8">
+                <p className="text-lg font-normal text-gray-800 mb-1">{t("login.welcome")}</p>
+                <p className="text-lg font-bold text-gray-800 leading-snug">
+                    <span className="text-xs font-semibold tracking-wide text-gray-700 uppercase">
+                        {t("forgotPassword.title")}
+                    </span>
+                </p>
+                <p className="text-xs text-gray-600 mt-4 leading-relaxed">
+                    {t("forgotPassword.subtitle")}
+                </p>
             </div>
-        </div>
+
+            {/* Divider */}
+            <div className="border-t border-blue-100 mb-4" />
+
+            {/* Error banner */}
+            {isError && (
+                <div className="mb-4 px-4 py-2 bg-red-50 border border-red-300 text-red-600 text-sm rounded">
+                    {(error as any)?.response?.data?.message ??
+                        t("forgotPassword.error_banner")}
+                </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+                <FormInput<ForgotPasswordValues>
+                    name="email"
+                    control={control}
+                    placeholder={t("forgotPassword.emailPlaceholder")}
+                    error={errors.email?.message}
+                />
+
+                <button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full py-4 text-sm font-medium text-white transition-opacity disabled:opacity-70 mt-2"
+                    style={{ background: "#1447e6" }}
+                >
+                    {isPending ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            </svg>
+                            {t("forgotPassword.submit")}…
+                        </span>
+                    ) : (
+                        t("forgotPassword.submit")
+                    )}
+                </button>
+            </form>
+
+            {/* Back to sign in */}
+            <div className="mt-6 text-center">
+                <Link to="/" className="text-xs font-semibold" style={{ color: "#1447e6" }}>
+                    {t("forgotPassword.backToSignIn")}
+                </Link>
+            </div>
+        </AuthLayout>
     );
 };

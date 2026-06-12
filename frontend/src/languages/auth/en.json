@@ -1,7 +1,9 @@
 {
   "auth": {
     "login": {
-      "title": "Welcome to Master Solution",
+      "welcome": "Welcome to",
+      "description": "Please enter your username & password to sign in.",
+      "title": "AI based VIDEO MANAGEMENT SYSTEM",
       "subtitle": "Sign in to access your Master Solution account",
       "email": "Email Address",
       "emailPlaceholder": "you@example.com",
@@ -22,7 +24,6 @@
         "error_detail": "Invalid email address or password. Please try again."
       }
     },
-
     "signup": {
       "title": "Create Account",
       "subtitle": "Complete the form below to create your account",
@@ -36,14 +37,16 @@
       "submit": "Create Account",
       "hasAccount": "Already have an account?",
       "signIn": "Sign In",
+      "pending_title": "Request Submitted",
+      "pending_message": "Your account request has been sent to the administrator for approval. You'll be able to sign in once your account has been activated.",
+      "backToSignIn": "Back to Sign In",
       "toast": {
-        "success_title": "Account Created Successfully",
-        "success_detail": "Your account has been created successfully. You can now sign in.",
+        "success_title": "Request Submitted",
+        "success_detail": "Your account request has been sent to the administrator for approval.",
         "error_title": "Account Creation Failed",
         "error_detail": "Unable to create your account. Please verify your details and try again."
       }
     },
-
     "forgotPassword": {
       "title": "Forgot Your Password?",
       "subtitle": "We'll send a password reset link to your email",
@@ -65,12 +68,10 @@
         "error_detail": "Unable to send the reset email. Please verify the email address and try again."
       }
     },
-
     "setPassword": {
       "invalid_link_title": "Invalid Link",
       "invalid_link_subtitle": "This link is invalid or has expired. Please contact your administrator to request a new one.",
       "back_to_sign_in": "Back to Sign In",
-
       "success": {
         "reset_title": "Password Reset Successful",
         "set_title": "Account Setup Complete",
@@ -78,7 +79,6 @@
         "set_subtitle": "Your account setup is complete. Sign in using your email address and password.",
         "go_to_sign_in": "Go to Sign In"
       },
-
       "form": {
         "reset_title": "Reset Password",
         "set_title": "Create Password",
@@ -95,14 +95,12 @@
         "footer_reset_link": "Request a new link.",
         "footer_set_link": "Contact your administrator."
       },
-
       "validation": {
         "password_min": "Password must be at least 8 characters long",
         "password_uppercase": "Password must contain at least one uppercase letter",
         "password_number": "Password must contain at least one number",
         "confirm_mismatch": "Passwords do not match"
       },
-
       "toast": {
         "reset_success_title": "Password Reset Successful",
         "reset_success_detail": "Your password has been updated successfully. You may now sign in.",
@@ -112,7 +110,6 @@
         "error_detail": "Unable to update your password. The link may have expired."
       }
     },
-
     "register": {},
     "validation": {},
     "errors": {},

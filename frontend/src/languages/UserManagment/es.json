@@ -12,7 +12,8 @@
     },
     "status": {
       "active": "Activo",
-      "inactive": "Inactivo"
+      "inactive": "Inactivo",
+      "self_disabled": "No puedes cambiar el estado de tu propia cuenta"
     },
     "actions": {
       "edit": "Editar",

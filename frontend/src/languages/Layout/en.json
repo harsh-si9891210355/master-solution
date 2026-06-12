@@ -3,11 +3,16 @@
     "app_name": "Master Solution",
     "nav": {
       "dashboard": "Dashboard",
-      "events":    "Events",
-      "cameras":   "Cameras",
-      "users":     "Users",
-      "usecases": "Usecases"
+      "events": "Events",
+      "cameras": "Cameras",
+      "users": "Users",
+      "usecases": "Usecases",
+      "settings": "Settings"
     },
-    "logout": "Logout"
+    "logout": "Logout",
+    "logout_confirm_header": "Confirm Logout",
+    "logout_confirm_message": "Are you sure you want to logout?",
+    "logout_ok": "Ok",
+    "logout_cancel": "Cancel"
   }
 }

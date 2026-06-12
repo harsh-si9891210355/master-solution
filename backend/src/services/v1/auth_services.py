@@ -1,10 +1,13 @@
+import smtplib
 from datetime import datetime, timezone
+from email.mime.text import MIMEText
 
 from fastapi import HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from src.core.config import settings
 from src.crud.role import get_role_by_code
-from src.crud.user import create_user, get_user_by_email, update_user_password, update_user
+from src.crud.user import create_user, get_user_by_email, get_users_by_role_code, update_user_password, update_user
 from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
@@ -51,7 +54,47 @@ def _build_login_response(db: Session, user: User, access_token: str, language: 
     )
 
 
-def signup_user(db: Session, payload: UserCreate, request: Request, language: str) -> LoginSignupResponse:
+def _notify_admins_of_signup(db: Session, new_user: User) -> None:
+    """Send an approval-request email to every admin when a new user signs up.
+
+    Failures are swallowed so a mail outage never blocks the signup itself —
+    the account is already created and awaiting activation regardless.
+    """
+    admins = get_users_by_role_code(db, "admin")
+    admin_emails = [admin.email for admin in admins if admin.email]
+    if not admin_emails:
+        return
+
+    subject = "New user signup awaiting approval"
+    body = f"""
+    Hi,
+
+    A new user has signed up and is awaiting approval:
+
+    Name:   {new_user.first_name} {new_user.last_name}
+    Email:  {new_user.email}
+    Mobile: {new_user.mobile_number or "-"}
+
+    The account is currently inactive. Please review and activate it from the
+    User Management screen so the user can sign in.
+    """
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = settings.smtp_user
+    msg["To"] = ", ".join(admin_emails)
+
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.send_message(msg)
+    except Exception:
+        # Notification email is best-effort; do not fail the signup if it errors.
+        pass
+
+
+def signup_user(db: Session, payload: UserCreate, request: Request, language: str) -> MessageResponse:
     existing_user = get_user_by_email(db, payload.email)
     if existing_user:
         raise HTTPException(
@@ -66,6 +109,8 @@ def signup_user(db: Session, payload: UserCreate, request: Request, language: st
             detail="Invalid role code",
         )
 
+    # New self-signups start inactive and must be activated by an admin
+    # before they are allowed to sign in.
     user = create_user(
         db,
         email=payload.email,
@@ -74,12 +119,18 @@ def signup_user(db: Session, payload: UserCreate, request: Request, language: st
         mobile_number=payload.mobile_number,
         role_id=role.id,
         hashed_password=Hasher.get_hashed_password(payload.password),
+        is_active=False,
     )
-    access_token = Authentication.create_access_token(
-        {Authentication.EMAIL_KEY: user.email}
+
+    _notify_admins_of_signup(db, user)
+
+    return MessageResponse(
+        message=(
+            "Your signup request has been submitted successfully. An administrator "
+            "will review and approve your account. You will be able to sign in once "
+            "your account has been activated."
+        )
     )
-    _store_access_token(db, user, access_token, request)
-    return _build_login_response(db, user, access_token, language)
 
 
 def login_user(db: Session, payload: UserLogin, request: Request, language: str) -> LoginSignupResponse:

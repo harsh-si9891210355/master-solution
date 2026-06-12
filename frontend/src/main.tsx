@@ -6,10 +6,10 @@ import { PrimeReactProvider } from 'primereact/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '../src/components/ui/ToastProvider';
 
-// Styles
-import '../src/assets/Style/index.css';
-import '../src/assets/Style/auth.css';
-import '../src/assets/Style/layout.css';
+// // Styles
+// import '@fontsource/material-icons/index.css';
+import './index.css';
+// import './assets/Style/layout.css';
 import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
