@@ -150,6 +150,7 @@ class CameraService:
             height=camera.height,
             fps=camera.fps,
             rtsp_url=camera.rtsp_url,
+            substream_rtsp_url=camera.substream_rtsp_url,
             status=camera.status,
             status_modified_by=camera.status_modified_by,
             usecases=[
@@ -197,6 +198,7 @@ class CameraService:
             height=payload.height,
             fps=payload.fps,
             rtsp_url=payload.rtsp_url,
+            substream_rtsp_url=payload.substream_rtsp_url,
             status=payload.status,
             status_modified_by=payload.status_modified_by,
         )
@@ -275,6 +277,7 @@ class CameraService:
             height=payload.height,
             fps=payload.fps,
             rtsp_url=payload.rtsp_url,
+            substream_rtsp_url=payload.substream_rtsp_url,
             status=payload.status,
             status_modified_by=payload.status_modified_by,
         )

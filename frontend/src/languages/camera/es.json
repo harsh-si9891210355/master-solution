@@ -75,6 +75,7 @@
         "height": "Altura (px)",
         "fps": "FPS",
         "rtsp_url": "URL RTSP",
+        "substream_rtsp_url": "URL RTSP de subflujo (grabación)",
         "status": "Estado",
         "usecase_id": "ID de Caso de Uso",
         "usecase_is_active": "Activo"
@@ -90,6 +91,7 @@
         "height": "ej. 1080",
         "fps": "ej. 30",
         "rtsp_url": "rtsp://...",
+        "substream_rtsp_url": "rtsp://... (baja resolución, opcional — se graba tal cual, sin transcodificación)",
         "status": "Seleccionar estado",
         "usecase_id": "Ingrese ID del caso de uso",
         "usecase_is_active": "Seleccionar estado"

@@ -1,0 +1,73 @@
+# Fallback values. At runtime the entrypoint forces logLevel=debug and
+# logDestinations=stdout (via MTX_LOGLEVEL / MTX_LOGDESTINATIONS), then splits
+# stdout by level into weekly files under /logs/mediamtx:
+#   debug_<week-start>_to_<week-end>.log   (DEB / ERR)
+#   logger_<week-start>_to_<week-end>.log  (INF / WAR)
+logLevel: info
+logDestinations: [stdout]
+
+# API — used by the backend to dynamically add/update camera paths
+api: yes
+apiAddress: :9997
+
+# Grant unauthenticated access to publish, read, and the HTTP API.
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+        path:
+      - action: read
+        path:
+      - action: playback
+        path:
+      - action: api
+        path:
+      - action: metrics
+        path:
+      - action: pprof
+        path:
+
+# RTSP ingest from IP cameras.
+rtsp: yes
+rtspAddress: :8554
+rtspTransports: [tcp]
+
+# Browser live playback.
+webrtc: yes
+webrtcAddress: :8889
+webrtcAdditionalHosts: [localhost, 127.0.0.1]
+webrtcLocalTCPAddress: :8189
+webrtcHandshakeTimeout: 10s 
+webrtcTrackGatherTimeout: 2s
+
+# RTMP / SRT not used.
+hls: no
+rtmp: no
+srt: no
+
+# Native recording playback API.
+playback: yes
+playbackAddress: :9996
+
+# Metrics for monitoring and alerting.
+metrics: yes
+metricsAddress: :9998
+
+# Performance profiling for debugging and optimization.
+pprof: yes
+pprofAddress: :9999
+
+# Recording is configured per-path by the backend via the HTTP API, not here.
+# Each camera gets a live path (record: no, served over WebRTC) plus a
+# transcoded "<path>-rec" sibling (record: yes) that stores a reduced-quality
+# copy. recordPath / recordDeleteAfter / format are set on those paths from the
+# backend's REC_* settings. Default everything to no-record so any stray path
+# is not recorded at full quality.
+pathDefaults:
+  record: no
+
+# Paths are managed dynamically via the API from the backend.
+paths: {}

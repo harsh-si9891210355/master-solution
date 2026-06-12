@@ -10,6 +10,7 @@ import { EventTrendPanel } from '@/pages/dashboard/EventTrendPanel';
 import { UsersTab, UsersKpis, UsersLogin, UsersRole } from '@/pages/dashboard/UsersTab';
 import { EventsTab, EventsKpis, EventsRecent } from '@/pages/dashboard/EventsTab';
 import { CamerasTab, CamerasKpis, CamerasTrend, CamerasHub } from '@/pages/dashboard/CamersTab';
+import { AIInsightTab } from '@/pages/dashboard/AiInsightTab';
 import type {
     DashboardWidget,
     DashboardWidgetId,
@@ -175,6 +176,7 @@ function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: DateFilt
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 const TABS: { id: DashboardTab; icon: string; labelKey: string }[] = [
+    { id: 'ai',      icon: '🤖', labelKey: 'tabs.ai'      },
     { id: 'events', icon: '🔔', labelKey: 'tabs.events' },
     { id: 'cameras', icon: '📹', labelKey: 'tabs.cameras' },
     { id: 'users', icon: '👥', labelKey: 'tabs.users' },
@@ -324,7 +326,7 @@ export const Dashboard = () => {
         if (nextPreset !== 'custom') setRange(getPresetRange(nextPreset));
     };
 
-    const tabHasWidgets = true;
+    const tabHasWidgets = activeTab !== 'ai';
 
     const currentOrder = activeTab === 'events' ? eventsWidgetOrder : activeTab === 'cameras' ? camerasWidgetOrder : usersWidgetOrder;
 
@@ -730,7 +732,7 @@ export const Dashboard = () => {
                 />
             </div>
 
-            <div className="db-ai-banner">
+            {/* <div className="db-ai-banner">
                 <div className="db-ai-icon">{t('ai_banner.icon')}</div>
                 <div>
                     <div className="db-ai-label-row">
@@ -739,7 +741,7 @@ export const Dashboard = () => {
                     </div>
                     <p className="db-ai-text"><TypedText text={aiInsightText} /></p>
                 </div>
-            </div>
+            </div> */}
 
             <TabBar
                 active={activeTab}
@@ -759,6 +761,9 @@ export const Dashboard = () => {
                 <WidgetGrid widgets={orderedUsersWidgets}   isEditMode={isEditMode} draggedId={draggedWidgetId}
                     onDragStart={id => setDraggedWidgetId(id)} onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)} onDragEnd={() => setDraggedWidgetId(null)} t={t} />
             )}
+            {activeTab === 'ai' && (
+    <AIInsightTab />
+)}
 
             <div className="db-footer">{t('footer')}</div>
         </div>
