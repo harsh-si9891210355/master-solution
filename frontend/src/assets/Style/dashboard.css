@@ -300,7 +300,7 @@
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--text-dim);
+    color: var(--text-light);
 }
 
 .db-filter-date {

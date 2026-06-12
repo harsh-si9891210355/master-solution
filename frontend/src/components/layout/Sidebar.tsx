@@ -1,12 +1,28 @@
 
 import { useNavigate, useLocation } from 'react-router'
 import { useNsTranslation } from "@/hooks/Usetranslation";
+import { DeleteModalPopup } from '@/components/ui/DeleteModalPopup';
+import { useAuthStore } from '@/store/authStore';
 
 
 export default function Sidebar() {
   const { t, currentLang, changeLanguage } = useNsTranslation("layout");
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const logout = useAuthStore((s) => s.logout)
+
+  const handleLogout = () => {
+    DeleteModalPopup.showLogout({
+      message: t('logout_confirm_message'),
+      header: t('logout_confirm_header'),
+      acceptLabel: t('logout_ok'),
+      rejectLabel: t('logout_cancel'),
+      onConfirm: () => {
+        logout()
+        navigate('/')
+      }
+    })
+  }
 
   const NAV_ITEMS = [
     { label: t("nav.dashboard"), icon: "dashboard", path: "/dashboard" },
@@ -71,7 +87,7 @@ export default function Sidebar() {
       {/* ── Logout — pinned to bottom ── */}
       <div style={{ borderTop: '1px solid #e5e7eb' }}>
         <button
-          onClick={() => navigate('/login')}
+          onClick={handleLogout}
           title="Logout"
           className="relative group flex items-center justify-center w-full transition-all duration-150"
           style={{ height: 56, color: '#003087', background: '#ffffff' }}
@@ -102,6 +118,7 @@ export default function Sidebar() {
         </button>
       </div>
 
+      <DeleteModalPopup.LogoutHost />
     </aside>
   )
 }

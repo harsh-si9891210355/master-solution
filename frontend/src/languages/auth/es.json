@@ -36,9 +36,12 @@
       "submit": "Crear Cuenta",
       "hasAccount": "¿Ya tienes una cuenta?",
       "signIn": "Iniciar Sesión",
+      "pending_title": "Solicitud Enviada",
+      "pending_message": "Tu solicitud de cuenta ha sido enviada al administrador para su aprobación. Podrás iniciar sesión una vez que tu cuenta sea activada.",
+      "backToSignIn": "Volver a Iniciar Sesión",
       "toast": {
-        "success_title": "Cuenta Creada Exitosamente",
-        "success_detail": "Tu cuenta ha sido creada correctamente. Ya puedes iniciar sesión.",
+        "success_title": "Solicitud Enviada",
+        "success_detail": "Tu solicitud de cuenta ha sido enviada al administrador para su aprobación.",
         "error_title": "Error al Crear la Cuenta",
         "error_detail": "No fue posible crear tu cuenta. Verifica la información e inténtalo nuevamente."
       }

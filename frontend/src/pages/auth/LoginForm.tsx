@@ -158,7 +158,7 @@ export const LoginForm = () => {
               type="submit"
               disabled={loading}
               className="w-full py-4 text-sm font-medium text-white transition-opacity disabled:opacity-70 mt-2"
-              style={{ background: '#1a2332' }}
+              style={{ background: '#1447e6' }}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -173,6 +173,16 @@ export const LoginForm = () => {
               )}
             </button>
           </form>
+
+          {/* Sign up link */}
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-600">
+              {t("login.noAccount")}{' '}
+              <Link to="/signup" className="font-semibold" style={{ color: '#1447e6' }}>
+                {t("login.createOne")}
+              </Link>
+            </p>
+          </div>
 
           {/* OR Divider */}
           <div className="flex items-center gap-3 my-5">

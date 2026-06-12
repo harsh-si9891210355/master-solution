@@ -37,9 +37,12 @@
       "submit": "Create Account",
       "hasAccount": "Already have an account?",
       "signIn": "Sign In",
+      "pending_title": "Request Submitted",
+      "pending_message": "Your account request has been sent to the administrator for approval. You'll be able to sign in once your account has been activated.",
+      "backToSignIn": "Back to Sign In",
       "toast": {
-        "success_title": "Account Created Successfully",
-        "success_detail": "Your account has been created successfully. You can now sign in.",
+        "success_title": "Request Submitted",
+        "success_detail": "Your account request has been sent to the administrator for approval.",
         "error_title": "Account Creation Failed",
         "error_detail": "Unable to create your account. Please verify your details and try again."
       }

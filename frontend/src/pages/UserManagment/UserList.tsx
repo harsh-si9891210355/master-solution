@@ -8,6 +8,7 @@ import { useNsTranslation } from '../../hooks/Usetranslation';
 import { FormButton } from '../../components/ui/FormButton';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 import { useToast } from '../../components/ui/ToastProvider';
+import { useAuthStore } from '@/store/authStore';
 
 
 interface StatusToggleCellProps {
@@ -15,13 +16,18 @@ interface StatusToggleCellProps {
     onToggle: (id: number, is_active: boolean) => Promise<void>;
     labelActive: string;
     labelInactive: string;
+    /** True when this row is the currently logged-in user. */
+    isSelf?: boolean;
+    /** Tooltip shown when the user tries to toggle their own account. */
+    selfTitle?: string;
 }
 
-const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusToggleCellProps) => {
+const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive, isSelf, selfTitle }: StatusToggleCellProps) => {
     const [isToggling, setIsToggling] = useState(false);
 
     const handleClick = async () => {
-        if (isToggling) return;
+        // Block users from changing the status of their own account.
+        if (isToggling || isSelf) return;
         setIsToggling(true);
         try {
             await onToggle(row.id, !row.is_active);
@@ -30,18 +36,63 @@ const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusT
         }
     };
 
+    const active = row.is_active;
+    const disabled = isToggling || !!isSelf;
+
     return (
-        <span title={row.is_active ? labelActive : labelInactive} className="inline-block">
-            <FormButton
-                type="button"
-                variant="ghost"
-                label=""
-                className={`status-toggle ${row.is_active ? 'status-toggle--on' : 'status-toggle--off'}`}
-                onClick={handleClick}
-                disabled={isToggling}
-                ariaLabel={`Toggle status for ${row.first_name}`}
-            />
-        </span>
+        <button
+            type="button"
+            onClick={handleClick}
+            disabled={disabled}
+            title={isSelf ? selfTitle : active ? labelActive : labelInactive}
+            aria-label={`Toggle status for ${row.first_name}`}
+            className="inline-flex items-center gap-2 disabled:opacity-60"
+            style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+            }}
+        >
+            {/* Toggle track */}
+            <span
+                style={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    width: 38,
+                    height: 20,
+                    borderRadius: 99,
+                    background: active ? '#1447e6' : '#cbd5e1',
+                    transition: 'background 0.2s',
+                    flexShrink: 0,
+                }}
+            >
+                {/* Thumb */}
+                <span
+                    style={{
+                        position: 'absolute',
+                        top: 2,
+                        left: 2,
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        background: '#fff',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                        transform: active ? 'translateX(18px)' : 'translateX(0)',
+                        transition: 'transform 0.2s',
+                    }}
+                />
+            </span>
+            <span
+                style={{
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: active ? '#1447e6' : '#94a3b8',
+                }}
+            >
+                {active ? labelActive : labelInactive}
+            </span>
+        </button>
     );
 };
 
@@ -52,6 +103,7 @@ export const UsersList = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const toast = useToast();
+    const currentUser = useAuthStore((s) => s.user);
 
     // Show back button only when there is in-app history to return to
     const canGoBack = window.history.length > 2;
@@ -158,6 +210,10 @@ export const UsersList = () => {
             onToggle={handleToggle}
             labelActive={t('status.active')}
             labelInactive={t('status.inactive')}
+            isSelf={!!currentUser && row.id === currentUser.id}
+            selfTitle={t('status.self_disabled', {
+                defaultValue: 'You cannot change the status of your own account',
+            })}
         />
     );
 

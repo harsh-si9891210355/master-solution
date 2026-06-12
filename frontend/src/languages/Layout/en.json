@@ -9,6 +9,10 @@
       "usecases": "Usecases",
       "settings": "Settings"
     },
-    "logout": "Logout"
+    "logout": "Logout",
+    "logout_confirm_header": "Confirm Logout",
+    "logout_confirm_message": "Are you sure you want to logout?",
+    "logout_ok": "Ok",
+    "logout_cancel": "Cancel"
   }
 }

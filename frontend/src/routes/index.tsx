@@ -3,6 +3,8 @@ import { LoginForm } from "@/pages/auth/LoginForm";
 import { SignupForm } from "@/pages/auth/SignUpForm";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
 import { SetPassword } from "@/pages/auth/SetPassword";
+import FirstTimeLogin from "@/pages/auth/FirstTimeLogin";
+import FirstTimeLoginStep2 from "@/pages/auth/FirstTimeLoginStep2";
 import { AppLayout } from "@/components/layout/appLayout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { UsersList } from "@/pages/UserManagment/UserList";
@@ -20,6 +22,8 @@ export const router = createBrowserRouter([
   { path: "/signup", element: <SignupForm /> },
   { path: "/forgotpassword", element: <ForgotPassword /> },
   { path: "/set-password", element: <SetPassword /> },
+  { path: "/first-time-login", element: <FirstTimeLogin /> },
+  { path: "/first-time-login/step2", element: <FirstTimeLoginStep2 /> },
 
   // ── Protected routes ─────────────────────────────────────────────────────
   {

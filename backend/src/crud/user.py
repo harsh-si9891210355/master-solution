@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from src.models.role import Role
 from src.models.user import User
 
 
@@ -9,6 +10,10 @@ def get_user_by_id(db: Session, user_id: int) -> User | None:
 
 def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
+
+
+def get_users_by_role_code(db: Session, role_code: str) -> list[User]:
+    return db.query(User).join(Role, User.role_id == Role.id).filter(Role.code == role_code).all()
 
 
 def get_all_users(db: Session) -> list[User]:

@@ -30,12 +30,12 @@ from src.utils.auth.auth_bearer import JWTBearer
 router = APIRouter()
 
 
-@router.post("/signup", response_model=LoginSignupResponse, status_code=201)
+@router.post("/signup", response_model=MessageResponse, status_code=201)
 def signup(
     payload: UserCreate,
     request: Request,
     db: Session = Depends(get_db),
-) -> LoginSignupResponse:
+) -> MessageResponse:
     return signup_user(db, payload, request, request.state.lang)
 
 
