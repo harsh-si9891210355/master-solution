@@ -222,32 +222,7 @@ def reset_password(db: Session, reset_token: str, new_password: str) -> MessageR
 
 
 def get_current_user_from_token(db: Session, token: str) -> User:
-    user_email = Authentication.verify_token(token)
-    if not user_email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired access token",
-        )
-
-    user = get_user_by_email(db, user_email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-
-    token_entry = get_active_user_token(
-        db,
-        userid=user.id,
-        token=token,
-        now=datetime.now(timezone.utc),
-    )
-    if not token_entry:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been revoked or is no longer active",
-        )
-    return user
+    return resolve_user_from_token(db, token)
 
 
 def logout_user(db: Session, token: str) -> None:
@@ -319,13 +294,14 @@ def set_password(
     )
 
 
-def get_or_create_session(db: Session, token: str, language: str) -> SessionResponse:
-    """Resolve an Auth0-issued access token to a local user + permissions.
+def resolve_auth0_user(db: Session, token: str) -> User:
+    """Validate an Auth0-issued access token and return the matching local user.
 
-    Auth0 owns the access token (issued to the frontend via "Login with
-    Microsoft" / Universal Login). We validate it, find-or-create the matching
-    local user by email, and return identity + authorization only — no backend
-    token is issued.
+    On first login the user won't exist yet, so we create one with the default
+    role (find-or-create by email). Raises 401 if the token is invalid.
+
+    Shared by the /auth/session exchange and the route guards (JWTBearer /
+    require_permission), so every protected route accepts the Auth0 token.
     """
     validator = Auth0TokenValidator()
     try:
@@ -356,6 +332,43 @@ def get_or_create_session(db: Session, token: str, language: str) -> SessionResp
             is_active=True,
         )
 
+    return user
+
+
+def resolve_user_from_token(db: Session, token: str) -> User:
+    """Resolve the request's user from either auth scheme.
+
+    1. Legacy local backend JWT (issued by /auth/login) — verified with our
+       secret and checked against the active-token store.
+    2. Otherwise an Auth0 access token (the primary path).
+
+    An Auth0 token won't decode with the local secret, so step 1 simply returns
+    None for it and we fall through to Auth0 — the two schemes don't collide.
+    """
+    local_email = Authentication.verify_token(token)
+    if local_email:
+        user = get_user_by_email(db, local_email)
+        if user:
+            active_token = get_active_user_token(
+                db,
+                userid=user.id,
+                token=token,
+                now=datetime.now(timezone.utc),
+            )
+            if active_token:
+                return user
+
+    return resolve_auth0_user(db, token)
+
+
+def get_or_create_session(db: Session, token: str, language: str) -> SessionResponse:
+    """Resolve an Auth0-issued access token to a local user + permissions.
+
+    Auth0 owns the access token (issued to the frontend via Universal Login).
+    We validate it, find-or-create the matching local user, and return identity
+    + authorization only — no backend token is issued.
+    """
+    user = resolve_auth0_user(db, token)
     return SessionResponse(
         user=build_user_response(user, language),
         permissions=_role_permission_names(db, user.role_id),

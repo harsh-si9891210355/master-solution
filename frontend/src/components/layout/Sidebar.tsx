@@ -1,8 +1,11 @@
 
 import { useNavigate, useLocation } from 'react-router'
+import { useAuth0 } from '@auth0/auth0-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNsTranslation } from "@/hooks/Usetranslation";
 import { DeleteModalPopup } from '@/components/ui/DeleteModalPopup';
 import { useAuthStore } from '@/store/authStore';
+import { hasPermission } from '@/lib/permissions';
 
 
 export default function Sidebar() {
@@ -10,6 +13,9 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const logout = useAuthStore((s) => s.logout)
+  const permissions = useAuthStore((s) => s.permissions)
+  const queryClient = useQueryClient()
+  const { isAuthenticated, logout: auth0Logout } = useAuth0()
 
   const handleLogout = () => {
     DeleteModalPopup.showLogout({
@@ -19,19 +25,30 @@ export default function Sidebar() {
       rejectLabel: t('logout_cancel'),
       onConfirm: () => {
         logout()
-        navigate('/')
+        queryClient.clear() // drop cached data from the previous session
+        // If signed in via Auth0, end the Auth0 session too; otherwise just
+        // return to the local login page.
+        if (isAuthenticated) {
+          auth0Logout({ logoutParams: { returnTo: window.location.origin } })
+        } else {
+          navigate('/')
+        }
       }
     })
   }
 
-  const NAV_ITEMS = [
+  // Each item is gated by the permission its page needs; items the user lacks
+  // permission for are hidden. (undefined = always visible.)
+  const NAV_ITEMS: { label: string; icon: string; path: string; permission?: string }[] = [
     { label: t("nav.dashboard"), icon: "dashboard", path: "/dashboard" },
-    { label: t("nav.events"), icon: "table_rows", path: "/events" },
-    { label: t("nav.cameras"), icon: "nest_cam_outdoor", path: "/cameras" },
-    { label: t("nav.usecases"), icon: "lab_profile", path: "/usecases" },
-    { label: t("nav.users"), icon: "group", path: "/users" },
+    { label: t("nav.events"), icon: "table_rows", path: "/events", permission: "event:read" },
+    { label: t("nav.cameras"), icon: "nest_cam_outdoor", path: "/cameras", permission: "camera:read" },
+    { label: t("nav.usecases"), icon: "lab_profile", path: "/usecases", permission: "usecase:read" },
+    { label: t("nav.users"), icon: "group", path: "/users", permission: "user:read" },
     { label: t("nav.settings"), icon: "desktop_windows", path: "/settings" },
   ];
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => hasPermission(permissions, item.permission));
 
   const isActive = (path: string) =>
     path === '/' ? pathname === '/' : pathname.startsWith(path)
@@ -47,7 +64,7 @@ export default function Sidebar() {
     >
       {/* ── Navigation items ── */}
       <nav className="flex flex-col flex-1">
-        {NAV_ITEMS.map(({ path, label, icon }) => {
+        {visibleNavItems.map(({ path, label, icon }) => {
           // const active = isActive(path)
           const isActive = location.pathname.startsWith(path);
           return (
