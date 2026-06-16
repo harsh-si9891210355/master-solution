@@ -74,6 +74,15 @@ class Settings(BaseSettings):
     # passed to the Auth0 SDK). Validated as the token's `aud` claim. The token's
     # issuer is derived as f"https://{auth0_domain}/" in the validator.
     auth0_audience: str = "https://master-solution-api"
+    # --- Admin-invite flow (Auth0 owns the password) -------------------------
+    # Machine-to-Machine app authorized for the Auth0 Management API
+    # (https://{domain}/api/v2/). Used to create the user when an admin invites
+    # them (works even if self-signups are disabled). Create this in the Auth0
+    # dashboard: Applications → APIs → Auth0 Management API → Machine to Machine.
+    auth0_mgmt_client_id: str = ""
+    auth0_mgmt_client_secret: str = ""
+    # Database connection (email/password) admin-invited users are created in.
+    auth0_connection: str = "Username-Password-Authentication"
 
     model_config = SettingsConfigDict(
         env_file=".env",

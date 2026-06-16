@@ -15,6 +15,7 @@ from src.models.user import User
 from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, SessionResponse, TokenResponse, UserCreate, UserLogin, UserResponse
 from src.utils.translation import resolve_translation
 from src.utils.auth.auth_handler import Authentication
+from src.utils.auth.auth0_client import Auth0Client, Auth0Error
 from src.utils.auth.auth0_token import Auth0TokenValidator, Auth0TokenError
 from src.utils.hashing_service import Hasher
 
@@ -278,45 +279,28 @@ def build_user_response(user: User, language: str) -> UserResponse:
         status=user.status,
     )
 
-def set_password(
-    db: Session,
-    token: str,
-    password: str,
-):
-    email = Authentication.verify_token(token)
+def set_password(db: Session, email: str) -> MessageResponse:
+    """(Re)send the Auth0 set-password email for a managed user.
 
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
-
+    The actual password is set by the user on Auth0's hosted page via the link;
+    Auth0 — not this backend — stores it. This just triggers/resends that email.
+    """
     user = get_user_by_email(db, email)
-
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
-    update_user_password(
-        db,
-        user=user,
-        hashed_password=Hasher.get_hashed_password(password),
-    )
+    try:
+        Auth0Client().send_set_password_email(email)
+    except Auth0Error as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Could not send the set-password email: {exc}",
+        )
 
-    # Activate user after password setup
-    user.is_active = True
-
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    revoke_all_user_tokens(db, userid=user.id)
-
-    return MessageResponse(
-        message="Password set successfully"
-    )
+    return MessageResponse(message="Password setup email sent")
 
 
 def get_or_create_session(db: Session, token: str, language: str) -> SessionResponse:
@@ -353,6 +337,16 @@ def get_or_create_session(db: Session, token: str, language: str) -> SessionResp
             role_id=role.id,
             # Auth0 owns the credential; no usable local password.
             hashed_password=Hasher.get_hashed_password(secrets.token_urlsafe(32)),
+            is_active=True,
+        )
+    elif not user.is_active:
+        # First login after an admin invite: capture the real name from Auth0
+        # (the invite only stored the email) and activate the account.
+        update_user(
+            db,
+            user=user,
+            first_name=profile["first_name"],
+            last_name=profile["last_name"],
             is_active=True,
         )
 

@@ -86,12 +86,8 @@ def set_password_route(
     payload: SetPasswordRequest,
     db: Session = Depends(get_db),
 ) -> MessageResponse:
-
-    return set_password(
-        db,
-        payload.token,
-        payload.password,
-    )
+    """(Re)send the Auth0 set-password email to a managed user."""
+    return set_password(db, payload.email)
 
 @router.post("/session", response_model=SessionResponse)
 def session_route(
