@@ -71,9 +71,9 @@ class Settings(BaseSettings):
     # Application (Universal Login) client used by the frontend SDK.
     auth0_client_id: str = "mdYChGQzvXBmeDLpcCCfcuOG0yPhLe87"
     # API identifier the frontend requests the access token for (the `audience`
-    # passed to the Auth0 SDK). Used to validate the token's `aud` claim. Leave
-    # empty to skip audience validation (signature + issuer + expiry still checked).
-    auth0_audience: str = ""
+    # passed to the Auth0 SDK). Validated as the token's `aud` claim. The token's
+    # issuer is derived as f"https://{auth0_domain}/" in the validator.
+    auth0_audience: str = "https://master-solution-api"
 
     model_config = SettingsConfigDict(
         env_file=".env",
