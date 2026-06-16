@@ -12,9 +12,6 @@ import smtplib
 from email.mime.text import MIMEText
 from src.core.config import settings
 
-from datetime import datetime, timedelta, timezone
-from jose import jwt
-
 
 def send_set_password_email(to_email: str, token: str):
 
@@ -42,6 +39,7 @@ def send_set_password_email(to_email: str, token: str):
         server.login(settings.smtp_user, settings.smtp_password)
         server.send_message(msg)
 
+
 def create_user_details(db: Session, payload: UserCreate, language: str) -> UserResponse:
     existing_user = get_user_by_email(db, payload.email)
     if existing_user:
@@ -64,7 +62,7 @@ def create_user_details(db: Session, payload: UserCreate, language: str) -> User
         last_name=payload.last_name,
         mobile_number=payload.mobile_number,
         role_id=role.id,
-        hashed_password = Hasher.get_hashed_password("Temp@123"),  # no password yet
+        hashed_password=Hasher.get_hashed_password("Temp@123"),  # no password yet
         is_active=False,
     )
 

@@ -1,3 +1,4 @@
+import secrets
 import smtplib
 from datetime import datetime, timezone
 from email.mime.text import MIMEText
@@ -11,10 +12,21 @@ from src.crud.user import create_user, get_user_by_email, get_users_by_role_code
 from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
-from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, TokenResponse, UserCreate, UserLogin, UserResponse
+from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, SessionResponse, TokenResponse, UserCreate, UserLogin, UserResponse
 from src.utils.translation import resolve_translation
 from src.utils.auth.auth_handler import Authentication
+from src.utils.auth.auth0_token import Auth0TokenValidator, Auth0TokenError
 from src.utils.hashing_service import Hasher
+
+
+# Role assigned to users auto-provisioned on their first Auth0 login.
+DEFAULT_AUTH0_ROLE_CODE = "user"
+
+
+def _role_permission_names(db: Session, role_id: int) -> list[str]:
+    """Permissions for a role formatted as "resource:scope"."""
+    role_permissions = get_role_permissions(db, role_id)
+    return [f"{rp.resource.name}:{rp.scope.name}" for rp in role_permissions]
 
 
 def _store_access_token(db: Session, user: User, token: str, request: Request) -> None:
@@ -304,4 +316,47 @@ def set_password(
 
     return MessageResponse(
         message="Password set successfully"
+    )
+
+
+def get_or_create_session(db: Session, token: str, language: str) -> SessionResponse:
+    """Resolve an Auth0-issued access token to a local user + permissions.
+
+    Auth0 owns the access token (issued to the frontend via "Login with
+    Microsoft" / Universal Login). We validate it, find-or-create the matching
+    local user by email, and return identity + authorization only — no backend
+    token is issued.
+    """
+    validator = Auth0TokenValidator()
+    try:
+        profile = validator.get_profile(token)
+    except Auth0TokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Auth0 token: {exc}",
+        )
+
+    user = get_user_by_email(db, profile["email"])
+    if not user:
+        role = get_role_by_code(db, DEFAULT_AUTH0_ROLE_CODE)
+        if not role:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Default role '{DEFAULT_AUTH0_ROLE_CODE}' is not configured",
+            )
+        user = create_user(
+            db,
+            email=profile["email"],
+            first_name=profile["first_name"],
+            last_name=profile["last_name"],
+            mobile_number=None,
+            role_id=role.id,
+            # Auth0 owns the credential; no usable local password.
+            hashed_password=Hasher.get_hashed_password(secrets.token_urlsafe(32)),
+            is_active=True,
+        )
+
+    return SessionResponse(
+        user=build_user_response(user, language),
+        permissions=_role_permission_names(db, user.role_id),
     )

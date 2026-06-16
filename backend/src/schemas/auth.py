@@ -112,6 +112,14 @@ class LoginSignupResponse(BaseModel):
     user: UserResponse
     permissions: list[str]
 
+
+class SessionResponse(BaseModel):
+    """Returned after validating an Auth0-issued token. No backend token —
+    Auth0 owns the access token; we only resolve identity + authorization."""
+
+    user: UserResponse
+    permissions: list[str]
+
 class SetPasswordRequest(BaseModel):
     token: str
     password: str
@@ -129,5 +137,5 @@ class SetPasswordRequest(BaseModel):
             raise ValueError(
                 "Password is too long. Kindly keep it within 128 characters."
             )
-        
+
         return value

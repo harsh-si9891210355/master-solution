@@ -63,6 +63,18 @@ class Settings(BaseSettings):
     smtp_password: str = "nzpb hkub mhlz djkk"
     argos_model_cache_dir: str = str(Path(".argos-models"))
 
+    # --- Auth0 ---------------------------------------------------------------
+    # The frontend logs in via Auth0 (Universal Login / "Login with Microsoft")
+    # and sends the Auth0-issued access token to the backend, which validates it
+    # against the tenant JWKS. Auth0 owns the token; the backend issues none.
+    auth0_domain: str = "dev-d2x11lcqgic0sb80.us.auth0.com"  # tenant domain (no scheme)
+    # Application (Universal Login) client used by the frontend SDK.
+    auth0_client_id: str = "mdYChGQzvXBmeDLpcCCfcuOG0yPhLe87"
+    # API identifier the frontend requests the access token for (the `audience`
+    # passed to the Auth0 SDK). Used to validate the token's `aud` claim. Leave
+    # empty to skip audience validation (signature + issuer + expiry still checked).
+    auth0_audience: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

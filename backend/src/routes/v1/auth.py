@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
@@ -7,6 +8,7 @@ from src.schemas.auth import (
     ForgotPasswordResponse,
     MessageResponse,
     ResetPasswordRequest,
+    SessionResponse,
     SetPasswordRequest,
     TokenResponse,
     UserCreate,
@@ -18,6 +20,7 @@ from src.services.v1.auth_services import (
     build_user_response,
     forgot_password,
     get_current_user_from_token,
+    get_or_create_session,
     login_user,
     logout_user,
     reset_password,
@@ -25,6 +28,11 @@ from src.services.v1.auth_services import (
     signup_user,
 )
 from src.utils.auth.auth_bearer import JWTBearer
+
+
+# Raw bearer extractor for Auth0-issued tokens — validation happens against
+# Auth0 in the service layer, not against our local token store.
+auth0_bearer = HTTPBearer()
 
 
 router = APIRouter()
@@ -84,6 +92,17 @@ def set_password_route(
         payload.token,
         payload.password,
     )
+
+@router.post("/session", response_model=SessionResponse)
+def session_route(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(auth0_bearer),
+    db: Session = Depends(get_db),
+) -> SessionResponse:
+    """Validate the Auth0 access token, find-or-create the local user, and
+    return the user profile + permissions. No backend token is issued."""
+    return get_or_create_session(db, credentials.credentials, request.state.lang)
+
 
 @router.get("/me", response_model=UserResponse)
 def read_current_user(
