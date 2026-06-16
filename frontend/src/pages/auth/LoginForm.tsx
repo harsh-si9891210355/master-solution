@@ -2,7 +2,7 @@ import { useAuthStore } from "@/store/authStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { FormInput } from "@/components/ui/FormInput";
 import { FormButton } from "@/components/ui/FormButton";
 import { loginSchema, type LoginFormValues } from "./types/index";
@@ -10,7 +10,8 @@ import { authService } from "./api/authService";
 import { SUPPORTED_LANGUAGES } from "../../languages/index";
 import { useNsTranslation } from "../../hooks/Usetranslation";
 import { useToast } from "../../components/ui/ToastProvider";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import '../../assets/Style/auth.css'
 
 export const LoginForm = () => {
@@ -21,6 +22,19 @@ export const LoginForm = () => {
   const [msLoading, setMsLoading] = useState(false)
 
   const [loading, setLoading] = useState(false)
+  const { loginWithRedirect, isAuthenticated } = useAuth0();
+  const location = useLocation();
+  // Where to land after login (set by ProtectedRoute when redirecting here).
+  const from = (location.state as { from?: string } | null)?.from || "/dashboard";
+
+  // The Auth0 token→session exchange is handled globally in <AuthGate>.
+  // Here we only need to move an already-authenticated user off the login page
+  // (e.g. they navigated to "/" while signed in). Deep-link returns after an
+  // Auth0 redirect are handled by onRedirectCallback in main.tsx.
+  useEffect(() => {
+    if (isAuthenticated) navigate(from, { replace: true });
+  }, [isAuthenticated, navigate, from]);
+
   const FEATURES = [
     { icon: "pi pi-video", label: t("login.features.camera") },
     { icon: "pi pi-eye", label: t("login.features.events") },
@@ -44,7 +58,7 @@ export const LoginForm = () => {
         t("login.toast.success_title"),
         t("login.toast.success_detail")
       );
-      navigate("/dashboard");
+      navigate(from, { replace: true });
     },
     onError: (error: any) => {
       const msg =
@@ -68,6 +82,22 @@ export const LoginForm = () => {
     }, 1200)
   }
 
+  // If already authenticated, show a loader instead of flashing the login form
+  // while the redirect effect navigates away.
+  if (isAuthenticated) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center"
+        style={{ background: '#FFFFFF' }}
+      >
+        <svg className="animate-spin w-8 h-8 mb-3" style={{ color: '#1447e6' }} fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
+        <p className="text-sm text-gray-600">Signing you in…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#FFFFFF' }}>
@@ -192,7 +222,7 @@ export const LoginForm = () => {
           </div>
 
           {/* Microsoft Login */}
-          <button
+          {/* <button
             type="button"
             onClick={handleMicrosoftLogin}
             disabled={msLoading}
@@ -204,7 +234,6 @@ export const LoginForm = () => {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
             ) : (
-              /* Official Microsoft logo — 4 coloured squares */
               <svg className="w-5 h-5" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
                 <rect x="1" y="1" width="9" height="9" fill="#F25022" />
                 <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
@@ -213,7 +242,18 @@ export const LoginForm = () => {
               </svg>
             )}
             {msLoading ? 'Redirecting to Microsoft…' : 'Sign in with Microsoft'}
+          </button> */}
+
+          {/* Auth0 Login (SSO) */}
+          <button
+            type="button"
+            onClick={() => loginWithRedirect({ appState: { returnTo: from } })}
+            className="w-full flex items-center justify-center gap-2 py-3.5 mt-3 border border-gray-300 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
+          >
+            <span className="material-icons" style={{ fontSize: 18, color: '#1447e6' }}>lock</span>
+            Continue with Auth0
           </button>
+
           <div className="mt-5 " style={{ background: 'rgba(255,255,255,0.08)' }}>
             <div className="px-4 py-3">
               <p className="text-xs text-black-200 mb-3 leading-relaxed">

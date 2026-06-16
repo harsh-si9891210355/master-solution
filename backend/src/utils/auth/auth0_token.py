@@ -112,6 +112,14 @@ class Auth0TokenValidator:
             given = given or info.get("given_name")
             family = family or info.get("family_name")
             name = name or info.get("name")
+            # Microsoft / Azure AD frequently carry the address in
+            # `preferred_username` or `upn` instead of `email`.
+            if not email:
+                for key in ("preferred_username", "upn"):
+                    candidate = claims.get(key) or info.get(key)
+                    if candidate and "@" in candidate:
+                        email = candidate
+                        break
 
         if not email:
             raise Auth0TokenError("Token has no email; request the 'email' scope")
