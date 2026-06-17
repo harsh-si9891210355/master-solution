@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+cameras.yaml
+.venv/
+venv/
+*.log

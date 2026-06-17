@@ -106,6 +106,82 @@ services:
       - mediamtx
     restart: unless-stopped
 
+  # --- StreamHandler frame pipeline (RTSP -> JPEG -> Redis/RabbitMQ) -------
+  redis:
+    image: redis:7-alpine
+    container_name: master-solution-redis
+    # Frames are short-lived (claim-check with TTL); cap memory and evict
+    # volatile keys first so a slow AI consumer can never OOM the broker.
+    command: >
+      redis-server
+      --maxmemory 1gb
+      --maxmemory-policy volatile-ttl
+      --save ""
+      --appendonly no
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  rabbitmq:
+    # The "-management" image bundles the web dashboard (no extra service).
+    image: rabbitmq:3.13-management
+    container_name: master-solution-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"     # AMQP — producers/consumers
+      - "15672:15672"   # Management UI: http://localhost:15672 (guest/guest)
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  streamhandler:
+    build:
+      context: ../streamhandler
+    container_name: master-solution-streamhandler
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../streamhandler/.env
+    # These override anything in .env so the in-compose wiring always wins:
+    # cameras come from the shared Postgres schema, not a YAML file.
+    environment:
+      SH_CAMERA_SOURCE: database
+      SH_DATABASE_URL: postgresql://postgres:postgres@db:5432/master_solution
+      SH_REDIS_URL: redis://redis:6379/0
+      SH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+    volumes:
+      - ../streamhandler:/app
+    ports:
+      - "9105:9105"   # Prometheus metrics
+    restart: unless-stopped
+
+  # --- Web UIs for inspecting the frame pipeline --------------------------
+  # RabbitMQ queues / messages / rates are at the built-in management UI on
+  # http://localhost:15672 (guest/guest) — no separate service needed.
+
+  # Redis keys / frame hashes / TTLs:  http://localhost:5540
+  # On first open, add a database with host "redis" and port 6379.
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: master-solution-redisinsight
+    depends_on:
+      - redis
+    ports:
+      - "5540:5540"
+    restart: unless-stopped
+
   # --- Monitoring stack (merged from monitoring/docker-compose.yml) ---
   prometheus:
     image: prom/prometheus:v2.54.1
@@ -247,3 +323,4 @@ volumes:
   grafana-storage:
   prometheus-data:
   loki-data:
+  rabbitmq-data:
