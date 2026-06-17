@@ -53,7 +53,7 @@ export const LoginForm = () => {
   const { mutate: loginMutation, isPending } = useMutation({
     mutationFn: authService.login,
     onSuccess: (response) => {
-      setAuth(response.data.access_token, response.data.user);
+      setAuth(response.data.access_token, response.data.user, response.data.permissions);
       toast.success(
         t("login.toast.success_title"),
         t("login.toast.success_detail")
@@ -262,12 +262,7 @@ export const LoginForm = () => {
               </p>
             </div>
             <button
-              onClick={() => loginWithRedirect({
-                // Force the email/password (database) connection so the Auth0
-                // page shows only email + password — no "Continue with Microsoft".
-                authorizationParams: { connection: 'Username-Password-Authentication' },
-                appState: { returnTo: '/first-time-login/step2' },
-              })}
+              onClick={() => navigate('/first-time-login')}
               className="w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors"
               style={{ background: '#1447e6', color: '#ffffff' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#0f37c0')}

@@ -4,7 +4,6 @@ import { useAuthStore } from '@/store/authStore';
 
 export const ProtectedRoute = () => {
     const token = useAuthStore((state) => state.token);
-    const user = useAuthStore((state) => state.user);
     const { isAuthenticated } = useAuth0();
     const location = useLocation();
 
@@ -19,11 +18,6 @@ export const ProtectedRoute = () => {
                 state={{ from: location.pathname + location.search }}
             />
         );
-    }
-
-    // First-login: force the profile step until it's completed.
-    if (user && user.profile_completed === false) {
-        return <Navigate to="/first-time-login/step2" replace />;
     }
 
     return <Outlet />; // Renders the child routes (Dashboard, etc.)

@@ -53,8 +53,6 @@ def create_user_details(db: Session, payload: UserInvite, language: str) -> User
         # Auth0 owns the credential; no usable local password.
         hashed_password=Hasher.get_hashed_password(secrets.token_urlsafe(32)),
         is_active=False,
-        # Invited users complete their profile (name + mobile) on first login.
-        profile_completed=False,
     )
 
     return build_user_response(user, language)

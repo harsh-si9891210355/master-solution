@@ -1,28 +1,27 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
-const COUNTRY_CODES = ['+91', '+1', '+44', '+61', '+65', '+971']
-const CITIES  = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune']
-const STATES  = ['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Telangana', 'Delhi', 'Gujarat']
-
-export default function FirstTimeLoginStep2() {
+export default function FirstTimeLogin() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', department: '',
-    countryCode: '+91', phone: '', city: '', state: '', country: 'INDIA',
-  })
+  const [form, setForm] = useState({ email: '', tempPw: '', newPw: '', confirmPw: '' })
+  const [show, setShow] = useState({ temp: false, newp: false, confirm: false })
   const [error, setError] = useState('')
 
-  function handleSave(e: React.FormEvent) {
+  function handleNext(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!form.firstName || !form.lastName) { setError('First and last name are required.'); return }
-    navigate('/')
+    if (!form.email || !form.tempPw || !form.newPw || !form.confirmPw) {
+      setError('All fields are required.'); return
+    }
+    if (form.newPw !== form.confirmPw) {
+      setError('New passwords do not match.'); return
+    }
+    navigate('/first-time-login/step2')
   }
 
   const steps = [
-    { n: 1, label: 'Sign up your\nworkspace', active: false },
-    { n: 2, label: 'Sign up your\nprofile',   active: true  },
+    { n: 1, label: 'Sign up your\nworkspace', active: true  },
+    { n: 2, label: 'Sign up your\nprofile',   active: false },
   ]
 
   return (
@@ -49,7 +48,7 @@ export default function FirstTimeLoginStep2() {
             `,
           }}>
 
-          <div className="relative z-10 px-16 pb-16">
+        <div className="relative z-10 px-16 pb-16">
             <h1 className="text-5xl font-black text-gray-800 leading-tight mb-3 tracking-tight">
               Get Started
             </h1>
@@ -57,7 +56,7 @@ export default function FirstTimeLoginStep2() {
               Complete these easy steps<br />to setup your account.
             </p>
 
-            {/* Step cards */}
+            {/* Step cards — visible borders on white background */}
             <div className="flex gap-0 border border-blue-100" style={{ maxWidth: 420 }}>
               {steps.map(({ n, label, active }) => (
                 <div key={n}
@@ -78,9 +77,7 @@ export default function FirstTimeLoginStep2() {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Vertical divider */}
+          </div>
         <div className="w-px bg-blue-600 opacity-40 flex-shrink-0" />
 
         {/* Right — form panel */}
@@ -89,7 +86,6 @@ export default function FirstTimeLoginStep2() {
           style={{ width: 420, background: 'rgba(251,243,210,0.18)' }}
         >
           {/* Heading */}
-
           <div className="relative z-10">
             {/* Heading */}
             <div className="mb-8">
@@ -100,10 +96,10 @@ export default function FirstTimeLoginStep2() {
                 </span>
               </p>
               <p className="text-xs text-gray-600 mt-4 leading-relaxed">
-                Please enter your details to complete your account setup.
+                Please enter your username &amp; temporary password to complete your account setup.
               </p>
             </div>
-
+             {/* Divider */}
             <div className="border-t border-blue-100 border-opacity-30 mb-5" />
 
             {error && (
@@ -112,63 +108,43 @@ export default function FirstTimeLoginStep2() {
               </div>
             )}
 
-            <form onSubmit={handleSave} className="flex flex-col gap-4">
-
-              {/* Text fields */}
-              {([
-                { key: 'firstName',  placeholder: 'First Name'  },
-                { key: 'lastName',   placeholder: 'Last Name'   },
-                { key: 'department', placeholder: 'Department'  },
-              ] as const).map(({ key, placeholder }) => (
-                <input key={key}
-                  type="text" placeholder={placeholder}
-                  value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
-                />
-              ))}
-
-              {/* Phone */}
-              <div className="flex gap-2">
-                <select value={form.countryCode}
-                  onChange={e => setForm(f => ({ ...f, countryCode: e.target.value }))}
-                  className="px-5 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 flex-shrink-0"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}>
-                  {COUNTRY_CODES.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <input type="tel" placeholder="0000000000"
-                  value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                  className="flex-1 px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
-                />
-              </div>
-
-              {/* City / State */}
-              <div className="flex gap-2">
-                <select value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                  className="flex-1 px-5 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}>
-                  <option value="">City</option>
-                  {CITIES.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <select value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))}
-                  className="flex-1 px-5 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}>
-                  <option value="">State</option>
-                  {STATES.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-
-              {/* Country */}
-              <input type="text" value={form.country}
-                onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
+            <form onSubmit={handleNext} className="flex flex-col gap-4">
+              {/* Email */}
+              <input
+                type="email" placeholder="username@hcltech.com"
+                value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
               />
 
+              {/* Password fields */}
+              {([
+                { key: 'tempPw',    showKey: 'temp',    placeholder: 'Enter your temporary password' },
+                { key: 'newPw',     showKey: 'newp',    placeholder: 'Enter your new password'       },
+                { key: 'confirmPw', showKey: 'confirm', placeholder: 'Confirm your new password'     },
+              ] as const).map(({ key, showKey, placeholder }) => (
+                <div key={key} className="relative">
+                  <input
+                    type={show[showKey] ? 'text' : 'password'}
+                    placeholder={placeholder}
+                    value={form[key]}
+                    onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                    className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
+                  />
+                  <button type="button"
+                    onClick={() => setShow(s => ({ ...s, [showKey]: !s[showKey] }))}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <span className="material-icons" style={{ fontSize: 20 }}>
+                      {show[showKey] ? 'visibility' : 'visibility_off'}
+                    </span>
+                  </button>
+                </div>
+              ))}
+
               {/* Buttons */}
               <div className="flex gap-3 mt-1">
-                <button type="button" onClick={() => navigate('/first-time-login')}
+                <button type="button" onClick={() => navigate('/')}
                   className="flex-1 py-3 text-sm font-medium text-black"
                   style={{ background: '#D5D5D5' }}>
                   Cancel
@@ -176,10 +152,9 @@ export default function FirstTimeLoginStep2() {
                 <button type="submit"
                   className="flex-1 py-3 text-sm font-medium text-white"
                   style={{ background: '#1447e6' }}>
-                  Save
+                  Next
                 </button>
               </div>
-
             </form>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -17,9 +17,6 @@ export const AuthGate = ({ children }: { children: ReactNode }) => {
     const setAuth = useAuthStore((s) => s.setAuth);
     const toast = useToast();
     const { t } = useNsTranslation('auth');
-    // Until the Auth0 token→session exchange finishes we don't yet know whether
-    // the profile is complete — keep the loader up so the app never flashes.
-    const [sessionReady, setSessionReady] = useState(false);
 
     // Expose a fresh-token getter to the axios interceptor (auto-refreshing).
     useEffect(() => {
@@ -62,12 +59,9 @@ export const AuthGate = ({ children }: { children: ReactNode }) => {
                 const token = await getAccessTokenSilently();
                 const res = await authService.session(token);
                 setAuth(token, res.data.user, res.data.permissions);
-                const freshLogin = sessionStorage.getItem('auth0_fresh_login');
-                sessionStorage.removeItem('auth0_fresh_login');
-                // Incomplete profile → no success toast; the loader stays until
-                // ProtectedRoute routes them to the profile step (no flash, no
-                // jarring error). Only completed users get the welcome toast.
-                if (res.data.user?.profile_completed !== false && freshLogin) {
+                // Success toast only right after a fresh login (not on refresh).
+                if (sessionStorage.getItem('auth0_fresh_login')) {
+                    sessionStorage.removeItem('auth0_fresh_login');
                     toast.success(
                         t('login.toast.success_title'),
                         t('login.toast.success_detail')
@@ -76,8 +70,6 @@ export const AuthGate = ({ children }: { children: ReactNode }) => {
             } catch (err: any) {
                 const msg = err?.response?.data?.detail || err?.message || 'Could not establish your session.';
                 toast.error('Sign-in failed', msg);
-            } finally {
-                setSessionReady(true);
             }
         })();
     }, [isAuthenticated, getAccessTokenSilently, setAuth, toast, t]);
@@ -87,10 +79,8 @@ export const AuthGate = ({ children }: { children: ReactNode }) => {
         if (error) toast.error('Sign-in failed', error.message);
     }, [error, toast]);
 
-    // Show the loader while Auth0 initialises, AND while an authenticated user's
-    // session/profile is still being resolved — so we never flash the app (or
-    // the dashboard) before deciding whether to send them to the profile step.
-    if (isLoading || (isAuthenticated && !sessionReady)) {
+    // Show the loader only while Auth0 initialises.
+    if (isLoading) {
         return (
             <div
                 className="min-h-screen flex flex-col items-center justify-center"

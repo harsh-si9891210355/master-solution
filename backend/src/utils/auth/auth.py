@@ -19,16 +19,6 @@ def get_current_user_context(
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     user = resolve_user_from_token(db, credentials.credentials)
-
-    # Block every protected route until the first-login profile step is done.
-    # (The /auth/complete-profile and /auth/session endpoints don't use this
-    # dependency, so the user can still finish onboarding.)
-    if not user.profile_completed:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Please complete your profile before continuing.",
-        )
-
     role_permissions = get_role_permissions(db, user.role_id)
     permissions = sorted(
         {

@@ -7,7 +7,6 @@ from src.schemas.auth import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     MessageResponse,
-    ProfileCompleteRequest,
     ResetPasswordRequest,
     SessionResponse,
     SetPasswordRequest,
@@ -19,7 +18,6 @@ from src.schemas.auth import (
 )
 from src.services.v1.auth_services import (
     build_user_response,
-    complete_profile,
     forgot_password,
     get_current_user_from_token,
     get_or_create_session,
@@ -100,20 +98,6 @@ def session_route(
     """Validate the Auth0 access token, find-or-create the local user, and
     return the user profile + permissions. No backend token is issued."""
     return get_or_create_session(db, credentials.credentials, request.state.lang)
-
-
-@router.post("/complete-profile", response_model=SessionResponse)
-def complete_profile_route(
-    payload: ProfileCompleteRequest,
-    request: Request,
-    credentials: HTTPAuthorizationCredentials = Depends(auth0_bearer),
-    db: Session = Depends(get_db),
-) -> SessionResponse:
-    """First-login profile step — the signed-in user saves their own name +
-    mobile, marking their profile complete. Authenticated via the Auth0 token."""
-    return complete_profile(
-        db, credentials.credentials, payload, request.state.lang
-    )
 
 
 @router.get("/me", response_model=UserResponse)
