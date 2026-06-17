@@ -117,6 +117,34 @@ class Auth0Client:
         users = resp.json()
         return users[0]["user_id"] if users else None
 
+    def set_user_password(self, email: str, password: str) -> None:
+        """Set the password for an existing Auth0 user (Management API) and mark
+        the email verified — the user proved ownership via the invite link.
+
+        Used by the dual-write set-password flow so the password the user picks
+        is stored in BOTH Auth0 and our local DB.
+        """
+        user_id = self._get_user_id_by_email(email)
+        if not user_id:
+            raise Auth0Error(f"No Auth0 user found for email {email}")
+        try:
+            resp = httpx.patch(
+                f"https://{self.domain}/api/v2/users/{user_id}",
+                headers={"Authorization": f"Bearer {self._get_management_token()}"},
+                json={
+                    "password": password,
+                    "connection": self.connection,
+                    "email_verified": True,
+                },
+                timeout=self._TIMEOUT,
+            )
+        except httpx.HTTPError as exc:
+            raise Auth0Error(f"Failed to set Auth0 password: {exc}") from exc
+        if resp.status_code >= 400:
+            raise Auth0Error(
+                f"Auth0 password update failed ({resp.status_code}): {resp.text}"
+            )
+
     def create_password_change_ticket(self, email: str, result_url: str) -> str:
         """Create a one-time set-password link that redirects to ``result_url``
         (the app login page) after the user sets their password. Returns the

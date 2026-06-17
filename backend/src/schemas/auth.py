@@ -129,6 +129,21 @@ class SessionResponse(BaseModel):
     permissions: list[str]
 
 class SetPasswordRequest(BaseModel):
-    """Trigger Auth0 to (re)send the set-password email to this user."""
+    """Invited user sets their password via the emailed link. The password is
+    written to both Auth0 and the local DB (dual-write)."""
 
-    email: EmailStr
+    token: str
+    password: str
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str):
+        if len(value) < 8:
+            raise ValueError(
+                "Password is too short. Kindly enter at least 8 characters."
+            )
+        if len(value) > 128:
+            raise ValueError(
+                "Password is too long. Kindly keep it within 128 characters."
+            )
+        return value
