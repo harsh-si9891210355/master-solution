@@ -112,12 +112,19 @@ services:
     container_name: master-solution-redis
     # Frames are short-lived (claim-check with TTL); cap memory and evict
     # volatile keys first so a slow AI consumer can never OOM the broker.
+    # AOF (appendfsync everysec) persists frames to the redis-data volume so
+    # non-expired batches survive a Redis/container restart (≤1s loss window).
+    # RDB snapshots stay off (--save "") to avoid fork latency spikes; AOF is
+    # the single source of truth on reload.
     command: >
       redis-server
-      --maxmemory 1gb
+      --maxmemory 2gb
       --maxmemory-policy volatile-ttl
       --save ""
-      --appendonly no
+      --appendonly yes
+      --appendfsync everysec
+    volumes:
+      - redis-data:/data
     ports:
       - "6379:6379"
     restart: unless-stopped
@@ -324,3 +331,4 @@ volumes:
   prometheus-data:
   loki-data:
   rabbitmq-data:
+  redis-data:
