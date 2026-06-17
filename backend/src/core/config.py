@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     auth0_mgmt_client_secret: str = ""
     # Database connection (email/password) admin-invited users are created in.
     auth0_connection: str = "Username-Password-Authentication"
+    # Where the user is sent after setting their password via the invite link.
+    # Should be the frontend login page (set FRONTEND_URL in the env to match).
+    frontend_url: str = "http://localhost:8080"
 
     model_config = SettingsConfigDict(
         env_file=".env",

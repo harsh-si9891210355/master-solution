@@ -111,6 +111,14 @@ class UserResponse(BaseModel):
     role_name: str
     is_active: bool
     status: bool
+    profile_completed: bool
+
+
+class ProfileCompleteRequest(BaseModel):
+    """Self-service first-login profile step (name + mobile)."""
+    first_name: str = Field(..., min_length=2, max_length=255)
+    last_name: str = Field(..., min_length=1, max_length=255)
+    mobile_number: str | None = Field(default=None, min_length=7, max_length=20)
 
 
 class LoginSignupResponse(BaseModel):

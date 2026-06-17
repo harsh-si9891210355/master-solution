@@ -12,7 +12,7 @@ from src.crud.user import create_user, get_user_by_email, get_users_by_role_code
 from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
-from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, SessionResponse, TokenResponse, UserCreate, UserLogin, UserResponse
+from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, ProfileCompleteRequest, SessionResponse, TokenResponse, UserCreate, UserLogin, UserResponse
 from src.utils.translation import resolve_translation
 from src.utils.auth.auth_handler import Authentication
 from src.utils.auth.auth0_client import Auth0Client, Auth0Error
@@ -252,7 +252,29 @@ def build_user_response(user: User, language: str) -> UserResponse:
         role_name=role_name,
         is_active=user.is_active,
         status=user.status,
+        profile_completed=user.profile_completed,
     )
+
+
+def complete_profile(
+    db: Session, token: str, payload: ProfileCompleteRequest, language: str
+) -> SessionResponse:
+    """First-login profile step: the signed-in user saves their own name +
+    mobile, which marks their profile complete. Authenticated via Auth0 token."""
+    user = resolve_auth0_user(db, token)
+    update_user(
+        db,
+        user=user,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        mobile_number=payload.mobile_number,
+        profile_completed=True,
+    )
+    return SessionResponse(
+        user=build_user_response(user, language),
+        permissions=_role_permission_names(db, user.role_id),
+    )
+
 
 def set_password(db: Session, email: str) -> MessageResponse:
     """(Re)send the Auth0 set-password email for a managed user.

@@ -31,6 +31,7 @@ def create_user(
     hashed_password: str,
     status: bool = True,
     is_active: bool = True,
+    profile_completed: bool = True,
 ) -> User:
     user = User(
         email=email,
@@ -41,6 +42,7 @@ def create_user(
         hashed_password=hashed_password,
         status=status,
         is_active=is_active,
+        profile_completed=profile_completed,
     )
     db.add(user)
     db.commit()
@@ -58,6 +60,7 @@ def update_user(
     role_id: int | None = None,
     is_active: bool | None = None,
     status: bool | None = None,
+    profile_completed: bool | None = None,
 ) -> User:
     if first_name is not None:
         user.first_name = first_name
@@ -76,6 +79,9 @@ def update_user(
 
     if status is not None:
         user.status = status
+
+    if profile_completed is not None:
+        user.profile_completed = profile_completed
 
     db.add(user)
     db.commit()

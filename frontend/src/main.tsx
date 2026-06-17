@@ -21,6 +21,9 @@ const queryClient = new QueryClient();
 // After Auth0 returns, go to the originally-requested page (set via appState
 // on loginWithRedirect), defaulting to the dashboard.
 const onRedirectCallback = (appState?: AppState) => {
+  // Mark this as a fresh login so AuthGate shows the success toast once
+  // (and not on every page refresh / silent session restore).
+  sessionStorage.setItem('auth0_fresh_login', '1');
   router.navigate(appState?.returnTo || '/dashboard', { replace: true });
 };
 

@@ -27,7 +27,7 @@ def create_user_details(db: Session, payload: UserInvite, language: str) -> User
             detail="Invalid role code",
         )
 
-    # Create the user in Auth0 and have Auth0 email them a set-password link.
+    # Create the user in Auth0 and have Auth0 email them the set-password link.
     # If Auth0 fails we never create the local row, so the two stores can't drift.
     auth0 = Auth0Client()
     try:
@@ -53,6 +53,8 @@ def create_user_details(db: Session, payload: UserInvite, language: str) -> User
         # Auth0 owns the credential; no usable local password.
         hashed_password=Hasher.get_hashed_password(secrets.token_urlsafe(32)),
         is_active=False,
+        # Invited users complete their profile (name + mobile) on first login.
+        profile_completed=False,
     )
 
     return build_user_response(user, language)

@@ -117,6 +117,30 @@ class Auth0Client:
         users = resp.json()
         return users[0]["user_id"] if users else None
 
+    def create_password_change_ticket(self, email: str, result_url: str) -> str:
+        """Create a one-time set-password link that redirects to ``result_url``
+        (the app login page) after the user sets their password. Returns the
+        ticket URL — the caller is responsible for emailing it to the user."""
+        user_id = self._get_user_id_by_email(email) or self.create_user(email)
+        try:
+            resp = httpx.post(
+                f"https://{self.domain}/api/v2/tickets/password-change",
+                headers={"Authorization": f"Bearer {self._get_management_token()}"},
+                json={
+                    "user_id": user_id,
+                    "result_url": result_url,
+                    "mark_email_as_verified": True,
+                },
+                timeout=self._TIMEOUT,
+            )
+        except httpx.HTTPError as exc:
+            raise Auth0Error(f"Failed to create Auth0 password-change ticket: {exc}") from exc
+        if resp.status_code >= 400:
+            raise Auth0Error(
+                f"Auth0 password-change ticket failed ({resp.status_code}): {resp.text}"
+            )
+        return resp.json()["ticket"]
+
     def send_set_password_email(self, email: str) -> None:
         """Ask Auth0 to email the user a link to set/change their password.
 

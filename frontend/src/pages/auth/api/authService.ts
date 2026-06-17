@@ -9,6 +9,9 @@ export const authService = {
                         api.post('/auth/session', null, {
                             headers: { Authorization: `Bearer ${accessToken}` },
                         }),
+    // First-login profile step (name + mobile). Auth0 token added by interceptor.
+    completeProfile: (data: { first_name: string; last_name: string; mobile_number?: string }) =>
+                        api.post('/auth/complete-profile', data),
     forgotPassword: (email: string)          => api.post('/auth/forgot-password', { email }),
     setPassword:    (token: string, password: string) =>
                         api.post('/auth/set-password', { token, password }),

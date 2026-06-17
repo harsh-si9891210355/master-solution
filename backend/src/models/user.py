@@ -18,6 +18,11 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     status: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # False until the user finishes the first-login profile step. Existing rows
+    # default to True (server_default) so current users aren't re-onboarded.
+    profile_completed: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

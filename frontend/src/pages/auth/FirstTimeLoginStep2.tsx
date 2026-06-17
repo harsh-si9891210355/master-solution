@@ -1,31 +1,96 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
-
-const COUNTRY_CODES = ['+91', '+1', '+44', '+61', '+65', '+971']
-const CITIES  = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune']
-const STATES  = ['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Telangana', 'Delhi', 'Gujarat']
+import { Navigate, useNavigate } from 'react-router'
+import { useAuth0 } from '@auth0/auth0-react'
+import { useMutation } from '@tanstack/react-query'
+import { useAuthStore } from '@/store/authStore'
+import { useToast } from '@/components/ui/ToastProvider'
+import { authService } from './api/authService'
 
 export default function FirstTimeLoginStep2() {
   const navigate = useNavigate()
+  const toast = useToast()
+  const { isAuthenticated, logout: auth0Logout } = useAuth0()
+  const token = useAuthStore((s) => s.token)
+  const user = useAuthStore((s) => s.user)
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const storeLogout = useAuthStore((s) => s.logout)
+
+  // Auth0 often seeds first/last name with the email for password-only users —
+  // don't prefill those (they'd be wrong); start blank so the user types them.
+  const nameOrBlank = (v?: string) => (v && !v.includes('@') ? v : '')
   const [form, setForm] = useState({
-    firstName: '', lastName: '', department: '',
-    countryCode: '+91', phone: '', city: '', state: '', country: 'INDIA',
+    firstName: nameOrBlank(user?.first_name),
+    lastName: nameOrBlank(user?.last_name),
+    mobile: user?.mobile_number ?? '',
   })
   const [error, setError] = useState('')
+
+  const { mutate: save, isPending } = useMutation({
+    mutationFn: () =>
+      authService.completeProfile({
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        mobile_number: form.mobile.trim(),
+      }),
+    onSuccess: (res) => {
+      // Persist the updated user (profile_completed is now true) so the route
+      // guard lets the user into the app.
+      setAuth(token ?? '', res.data.user, res.data.permissions)
+      toast.success('Profile completed', 'Your account setup is complete.')
+      navigate('/dashboard', { replace: true })
+    },
+    onError: (err: any) => {
+      const data = err?.response?.data
+      const msg =
+        data?.detail ||
+        data?.errors?.[0]?.message ||
+        data?.message ||
+        err?.message ||
+        'Could not save your details.'
+      setError(msg)
+      toast.error('Save failed', msg)
+    },
+  })
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!form.firstName || !form.lastName) { setError('First and last name are required.'); return }
-    navigate('/')
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      setError('First and last name are required.')
+      return
+    }
+    const mobile = form.mobile.trim()
+    if (!/^[0-9]{7,15}$/.test(mobile)) {
+      setError('Enter a valid mobile number (7–15 digits).')
+      return
+    }
+    save()
+  }
+
+  function handleCancel() {
+    storeLogout()
+    if (isAuthenticated) {
+      auth0Logout({ logoutParams: { returnTo: window.location.origin } })
+    } else {
+      navigate('/')
+    }
+  }
+
+  // This page requires an authenticated session (it saves the signed-in user's
+  // profile). If somehow reached while logged out, go to login.
+  if (!token && !isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  // Already onboarded — don't show the profile step again.
+  if (user?.profile_completed === true) {
+    return <Navigate to="/dashboard" replace />
   }
 
   const steps = [
-    { n: 1, label: 'Sign up your\nworkspace', active: false },
-    { n: 2, label: 'Sign up your\nprofile',   active: true  },
+    { n: 1, label: 'Set your\npassword', active: false },
+    { n: 2, label: 'Complete your\nprofile', active: true },
   ]
-
-
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#FFFFFF' }}>
@@ -90,8 +155,6 @@ export default function FirstTimeLoginStep2() {
           className="flex-shrink-0 flex flex-col justify-center px-14 py-16"
           style={{ width: 420, background: 'rgba(251,243,210,0.18)' }}
         >
-          {/* Heading */}
-
           <div className="relative z-10">
             {/* Heading */}
             <div className="mb-8">
@@ -102,86 +165,64 @@ export default function FirstTimeLoginStep2() {
                 </span>
               </p>
               <p className="text-xs text-gray-600 mt-4 leading-relaxed">
-                Please enter your details to complete your account setup.
+                Please confirm your details to complete your account setup.
               </p>
             </div>
 
             <div className="border-t border-blue-100 border-opacity-30 mb-5" />
 
             {error && (
-              <div className="mb-4 px-3 py-2 bg-red-500/20 border border-red-400/40 text-red-200 text-xs rounded">
+              <div className="mb-4 px-3 py-2 bg-red-50 border border-red-300 text-red-600 text-xs rounded">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSave} className="flex flex-col gap-4">
-
-              {/* Text fields */}
-              {([
-                { key: 'firstName',  placeholder: 'First Name'  },
-                { key: 'lastName',   placeholder: 'Last Name'   },
-                { key: 'department', placeholder: 'Department'  },
-              ] as const).map(({ key, placeholder }) => (
-                <input key={key}
-                  type="text" placeholder={placeholder}
-                  value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-gray-700">First Name</label>
+                <input
+                  type="text" placeholder="First Name"
+                  value={form.firstName}
+                  onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
                   className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
                 />
-              ))}
-
-              {/* Phone */}
-              <div className="flex gap-2">
-                <select value={form.countryCode}
-                  onChange={e => setForm(f => ({ ...f, countryCode: e.target.value }))}
-                  className="px-5 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 flex-shrink-0"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}>
-                  {COUNTRY_CODES.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <input type="tel" placeholder="0000000000"
-                  value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                  className="flex-1 px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-gray-700">Last Name</label>
+                <input
+                  type="text" placeholder="Last Name"
+                  value={form.lastName}
+                  onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                  className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-gray-700">Mobile Number</label>
+                <input
+                  type="tel" inputMode="numeric" placeholder="e.g. 9876543210"
+                  value={form.mobile}
+                  onChange={e => setForm(f => ({ ...f, mobile: e.target.value }))}
+                  className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
                 />
               </div>
 
-              {/* City / State */}
-              <div className="flex gap-2">
-                <select value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                  className="flex-1 px-5 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}>
-                  <option value="">City</option>
-                  {CITIES.map(c => <option key={c}>{c}</option>)}
-                </select>
-                <select value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))}
-                  className="flex-1 px-5 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}>
-                  <option value="">State</option>
-                  {STATES.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-
-              {/* Country */}
-              <input type="text" value={form.country}
-                onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
-                className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
-              />
-
               {/* Buttons */}
               <div className="flex gap-3 mt-1">
-                <button type="button" onClick={() => navigate('/first-time-login')}
+                <button type="button" onClick={handleCancel}
                   className="flex-1 py-3 text-sm font-medium text-black"
                   style={{ background: '#D5D5D5' }}>
                   Cancel
                 </button>
                 <button type="submit"
-                  className="flex-1 py-3 text-sm font-medium text-white"
+                  disabled={isPending}
+                  className="flex-1 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-70"
                   style={{ background: '#1447e6' }}>
-                  Save
+                  {isPending ? 'Saving…' : 'Save'}
                 </button>
               </div>
-
             </form>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { LiveViewModal } from './LiveViewModal';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { FormButton } from '../../components/ui/FormButton';
+import { StatusToggle } from '../../components/ui/StatusToggle';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 
 export const CameraList = () => {
@@ -161,48 +162,13 @@ export const CameraList = () => {
     };
 
     const statusTemplate = (row: Camera) => (
-        <StatusToggleCell
-            row={row}
-            onToggle={handleToggle}
+        <StatusToggle
+            active={row.status}
+            onToggle={() => handleToggle(row.id, !row.status)}
             labelActive={t('status.active')}
             labelInactive={t('status.inactive')}
         />
     );
-
-    interface StatusToggleCellProps {
-        row: Camera;
-        onToggle: (id: number, status: boolean) => Promise<void>;
-        labelActive: string;
-        labelInactive: string;
-    }
-
-    const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusToggleCellProps) => {
-        const [isToggling, setIsToggling] = useState(false);
-
-        const handleClick = async () => {
-            if (isToggling) return;
-            setIsToggling(true);
-            try {
-                await onToggle(row.id, !row.status);
-            } finally {
-                setIsToggling(false);
-            }
-        };
-
-        return (
-            <span title={row.status ? labelActive : labelInactive} className="inline-block">
-                <FormButton
-                    type="button"
-                    variant="ghost"
-                    label=""
-                    className={`status-toggle ${row.status ? 'status-toggle--on' : 'status-toggle--off'}`}
-                    onClick={handleClick}
-                    disabled={isToggling}
-                    ariaLabel={`Toggle status for ${row.name_en}`}
-                />
-            </span>
-        );
-    };
 
     const actionsTemplate = (row: Camera) => (
         <div className="flex items-center gap-2">

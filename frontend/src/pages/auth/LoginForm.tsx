@@ -262,7 +262,12 @@ export const LoginForm = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('/first-time-login')}
+              onClick={() => loginWithRedirect({
+                // Force the email/password (database) connection so the Auth0
+                // page shows only email + password — no "Continue with Microsoft".
+                authorizationParams: { connection: 'Username-Password-Authentication' },
+                appState: { returnTo: '/first-time-login/step2' },
+              })}
               className="w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors"
               style={{ background: '#1447e6', color: '#ffffff' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#0f37c0')}
