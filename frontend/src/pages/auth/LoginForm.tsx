@@ -205,14 +205,14 @@ export const LoginForm = () => {
           </form>
 
           {/* Sign up link */}
-          <div className="mt-4 text-center">
+          {/* <div className="mt-4 text-center">
             <p className="text-xs text-gray-600">
               {t("login.noAccount")}{' '}
               <Link to="/signup" className="font-semibold" style={{ color: '#1447e6' }}>
                 {t("login.createOne")}
               </Link>
             </p>
-          </div>
+          </div> */}
 
           {/* OR Divider */}
           <div className="flex items-center gap-3 my-5">
