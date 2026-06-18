@@ -111,6 +111,10 @@ class UserResponse(BaseModel):
     role_name: str
     is_active: bool
     status: bool
+    department: str | None = None
+    city: str | None = None
+    state: str | None = None
+    country: str | None = None
 
 
 class LoginSignupResponse(BaseModel):

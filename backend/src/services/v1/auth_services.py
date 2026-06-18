@@ -252,6 +252,10 @@ def build_user_response(user: User, language: str) -> UserResponse:
         role_name=role_name,
         is_active=user.is_active,
         status=user.status,
+        department=user.department,
+        city=user.city,
+        state=user.state,
+        country=user.country,
     )
 
 
