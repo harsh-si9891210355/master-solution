@@ -255,20 +255,12 @@ def build_user_response(user: User, language: str) -> UserResponse:
     )
 
 
-def set_password(db: Session, token: str, password: str) -> MessageResponse:
-    """Invited user sets their password from the emailed link (dual-write).
+def set_password(db: Session, email: str) -> MessageResponse:
+    """(Re)send the Auth0 set-password email for a managed user.
 
-    The password is written to BOTH Auth0 (Management API) and the local DB, so
-    afterwards the user can sign in either via Auth0 or via local /login. The
-    account is also activated.
+    The actual password is set by the user on Auth0's hosted page via the link;
+    Auth0 — not this backend — stores it. This just triggers/resends that email.
     """
-    email = Authentication.verify_token(token)
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
-
     user = get_user_by_email(db, email)
     if not user:
         raise HTTPException(
@@ -276,24 +268,15 @@ def set_password(db: Session, token: str, password: str) -> MessageResponse:
             detail="User not found",
         )
 
-    # 1) Write to Auth0 first — if this fails we don't touch the local store,
-    #    keeping the two in sync.
     try:
-        Auth0Client().set_user_password(email, password)
+        Auth0Client().send_set_password_email(email)
     except Auth0Error as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Could not set the password in Auth0: {exc}",
+            detail=f"Could not send the set-password email: {exc}",
         )
 
-    # 2) Mirror locally so /login works, and activate the account.
-    update_user_password(db, user=user, hashed_password=Hasher.get_hashed_password(password))
-    user.is_active = True
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    return MessageResponse(message="Password set successfully. You can now log in.")
+    return MessageResponse(message="Password setup email sent")
 
 
 def resolve_auth0_user(db: Session, token: str) -> User:
