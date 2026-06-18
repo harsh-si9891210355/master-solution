@@ -204,6 +204,11 @@ export const UsersList = () => {
         <span className="role-badge">{row.role_name}</span>
     );
 
+    // Profile fields are filled during first-time-login; show a dash when empty.
+    const textTemplate = (value?: string | null) => (
+        <span className="text-sm text-gray-600">{value || '—'}</span>
+    );
+
     const statusTemplate = (row: UserList) => (
         <StatusToggleCell
             row={row}
@@ -247,6 +252,10 @@ export const UsersList = () => {
         { header: t('columns.name'),    body: nameTemplate,    sortable: true, sortField: 'first_name' },
         { header: t('columns.mobile'),  field: 'mobile_number'                                         },
         { header: t('columns.role'),    body: roleTemplate,    sortable: true, sortField: 'role_name'  },
+        { header: t('columns.department', { defaultValue: 'Department' }), body: (row: UserList) => textTemplate(row.department) },
+        { header: t('columns.city',       { defaultValue: 'City' }),       body: (row: UserList) => textTemplate(row.city)       },
+        { header: t('columns.state',      { defaultValue: 'State' }),      body: (row: UserList) => textTemplate(row.state)      },
+        { header: t('columns.country',    { defaultValue: 'Country' }),    body: (row: UserList) => textTemplate(row.country)    },
         { header: t('columns.status'),  body: statusTemplate,  sortable: true, sortField: 'is_active'  },
         { header: t('columns.actions'), body: actionsTemplate, style: { width: '12rem' }               },
     ];

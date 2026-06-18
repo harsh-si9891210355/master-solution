@@ -46,11 +46,18 @@ api.interceptors.response.use(
     (error) => {
         nProgress.done();
         const url: string = error.config?.url ?? '';
-        // Don't hard-redirect on the Auth0 session exchange — the caller handles
-        // its failure. Otherwise a failed /auth/session would bounce to '/' and
-        // immediately retry, causing an infinite loop.
-        const isSessionExchange = url.includes('/auth/session');
-        if (error.response?.status === 401 && !isSessionExchange) {
+        // Public auth/onboarding endpoints handle their own 401s (wrong
+        // password, invalid temp password, etc.). Don't hard-redirect on those
+        // — otherwise the form would bounce to '/' and lose its error message.
+        const isPublicAuth = [
+            '/auth/session',
+            '/auth/login',
+            '/auth/forgot-password',
+            '/auth/reset-password',
+            '/auth/set-password',
+            '/onboarding/',
+        ].some((p) => url.includes(p));
+        if (error.response?.status === 401 && !isPublicAuth) {
             // If signed in via Auth0, trigger a fresh login (recovers an expired
             // session and returns to the current page). Otherwise — legacy local
             // login — clear state and go to the login page.

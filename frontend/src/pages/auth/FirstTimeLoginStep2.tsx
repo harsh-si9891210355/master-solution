@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
+import { useMutation } from '@tanstack/react-query'
+import { onboardingService } from './api/onboardingService'
+import { useToast } from '@/components/ui/ToastProvider'
 
 const COUNTRY_CODES = ['+91', '+1', '+44', '+61', '+65', '+971']
 const CITIES  = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune']
@@ -7,17 +10,61 @@ const STATES  = ['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Telangana', 'Delhi',
 
 export default function FirstTimeLoginStep2() {
   const navigate = useNavigate()
+  const toast = useToast()
+  const token = sessionStorage.getItem('onboarding_token')
+
   const [form, setForm] = useState({
     firstName: '', lastName: '', department: '',
     countryCode: '+91', phone: '', city: '', state: '', country: 'INDIA',
   })
   const [error, setError] = useState('')
 
+  const { mutate: save, isPending } = useMutation({
+    mutationFn: () =>
+      onboardingService.completeProfile({
+        token: token ?? '',
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        department: form.department.trim() || undefined,
+        country_code: form.countryCode,
+        mobile_number: form.phone.trim() || undefined,
+        city: form.city || undefined,
+        state: form.state || undefined,
+        country: form.country.trim() || undefined,
+      }),
+    onSuccess: () => {
+      sessionStorage.removeItem('onboarding_token')
+      sessionStorage.removeItem('onboarding_email')
+      toast.success('Profile completed', 'Your account is active. Please sign in.')
+      navigate('/', { replace: true })
+    },
+    onError: (err: any) => {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.errors?.[0]?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Could not save your profile. Please try again.'
+      setError(msg)
+      toast.error('Could not complete profile', msg)
+    },
+  })
+
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!form.firstName || !form.lastName) { setError('First and last name are required.'); return }
-    navigate('/')
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      setError('First and last name are required.'); return
+    }
+    if (form.phone.trim() && !/^[0-9]{7,15}$/.test(form.phone.trim())) {
+      setError('Enter a valid mobile number (7–15 digits).'); return
+    }
+    save()
+  }
+
+  // Must come from step 1 (which stores the short-lived token).
+  if (!token) {
+    return <Navigate to="/first-time-login" replace />
   }
 
   const steps = [
@@ -88,8 +135,6 @@ export default function FirstTimeLoginStep2() {
           className="flex-shrink-0 flex flex-col justify-center px-14 py-16"
           style={{ width: 420, background: 'rgba(251,243,210,0.18)' }}
         >
-          {/* Heading */}
-
           <div className="relative z-10">
             {/* Heading */}
             <div className="mb-8">
@@ -107,7 +152,7 @@ export default function FirstTimeLoginStep2() {
             <div className="border-t border-blue-100 border-opacity-30 mb-5" />
 
             {error && (
-              <div className="mb-4 px-3 py-2 bg-red-500/20 border border-red-400/40 text-red-200 text-xs rounded">
+              <div className="mb-4 px-4 py-2 bg-red-50 border border-red-300 text-red-600 text-xs rounded">
                 {error}
               </div>
             )}
@@ -160,7 +205,7 @@ export default function FirstTimeLoginStep2() {
               </div>
 
               {/* Country */}
-              <input type="text" value={form.country}
+              <input type="text" placeholder="Country" value={form.country}
                 onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
                 className="w-full px-5 py-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 style={{ background: '#F9F6EE', border: '1.5px solid #1447e6' }}
@@ -174,9 +219,10 @@ export default function FirstTimeLoginStep2() {
                   Cancel
                 </button>
                 <button type="submit"
-                  className="flex-1 py-3 text-sm font-medium text-white"
+                  disabled={isPending}
+                  className="flex-1 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-70"
                   style={{ background: '#1447e6' }}>
-                  Save
+                  {isPending ? 'Saving…' : 'Save'}
                 </button>
               </div>
 
