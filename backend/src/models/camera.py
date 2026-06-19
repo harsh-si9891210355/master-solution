@@ -52,7 +52,7 @@ class Camera(Base):
     location = relationship("Location", back_populates="cameras")
     translations = relationship("CameraTranslation", back_populates="camera", cascade="all, delete-orphan")
     camera_usecases = relationship("CameraUsecase", back_populates="camera", cascade="all, delete-orphan")
-    user = relationship("User", back_populates="cameras")
+    user = relationship("User", back_populates="cameras", foreign_keys=[status_modified_by])
     events = relationship("Event", back_populates="camera")
 
 
