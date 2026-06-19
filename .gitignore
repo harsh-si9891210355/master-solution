@@ -1,3 +1,4 @@
 # NVR recordings — large video files, not tracked in git
 recordings/
 logs/
+*.pyc
