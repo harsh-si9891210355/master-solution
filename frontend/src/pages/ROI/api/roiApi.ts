@@ -18,6 +18,12 @@ export interface CameraDetailsApiResponse {
   };
 }
 
+export interface RoiGetApiResponse {
+  code: number;
+  message: string;
+  roi: any | null;
+}
+
 export interface UpdateRoiRequest {
   cameraId: number;
   roi: any[];
@@ -50,6 +56,24 @@ export const getCameraDetails = async (cameraId: number): Promise<CameraDetailsA
     return {
       code: error?.response?.status ?? 500,
       message: error?.message ?? 'Failed to fetch camera details',
+    };
+  }
+};
+
+export const getCameraRoi = async (cameraId: number): Promise<RoiGetApiResponse> => {
+  try {
+    const response = await api.get(`/roi/getroi`, { params: { cameraId } });
+    const data = response.data;
+    return {
+      code: 200,
+      message: data?.message ?? 'OK',
+      roi: data?.roi ?? null,
+    };
+  } catch (error: any) {
+    return {
+      code: error?.response?.status ?? 500,
+      message: error?.message ?? 'Failed to fetch ROI',
+      roi: null,
     };
   }
 };

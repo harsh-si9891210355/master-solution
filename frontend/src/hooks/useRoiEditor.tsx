@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router'
-import { getCameraDetails, getCameraFrame, refreshCameraFrame, updateRoi, getAuthToken } from '@/pages/ROI/api/roiApi'
+import { getCameraDetails, getCameraRoi, getCameraFrame, refreshCameraFrame, updateRoi, getAuthToken } from '@/pages/ROI/api/roiApi'
 import { usecaseService } from '@/pages/usecase/api/usecaseService'
 import type {
   Annotation,
@@ -268,9 +268,20 @@ export const useRoiEditor = (cameraIdProp?: string | number) => {
       getCameraDetails(parsedCameraId),
       loadCanvasFrame(parsedCameraId),
       usecaseService.getUsecases(),
+      getCameraRoi(parsedCameraId),
     ])
-      .then(([detailsResult, frameResult, usecasesResult]) => {
+      .then(([detailsResult, frameResult, usecasesResult, roiResult]) => {
         if (!isMounted) return
+
+        // The saved ROI is served by the dedicated /roi/getroi endpoint — the
+        // camera details response does not include it — so resolve it from there.
+        const fetchedRoi =
+          roiResult.status === 'fulfilled' && roiResult.value.code === 200
+            ? roiResult.value.roi ?? null
+            : null
+        if (roiResult.status === 'rejected') {
+          console.error('Failed to load saved ROI:', (roiResult as any).reason)
+        }
 
         const usecaseNameById = new Map<number, string>()
         if (usecasesResult.status === 'fulfilled') {
@@ -308,7 +319,7 @@ export const useRoiEditor = (cameraIdProp?: string | number) => {
               }))
             )
 
-            initialCameraRoiRef.current = details.roi ?? null
+            initialCameraRoiRef.current = fetchedRoi ?? details.roi ?? null
             initialRoiAppliedRef.current = false
           } else {
             setLabelOptions([])
