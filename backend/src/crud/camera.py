@@ -195,21 +195,12 @@ def set_camera_roi(db: Session, camera_id: int, roi_payload: Dict[str, Any], act
     if not camera:
         return None
 
-    new_teller_usecase_items = _extract_usecase_roi_items(roi_payload, c.TELLER_UTILIZATION_USECASE_ID)
 
     # Overwrite the JSON column
     camera.roi = roi_payload
     if hasattr(camera, "updated_by") and actor_id is not None:
         camera.updated_by = actor_id
 
-    # Update cropped image only when ROI mapped to usecase_id=4.
-    if hasattr(camera, "teller_reference_image"):
-        if new_teller_usecase_items:
-            # Use first mapped ROI for usecase 4.
-            camera.teller_reference_image = create_teller_reference_image(camera, new_teller_usecase_items[0])
-        else:
-            # If usecase 4 mapping removed, clear existing cropped image.
-            camera.teller_reference_image = None
 
     db.commit()
     db.refresh(camera)
