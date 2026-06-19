@@ -85,6 +85,8 @@ CREATE TABLE IF NOT EXISTS cameras (
     fps VARCHAR(50) NOT NULL DEFAULT '5',
     rtspurl VARCHAR(255),
     substream_rtspurl VARCHAR(255),
+    roi JSONB,
+    roi_frame_blob BYTEA,
     status BOOLEAN NOT NULL DEFAULT TRUE,
     status_modified_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     last_modified_at TIMESTAMPTZ,
@@ -92,7 +94,10 @@ CREATE TABLE IF NOT EXISTS cameras (
 );
 
 -- Migration for existing databases: add the optional substream URL column.
-ALTER TABLE cameras ADD COLUMN IF NOT EXISTS substream_rtspurl VARCHAR(255);
+ALTER TABLE cameras 
+ADD COLUMN IF NOT EXISTS substream_rtspurl VARCHAR(255),
+ADD COLUMN IF NOT EXISTS roi JSONB,
+ADD COLUMN IF NOT EXISTS roi_frame_blob BYTEA;
 
 CREATE TABLE IF NOT EXISTS camera_translations (
     id SERIAL PRIMARY KEY,
