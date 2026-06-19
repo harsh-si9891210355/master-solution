@@ -40,6 +40,10 @@ class FrameAnalysis:
     height: int
     detections: list[Detection] = field(default_factory=list)
     error: str | None = None
+    # Claim-check reference forwarded to the Event Manager so it can fetch this
+    # same raw frame from Redis (and the batch survives until the EM acks too).
+    redis_key: str | None = None
+    redis_field: str | None = None
 
     @property
     def person_count(self) -> int:
@@ -66,4 +70,7 @@ class FrameAnalysis:
             "violation": self.violation,
             "detections": [d.to_dict() for d in self.detections],
             "error": self.error,
+            # Forwarded so the Event Manager can fetch this raw frame from Redis.
+            "redis_key": self.redis_key,
+            "field": self.redis_field,
         }

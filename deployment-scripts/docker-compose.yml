@@ -200,6 +200,57 @@ services:
       - "9106:9106"   # Prometheus metrics
     restart: unless-stopped
 
+  # --- MinIO: object storage for event evidence videos --------------------
+  minio:
+    image: minio/minio:RELEASE.2024-09-22T00-33-43Z
+    container_name: master-solution-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API + public evidence URLs
+      - "9001:9001"   # MinIO web console (minioadmin/minioadmin)
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # --- Event Manager: aggregates AI events into incidents + evidence ------
+  # Consumes <usecase>-event-queue(s), groups detections into events with a
+  # time-gap debounce, builds annotated video evidence (OpenCV + ffmpeg),
+  # stores it on MinIO, persists the event in Postgres, and pushes it onto the
+  # notification queue. Multi-threaded: receiver thread(s) + analysis workers.
+  eventmanager:
+    build:
+      context: ../eventmanager
+    container_name: master-solution-eventmanager
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    env_file:
+      - ../eventmanager/.env
+    environment:
+      EM_REDIS_URL: redis://redis:6379/0
+      EM_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+      EM_DATABASE_URL: postgresql://postgres:postgres@db:5432/master_solution
+      EM_MINIO_ENDPOINT: minio:9000
+    volumes:
+      - ../eventmanager:/app
+    ports:
+      - "9107:9107"   # Prometheus metrics
+    restart: unless-stopped
+
   # --- Web UIs for inspecting the frame pipeline --------------------------
   # RabbitMQ queues / messages / rates are at the built-in management UI on
   # http://localhost:15672 (guest/guest) — no separate service needed.
@@ -359,3 +410,4 @@ volumes:
   rabbitmq-data:
   redis-data:
   ai-models:
+  minio-data:

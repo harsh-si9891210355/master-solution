@@ -93,9 +93,16 @@ class Settings(BaseSettings):
     #   refcount -> delete as soon as every use-case has acked (TTL is a backstop)
     #   ttl      -> delete purely on expiry, no acks
     redis_cleanup: RedisCleanup = RedisCleanup.REFCOUNT
+    # Each use-case's frames are consumed by this many downstream stages — the AI
+    # service that runs detection AND the Event Manager that builds evidence (=2).
+    # With refcount cleanup the per-batch ack counter is seeded to
+    # len(usecases) * this, so the batch stays in Redis until *both* stages have
+    # acked every use-case. Set to 1 if no Event Manager consumes the frames.
+    frame_consumers_per_usecase: int = 2
     # TTL after which a batch is force-deleted regardless of acks. With refcount
     # cleanup this is a safety net for crashed/slow consumers, so it should be a
-    # bit longer than your worst-case consumer processing lag.
+    # bit longer than your worst-case consumer processing lag (the Event Manager
+    # builds video, so allow for that).
     redis_frame_ttl_s: int = 300
 
     # --- RabbitMQ (per-use-case queue) ---------------------------------------

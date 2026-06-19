@@ -106,9 +106,13 @@ class FramePublisher:
         redis_key: str | None = None
         if self._transport == FrameTransport.CLAIM_CHECK:
             # Under refcount cleanup, seed the in-batch ack counter with the
-            # number of use-cases this batch is published to, so it's deleted
-            # once that many acks arrive.
-            ack_count = len(camera.usecases) if self._refcount else None
+            # number of use-cases times the downstream stages per use-case (AI
+            # service + Event Manager = 2 by default), so the batch is deleted
+            # only once every stage has acked every use-case.
+            ack_count = (
+                len(camera.usecases) * settings.frame_consumers_per_usecase
+                if self._refcount else None
+            )
             try:
                 redis_key = self._redis.store_batch(batch, ack_count=ack_count)
             except Exception:

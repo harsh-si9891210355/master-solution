@@ -33,6 +33,8 @@ class BatchAnalyzer:
         started = time.monotonic()
         frames_meta = envelope.get("frames", {})
         meta_list = frames_meta.get("meta", [])
+        fields = frames_meta.get("fields", [])
+        redis_key = frames_meta.get("redis_key")
         default_w = int(frames_meta.get("width", 0) or 0)
         default_h = int(frames_meta.get("height", 0) or 0)
         roi_spec = envelope.get("roi", {})
@@ -48,6 +50,10 @@ class BatchAnalyzer:
                 capture_epoch_ms=meta.get("capture_epoch_ms"),
                 width=w,
                 height=h,
+                # Forward the claim-check reference so the Event Manager fetches
+                # this very frame from Redis (the batch lives until the EM acks).
+                redis_key=redis_key,
+                redis_field=fields[idx] if idx < len(fields) else None,
             )
 
             if blob is None:
@@ -87,6 +93,7 @@ class BatchAnalyzer:
         frames_with_violation = sum(1 for a in analyses if a.violation)
         total_detections = sum(a.person_count for a in analyses)
         max_in_frame = max((a.person_count for a in analyses), default=0)
+        frames_meta = envelope.get("frames", {})
 
         return {
             "schema_version": SCHEMA_VERSION,
@@ -99,6 +106,13 @@ class BatchAnalyzer:
             "usecase": envelope.get("usecase", {}),
             "roi": roi_spec,
             "model": self._detector.describe(),
+            # Claim-check pointer to the shared batch so the Event Manager can
+            # fetch the same frames from Redis and ack the shared counter. The
+            # batch was seeded for both stages (usecases * 2), so it's still
+            # present after this AI service acked its own reference.
+            "transport": frames_meta.get("transport"),
+            "redis_key": frames_meta.get("redis_key"),
+            "ack_required": bool(frames_meta.get("ack_required", False)),
             "summary": {
                 "frames_analyzed": len(analyses),
                 "frames_with_person": frames_with_person,
