@@ -92,7 +92,7 @@ export const refreshCameraFrame = async (cameraId: number): Promise<CameraFrameA
 
 export const updateRoi = async (payload: UpdateRoiRequest): Promise<UpdateRoiResponse> => {
   try {
-    const response = await api.post(`/roi/updateroi`, payload);
+    const response = await api.put(`/roi/updateroi`, payload);
     return {
       code: 200,
       message: response.data?.message ?? 'ROI saved successfully',

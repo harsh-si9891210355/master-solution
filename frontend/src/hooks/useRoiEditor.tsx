@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { getCameraDetails, getCameraFrame, refreshCameraFrame, updateRoi, getAuthToken } from '@/pages/ROI/api/roiApi'
+import { usecaseService } from '@/pages/usecase/api/usecaseService'
 import type {
   Annotation,
   RectAnnotation,
@@ -266,9 +267,19 @@ export const useRoiEditor = (cameraIdProp?: string | number) => {
     Promise.allSettled([
       getCameraDetails(parsedCameraId),
       loadCanvasFrame(parsedCameraId),
+      usecaseService.getUsecases(),
     ])
-      .then(([detailsResult, frameResult]) => {
+      .then(([detailsResult, frameResult, usecasesResult]) => {
         if (!isMounted) return
+
+        const usecaseNameById = new Map<number, string>()
+        if (usecasesResult.status === 'fulfilled') {
+          ;(usecasesResult.value.data.usecases ?? [])
+            .filter((u) => u.status)
+            .forEach((u) => usecaseNameById.set(u.id, u.name))
+        } else {
+          console.error('Failed to load use cases for ROI:', (usecasesResult as any).reason)
+        }
 
         if (detailsResult.status === 'fulfilled') {
           const res = detailsResult.value
@@ -276,10 +287,21 @@ export const useRoiEditor = (cameraIdProp?: string | number) => {
             const details = res.cameraDetails
             setCameraDetails(details)
 
-            const cameraUsecases = details.usecases || []
-            setLabelOptions(cameraUsecases.map((u: any) => u.usecaseName))
+            const resolvedUsecases = (details.usecases || [])
+              .map((u: any) => {
+                const usecaseId = u.usecaseId ?? u.usecase_id ?? u.id
+                const isActive = u.is_active ?? true
+                const usecaseName = u.usecaseName ?? u.name ?? usecaseNameById.get(usecaseId)
+                return { usecaseId, usecaseName, isActive }
+              })
+              .filter(
+                (u): u is { usecaseId: number; usecaseName: string; isActive: boolean } =>
+                  u.isActive && typeof u.usecaseId === 'number' && Boolean(u.usecaseName)
+              )
+
+            setLabelOptions(resolvedUsecases.map((u) => u.usecaseName))
             setUseCases(
-              cameraUsecases.map((u: any) => ({
+              resolvedUsecases.map((u) => ({
                 usecaseId: u.usecaseId,
                 usecaseName: u.usecaseName,
                 is_active: true,
