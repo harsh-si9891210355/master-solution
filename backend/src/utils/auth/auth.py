@@ -1,19 +1,24 @@
 from typing import Any
 
 from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from src.crud.access import get_role_permissions
 from src.db.db_connection import get_db
-from src.services.v1.auth_services import get_current_user_from_token
-from src.utils.auth.auth_bearer import JWTBearer
+from src.services.v1.auth_services import resolve_user_from_token
+
+
+# Raw bearer extractor — the token is validated in resolve_user_from_token
+# (legacy local JWT, otherwise an Auth0 access token against the tenant JWKS).
+_bearer = HTTPBearer()
 
 
 def get_current_user_context(
-    token: str = Depends(JWTBearer()),
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    user = get_current_user_from_token(db, token)
+    user = resolve_user_from_token(db, credentials.credentials)
     role_permissions = get_role_permissions(db, user.role_id)
     permissions = sorted(
         {

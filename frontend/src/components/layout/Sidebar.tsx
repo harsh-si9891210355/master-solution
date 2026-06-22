@@ -1,37 +1,28 @@
 
 import { useNavigate, useLocation } from 'react-router'
 import { useNsTranslation } from "@/hooks/Usetranslation";
-import { DeleteModalPopup } from '@/components/ui/DeleteModalPopup';
 import { useAuthStore } from '@/store/authStore';
+import { hasPermission } from '@/lib/permissions';
 
 
 export default function Sidebar() {
-  const { t, currentLang, changeLanguage } = useNsTranslation("layout");
+  const { t } = useNsTranslation("layout");
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const logout = useAuthStore((s) => s.logout)
+  const permissions = useAuthStore((s) => s.permissions)
 
-  const handleLogout = () => {
-    DeleteModalPopup.showLogout({
-      message: t('logout_confirm_message'),
-      header: t('logout_confirm_header'),
-      acceptLabel: t('logout_ok'),
-      rejectLabel: t('logout_cancel'),
-      onConfirm: () => {
-        logout()
-        navigate('/')
-      }
-    })
-  }
-
-  const NAV_ITEMS = [
+  // Each item is gated by the permission its page needs; items the user lacks
+  // permission for are hidden. (undefined = always visible.)
+  const NAV_ITEMS: { label: string; icon: string; path: string; permission?: string }[] = [
     { label: t("nav.dashboard"), icon: "dashboard", path: "/dashboard" },
-    { label: t("nav.events"), icon: "table_rows", path: "/events" },
-    { label: t("nav.cameras"), icon: "nest_cam_outdoor", path: "/cameras" },
-    { label: t("nav.usecases"), icon: "lab_profile", path: "/usecases" },
-    { label: t("nav.users"), icon: "group", path: "/users" },
+    { label: t("nav.events"), icon: "table_rows", path: "/events", permission: "event:read" },
+    { label: t("nav.cameras"), icon: "nest_cam_outdoor", path: "/cameras", permission: "camera:read" },
+    { label: t("nav.usecases"), icon: "lab_profile", path: "/usecases", permission: "usecase:read" },
+    { label: t("nav.users"), icon: "group", path: "/users", permission: "user:read" },
     { label: t("nav.settings"), icon: "desktop_windows", path: "/settings" },
   ];
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => hasPermission(permissions, item.permission));
 
   const isActive = (path: string) =>
     path === '/' ? pathname === '/' : pathname.startsWith(path)
@@ -47,7 +38,7 @@ export default function Sidebar() {
     >
       {/* ── Navigation items ── */}
       <nav className="flex flex-col flex-1">
-        {NAV_ITEMS.map(({ path, label, icon }) => {
+        {visibleNavItems.map(({ path, label, icon }) => {
           // const active = isActive(path)
           const isActive = location.pathname.startsWith(path);
           return (
@@ -83,42 +74,6 @@ export default function Sidebar() {
           )
         })}
       </nav>
-
-      {/* ── Logout — pinned to bottom ── */}
-      <div style={{ borderTop: '1px solid #e5e7eb' }}>
-        <button
-          onClick={handleLogout}
-          title="Logout"
-          className="relative group flex items-center justify-center w-full transition-all duration-150"
-          style={{ height: 56, color: '#003087', background: '#ffffff' }}
-          onMouseEnter={e => {
-            ; (e.currentTarget as HTMLButtonElement).style.background = '#fff1f2'
-              ; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'
-          }}
-          onMouseLeave={e => {
-            ; (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'
-              ; (e.currentTarget as HTMLButtonElement).style.color = '#003087'
-          }}
-        >
-          {/* Change 'logout' to any Google icon name */}
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 22, lineHeight: 1 }}
-          >
-            logout
-          </span>
-
-          {/* Tooltip */}
-          <span
-            className="pointer-events-none absolute left-full ml-3 px-2.5 py-1 rounded text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-md"
-            style={{ background: '#1a2332' }}
-          >
-            Logout
-          </span>
-        </button>
-      </div>
-
-      <DeleteModalPopup.LogoutHost />
     </aside>
   )
 }

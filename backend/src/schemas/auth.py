@@ -1,6 +1,14 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
+class UserInvite(BaseModel):
+    """Admin invite payload — only the email is required. The user sets their
+    own password via the link Auth0 emails them."""
+
+    email: EmailStr
+    role_code: str = Field(default="user", min_length=2, max_length=50)
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     first_name: str = Field(..., min_length=2, max_length=255)
@@ -103,6 +111,10 @@ class UserResponse(BaseModel):
     role_name: str
     is_active: bool
     status: bool
+    department: str | None = None
+    city: str | None = None
+    state: str | None = None
+    country: str | None = None
 
 
 class LoginSignupResponse(BaseModel):
@@ -112,22 +124,15 @@ class LoginSignupResponse(BaseModel):
     user: UserResponse
     permissions: list[str]
 
+
+class SessionResponse(BaseModel):
+    """Returned after validating an Auth0-issued token. No backend token —
+    Auth0 owns the access token; we only resolve identity + authorization."""
+
+    user: UserResponse
+    permissions: list[str]
+
 class SetPasswordRequest(BaseModel):
-    token: str
-    password: str
+    """Trigger Auth0 to (re)send the set-password email to this user."""
 
-    @field_validator("password")
-    @classmethod
-    def password(cls, value: str):
-
-        if len(value) < 8:
-            raise ValueError(
-                "Password is too short. Kindly enter at least 8 characters."
-            )
-
-        if len(value) > 128:
-            raise ValueError(
-                "Password is too long. Kindly keep it within 128 characters."
-            )
-        
-        return value
+    email: EmailStr

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -116,7 +116,9 @@ export const UserForm = () => {
       const { password, ...profileData } = data;
       updateUser(profileData);
     } else {
-      createUser(data);
+      // Auth0-based onboarding: the admin only supplies the email. The user
+      // sets their password and remaining profile details during first login.
+      createUser({ email: data.email } as AddUserValues);
     }
   };
 
@@ -156,43 +158,27 @@ export const UserForm = () => {
                 <span>{t("form.sections.account_credentials")}</span>
                 <div className="form-section__divider" />
               </div>
-              <div className="form-grid-2">
-                <FormInput<AddUserValues>
-                  name="email"
-                  control={control}
-                  label={t("form.fields.email")}
-                  placeholder={t("form.placeholders.email")}
-                  rules={{
-                    validate: {
-                      required: (v) =>
-                        !!v || t("form.validation.email_required"),
-                      pattern: (v) =>
-                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ||
-                        t("form.validation.email_invalid"),
-                    },
-                  }}
-                  error={errors.email?.message}
-                />
-                <FormInput<AddUserValues>
-                  name="password"
-                  control={control}
-                  label={t("form.fields.password")}
-                  type="password"
-                  placeholder={t("form.placeholders.password")}
-                  rules={{
-                    validate: {
-                      required: (v) =>
-                        !!v || t("form.validation.password_required"),
-                      minLength: (v) =>
-                        v.length >= 8 || t("form.validation.password_min"),
-                    },
-                  }}
-                  error={errors.password?.message}
-                />
-              </div>
+              <FormInput<AddUserValues>
+                name="email"
+                control={control}
+                label={t("form.fields.email")}
+                placeholder={t("form.placeholders.email")}
+                rules={{
+                  validate: {
+                    required: (v: string) =>
+                      !!v || t("form.validation.email_required"),
+                    pattern: (v: string) =>
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ||
+                      t("form.validation.email_invalid"),
+                  },
+                }}
+                error={errors.email?.message}
+              />
             </div>
           )}
 
+          {isEdit && (
+          <>
           <div className="form-section">
             <div className="form-section__label-row">
               <span>{t("form.sections.personal_info")}</span>
@@ -206,9 +192,9 @@ export const UserForm = () => {
                 placeholder={t("form.placeholders.first_name")}
                 rules={{
                   validate: {
-                    required: (v) =>
+                    required: (v: string) =>
                       !!v || t("form.validation.first_name_required"),
-                    minLength: (v) =>
+                    minLength: (v: string) =>
                       v.length >= 2 || t("form.validation.first_name_min"),
                   },
                 }}
@@ -221,9 +207,9 @@ export const UserForm = () => {
                 placeholder={t("form.placeholders.last_name")}
                 rules={{
                   validate: {
-                    required: (v) =>
+                    required: (v: string) =>
                       !!v || t("form.validation.last_name_required"),
-                    minLength: (v) =>
+                    minLength: (v: string) =>
                       v.length >= 2 || t("form.validation.last_name_min"),
                   },
                 }}
@@ -245,11 +231,11 @@ export const UserForm = () => {
                 placeholder={t("form.placeholders.mobile_number")}
                 rules={{
                   validate: {
-                    required: (v) =>
+                    required: (v: string) =>
                       !!v || t("form.validation.mobile_required"),
-                    numeric: (v) =>
+                    numeric: (v: string) =>
                       /^[0-9]+$/.test(v) || t("form.validation.mobile_numeric"),
-                    length: (v) =>
+                    length: (v: string) =>
                       v.length === 10 || t("form.validation.mobile_length"),
                   },
                 }}
@@ -268,13 +254,15 @@ export const UserForm = () => {
                 options={ROLE_OPTIONS}
                 rules={{
                   validate: {
-                    required: (v) => !!v || t("form.validation.role_required"),
+                    required: (v: string) => !!v || t("form.validation.role_required"),
                   },
                 }}
                 error={errors.role_code?.message}
               />
             </div>
           </div>
+          </>
+          )}
 
           <div className="form-actions">
             <FormButton

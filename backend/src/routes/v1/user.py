@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Query, status
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
-from src.schemas.auth import UserCreate, UserResponse
+from src.schemas.auth import UserInvite, UserResponse
 from src.schemas.user import UserDeleteResponse, UserUpdate, UsersResponse, UserStatusUpdate
 from src.crud.user import get_user_by_email, get_user_by_id
 from src.services.v1.user_services import (
@@ -24,44 +24,13 @@ router = APIRouter()
     response_model=UserResponse,
     dependencies=[Depends(require_permission("user:create"))],
 )
-@router.post(
-    "/{user_id}",
-    response_model=UserResponse,
-    dependencies=[Depends(require_permission("user:update"))],
-)
-def create_or_update_user(
+def create_user_route(
     request: Request,
-    payload: UserCreate,
+    payload: UserInvite,
     db: Session = Depends(get_db),
-    user_id: int | None = None,
 ) -> UserResponse:
-
-    # UPDATE
-    if user_id is not None:
-
-        user = get_user_by_id(db, user_id)
-
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-
-        # email does not belong to this user_id
-        if user.email != payload.email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Provided email does not match the selected user",
-            )
-
-        return update_user_details(
-            db=db,
-            user_id=user_id,
-            payload=payload,
-            language=request.state.lang,
-        )
-
-    # CREATE
+    """Admin invite: only the email is required. The user is created in Auth0,
+    which emails them a link to set their own password."""
     existing_user = get_user_by_email(db, payload.email)
 
     if existing_user:
@@ -72,6 +41,33 @@ def create_or_update_user(
 
     return create_user_details(
         db=db,
+        payload=payload,
+        language=request.state.lang,
+    )
+
+
+@router.post(
+    "/{user_id}",
+    response_model=UserResponse,
+    dependencies=[Depends(require_permission("user:update"))],
+)
+def update_user_route(
+    request: Request,
+    user_id: int,
+    payload: UserUpdate,
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    user = get_user_by_id(db, user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    return update_user_details(
+        db=db,
+        user_id=user_id,
         payload=payload,
         language=request.state.lang,
     )

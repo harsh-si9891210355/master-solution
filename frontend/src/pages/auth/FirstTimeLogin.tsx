@@ -1,11 +1,43 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useMutation } from '@tanstack/react-query'
+import { onboardingService } from './api/onboardingService'
+import { useToast } from '@/components/ui/ToastProvider'
 
 export default function FirstTimeLogin() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [form, setForm] = useState({ email: '', tempPw: '', newPw: '', confirmPw: '' })
   const [show, setShow] = useState({ temp: false, newp: false, confirm: false })
   const [error, setError] = useState('')
+
+  const { mutate: submit, isPending } = useMutation({
+    mutationFn: () =>
+      onboardingService.firstTimeLogin({
+        email: form.email.trim(),
+        temporary_password: form.tempPw,
+        new_password: form.newPw,
+        confirm_password: form.confirmPw,
+      }),
+    onSuccess: (res: any) => {
+      const token = res?.data?.token ?? res?.data?.access_token
+      if (token) sessionStorage.setItem('onboarding_token', token)
+      // Carry the email forward too (handy for messaging on step 2).
+      sessionStorage.setItem('onboarding_email', form.email.trim())
+      toast.success('Password set', 'Now complete your profile to finish setup.')
+      navigate('/first-time-login/step2')
+    },
+    onError: (err: any) => {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.errors?.[0]?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Could not verify your details. Please try again.'
+      setError(msg)
+      toast.error('First-time login failed', msg)
+    },
+  })
 
   function handleNext(e: React.FormEvent) {
     e.preventDefault()
@@ -13,18 +45,22 @@ export default function FirstTimeLogin() {
     if (!form.email || !form.tempPw || !form.newPw || !form.confirmPw) {
       setError('All fields are required.'); return
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError('Enter a valid email address.'); return
+    }
+    if (form.newPw.length < 8) {
+      setError('New password must be at least 8 characters.'); return
+    }
     if (form.newPw !== form.confirmPw) {
       setError('New passwords do not match.'); return
     }
-    navigate('/first-time-login/step2')
+    submit()
   }
 
   const steps = [
     { n: 1, label: 'Sign up your\nworkspace', active: true  },
     { n: 2, label: 'Sign up your\nprofile',   active: false },
   ]
-
-
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#FFFFFF' }}>
@@ -105,7 +141,7 @@ export default function FirstTimeLogin() {
             <div className="border-t border-blue-100 border-opacity-30 mb-5" />
 
             {error && (
-              <div className="mb-4 px-3 py-2 bg-red-500/20 border border-red-400/40 text-red-200 text-xs rounded">
+              <div className="mb-4 px-4 py-2 bg-red-50 border border-red-300 text-red-600 text-xs rounded">
                 {error}
               </div>
             )}
@@ -152,9 +188,10 @@ export default function FirstTimeLogin() {
                   Cancel
                 </button>
                 <button type="submit"
-                  className="flex-1 py-3 text-sm font-medium text-white"
+                  disabled={isPending}
+                  className="flex-1 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-70"
                   style={{ background: '#1447e6' }}>
-                  Next
+                  {isPending ? 'Verifying…' : 'Next'}
                 </button>
               </div>
             </form>
