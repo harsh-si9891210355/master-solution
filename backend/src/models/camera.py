@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, UniqueConstraint, func, LargeBinary
 from sqlalchemy.dialects.postgresql import JSONB
