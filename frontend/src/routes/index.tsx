@@ -13,6 +13,7 @@ import { AddCameraForm } from "@/pages/camera/CameraForm";
 import { UsecaseList } from "@/pages/usecase/UsecaseList";
 import { UsecaseForm } from "@/pages/usecase/UsecaseForm";
 import Dashboard from "@/pages/dashboard/Dashboard";
+import { EditProfile } from "@/pages/profile/EditProfile";
 import MasterLayout from "@/components/layout/MasterLayout";
 import { ROIEditor } from "@/pages/ROI/ROIEditor";
 
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
         element: <MasterLayout />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
+          { path: "/profile", element: <EditProfile /> },
           { path: "/events", element: <div>Events List</div> },
           { path: "/cameras", element: <CameraList /> },
           { path: "/cameras/add", element: <AddCameraForm /> },

@@ -272,3 +272,93 @@ select:focus-visible {
   background: rgba(20, 71, 230, 0.08) !important;
   box-shadow: none !important;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   User Management — avatar, role badge, master/detail table polish
+   ════════════════════════════════════════════════════════════════════════ */
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
+  color: #1447e6;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(20, 71, 230, 0.12);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1447e6;
+  background: #eef2ff;
+  border: 1px solid #dbe4ff;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* ── Users table (scoped via .users-table) ──────────────────────────────── */
+.users-table .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 16px;
+}
+
+.users-table .p-datatable-tbody > tr {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.users-table .p-datatable-tbody > tr > td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.users-table .p-datatable-tbody > tr:hover {
+  background: #f9fafb !important;
+}
+
+/* Selected row — blue tint + left accent bar */
+.users-table .p-datatable-tbody > tr.p-highlight {
+  background: #eff4ff !important;
+  box-shadow: inset 3px 0 0 0 #1447e6;
+}
+
+.users-table .p-datatable-tbody > tr.p-highlight td {
+  color: #1e293b;
+}
+
+/* Paginator — lighter, rounded active page */
+.users-table .p-paginator {
+  background: transparent;
+  border: none;
+  padding: 12px 0 4px;
+}
+
+.users-table .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: #1447e6;
+  color: #fff;
+  border-radius: 9999px;
+}
+
+/* Detail panel — section label + sticky header feel */
+.um-panel-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}

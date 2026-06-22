@@ -1,49 +1,13 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import type { Usecase } from './types/index';
 import { usecaseService } from './api/usecaseService';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { FormButton } from '../../components/ui/FormButton';
+import { StatusToggle } from '../../components/ui/StatusToggle';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { useToast } from '../../components/ui/ToastProvider';
-
-// ── Status toggle cell — same pattern as UsersList ────────────────────────────
-interface StatusToggleCellProps {
-    row:           Usecase;
-    onToggle:      (id: number, status: boolean) => Promise<void>;
-    labelActive:   string;
-    labelInactive: string;
-}
-
-const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusToggleCellProps) => {
-    const [isToggling, setIsToggling] = useState(false);
-
-    const handleClick = async () => {
-        if (isToggling) return;
-        setIsToggling(true);
-        try {
-            await onToggle(row.id, !row.status);
-        } finally {
-            setIsToggling(false);
-        }
-    };
-
-    return (
-        <span title={row.status ? labelActive : labelInactive} className="inline-block">
-            <FormButton
-                type="button"
-                variant="ghost"
-                label=""
-                className={`status-toggle ${row.status ? 'status-toggle--on' : 'status-toggle--off'}`}
-                onClick={handleClick}
-                disabled={isToggling}
-                ariaLabel={`Toggle status for ${row.name_en}`}
-            />
-        </span>
-    );
-};
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export const UsecaseList = () => {
@@ -139,9 +103,9 @@ export const UsecaseList = () => {
     );
 
     const statusTemplate = (row: Usecase) => (
-        <StatusToggleCell
-            row={row}
-            onToggle={handleToggle}
+        <StatusToggle
+            active={row.status}
+            onToggle={() => handleToggle(row.id, !row.status)}
             labelActive={t('status.active')}
             labelInactive={t('status.inactive')}
         />

@@ -102,6 +102,7 @@ def create_camera(
     substream_rtsp_url: str | None,
     status: bool,
     status_modified_by: int,
+    config: dict[str, Any] | None = None,
 ) -> Camera:
     camera = Camera(
         location_id=location_id,
@@ -113,6 +114,7 @@ def create_camera(
         substream_rtsp_url=substream_rtsp_url,
         status=status,
         status_modified_by=status_modified_by,
+        config=config,
     )
     db.add(camera)
     db.commit()
@@ -136,6 +138,7 @@ def update_camera(
     substream_rtsp_url: str | None = None,
     status: bool | None = None,
     status_modified_by: int | None = None,
+    config: dict[str, Any] | None = None,
 ) -> Camera:
     if location_id is not None:
         camera.location_id = location_id
@@ -155,6 +158,8 @@ def update_camera(
         camera.status = status
     if status_modified_by is not None:
         camera.status_modified_by = status_modified_by
+    if config is not None:
+        camera.config = config
 
     db.add(camera)
     db.commit()
