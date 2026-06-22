@@ -1,0 +1,13 @@
+# ai-person-detection dependencies.
+#
+# torch (CPU) is installed separately in the Dockerfile from the PyTorch CPU
+# index so ultralytics doesn't pull the multi-GB CUDA build. For the dependency-
+# light HOG backend (AI_DETECTOR_BACKEND=hog) ultralytics/torch are unused.
+pydantic==2.9.2
+pydantic-settings==2.10.1
+redis==5.2.1
+pika==1.3.2
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+prometheus-client==0.21.1
+ultralytics==8.3.0
