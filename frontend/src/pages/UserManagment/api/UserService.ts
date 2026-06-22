@@ -6,7 +6,7 @@ export const userService = {
     // Admin invite: creates the user with a temp password (is_active=false) and
     // emails them the temp password + first-time-login link.
     createUser: (data: any) => api.post('/onboarding/invite', data),
-    updateUser: (id: number, data: any) => api.post('/user', { ...data, id }),
+    updateUser: (id: number, data: any) => api.post(`/user/${id}`, data),
     updateUserStatus: (id: number, is_active: boolean) =>
         api.patch(`/user/${id}/status`, { is_active }),
     deleteUser: (id: number) => api.delete(`/user/${id}`),

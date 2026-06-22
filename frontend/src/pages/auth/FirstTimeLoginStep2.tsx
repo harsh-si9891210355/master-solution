@@ -18,6 +18,9 @@ export default function FirstTimeLoginStep2() {
     countryCode: '+91', phone: '', city: '', state: '', country: 'INDIA',
   })
   const [error, setError] = useState('')
+  // Set once the profile is saved, so removing the token below doesn't make the
+  // guard bounce us back to step 1 before navigate('/') takes effect.
+  const [completed, setCompleted] = useState(false)
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: () =>
@@ -33,6 +36,7 @@ export default function FirstTimeLoginStep2() {
         country: form.country.trim() || undefined,
       }),
     onSuccess: () => {
+      setCompleted(true)
       sessionStorage.removeItem('onboarding_token')
       sessionStorage.removeItem('onboarding_email')
       toast.success('Profile completed', 'Your account is active. Please sign in.')
@@ -62,8 +66,9 @@ export default function FirstTimeLoginStep2() {
     save()
   }
 
-  // Must come from step 1 (which stores the short-lived token).
-  if (!token) {
+  // Must come from step 1 (which stores the short-lived token). After a
+  // successful save we clear the token, so skip this once completed.
+  if (!token && !completed) {
     return <Navigate to="/first-time-login" replace />
   }
 

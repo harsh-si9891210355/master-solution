@@ -9,6 +9,17 @@ export const authService = {
                         api.post('/auth/session', null, {
                             headers: { Authorization: `Bearer ${accessToken}` },
                         }),
+    // Self-service profile edit for the signed-in user.
+    // Backend contract: PATCH /auth/me → returns the updated user.
+    updateMyProfile: (data: {
+                        first_name: string;
+                        last_name: string;
+                        mobile_number?: string;
+                        department?: string;
+                        city?: string;
+                        state?: string;
+                        country?: string;
+                    }) => api.patch('/auth/me', data),
     forgotPassword: (email: string)          => api.post('/auth/forgot-password', { email }),
     setPassword:    (token: string, password: string) =>
                         api.post('/auth/set-password', { token, password }),

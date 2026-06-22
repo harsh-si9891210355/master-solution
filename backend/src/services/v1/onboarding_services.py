@@ -34,7 +34,7 @@ def _generate_temp_password() -> str:
 
 
 def _send_temp_password_email(to_email: str, temp_password: str) -> None:
-    link = f"{settings.frontend_url}/first-time-login"
+    link = f"{settings.frontend_url}/"
     body = f"""
     Hi,
 

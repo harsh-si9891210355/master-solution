@@ -1,41 +1,15 @@
 
 import { useNavigate, useLocation } from 'react-router'
-import { useAuth0 } from '@auth0/auth0-react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useNsTranslation } from "@/hooks/Usetranslation";
-import { DeleteModalPopup } from '@/components/ui/DeleteModalPopup';
 import { useAuthStore } from '@/store/authStore';
 import { hasPermission } from '@/lib/permissions';
 
 
 export default function Sidebar() {
-  const { t, currentLang, changeLanguage } = useNsTranslation("layout");
+  const { t } = useNsTranslation("layout");
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const logout = useAuthStore((s) => s.logout)
   const permissions = useAuthStore((s) => s.permissions)
-  const queryClient = useQueryClient()
-  const { isAuthenticated, logout: auth0Logout } = useAuth0()
-
-  const handleLogout = () => {
-    DeleteModalPopup.showLogout({
-      message: t('logout_confirm_message'),
-      header: t('logout_confirm_header'),
-      acceptLabel: t('logout_ok'),
-      rejectLabel: t('logout_cancel'),
-      onConfirm: () => {
-        logout()
-        queryClient.clear() // drop cached data from the previous session
-        // If signed in via Auth0, end the Auth0 session too; otherwise just
-        // return to the local login page.
-        if (isAuthenticated) {
-          auth0Logout({ logoutParams: { returnTo: window.location.origin } })
-        } else {
-          navigate('/')
-        }
-      }
-    })
-  }
 
   // Each item is gated by the permission its page needs; items the user lacks
   // permission for are hidden. (undefined = always visible.)
@@ -100,42 +74,6 @@ export default function Sidebar() {
           )
         })}
       </nav>
-
-      {/* ── Logout — pinned to bottom ── */}
-      <div style={{ borderTop: '1px solid #e5e7eb' }}>
-        <button
-          onClick={handleLogout}
-          title="Logout"
-          className="relative group flex items-center justify-center w-full transition-all duration-150"
-          style={{ height: 56, color: '#003087', background: '#ffffff' }}
-          onMouseEnter={e => {
-            ; (e.currentTarget as HTMLButtonElement).style.background = '#fff1f2'
-              ; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'
-          }}
-          onMouseLeave={e => {
-            ; (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'
-              ; (e.currentTarget as HTMLButtonElement).style.color = '#003087'
-          }}
-        >
-          {/* Change 'logout' to any Google icon name */}
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 22, lineHeight: 1 }}
-          >
-            logout
-          </span>
-
-          {/* Tooltip */}
-          <span
-            className="pointer-events-none absolute left-full ml-3 px-2.5 py-1 rounded text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-md"
-            style={{ background: '#1a2332' }}
-          >
-            Logout
-          </span>
-        </button>
-      </div>
-
-      <DeleteModalPopup.LogoutHost />
     </aside>
   )
 }
