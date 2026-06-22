@@ -31,7 +31,7 @@ class User(Base):
     )
 
     role = relationship("Role", back_populates="users")
-    cameras = relationship("Camera", back_populates="user")
+    cameras = relationship("Camera", back_populates="user", foreign_keys="Camera.status_modified_by")
     tokens = relationship("UsersToken", back_populates="user", cascade="all, delete-orphan")
     incidents = relationship("Incident", back_populates="user", cascade="all, delete-orphan")
     incidentcomments = relationship("IncidentComment", back_populates="user", cascade="all, delete-orphan")
