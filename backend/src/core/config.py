@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     debug: bool = True
     api_v1_prefix: str = "/api/v1"
     database_url: str = "postgresql://postgres:postgres@db:5432/master_solution"
-    secret_key: str = "qQQ759gTkmC1Apuv0bB7GYK8Nh4SQTxRTcb4yCFtMUk"
+    secret_key: str = ""
     algorithm: str = "HS256"
     host: str = "0.0.0.0"
     port: int = 8000
@@ -57,11 +57,20 @@ class Settings(BaseSettings):
     rec_part_duration: str = "1s"
     rec_segment_duration: str = "1h"
 
-    smtp_host: str = "smtp.gmail.com"
+    smtp_host: str = ""
     smtp_port: int = 587
-    smtp_user: str = "harsh.si9891210355@gmail.com"
-    smtp_password: str = "nzpb hkub mhlz djkk"
+    smtp_user: str = ""
+    smtp_password: str = ""
     argos_model_cache_dir: str = str(Path(".argos-models"))
+
+    auth0_domain: str = ""
+    auth0_client_id: str = ""
+    auth0_audience: str = ""
+    auth0_mgmt_client_id: str = ""
+    auth0_mgmt_client_secret: str = ""
+    auth0_connection: str = ""
+
+    frontend_url: str = "http://localhost:8080"
 
     model_config = SettingsConfigDict(
         env_file=".env",

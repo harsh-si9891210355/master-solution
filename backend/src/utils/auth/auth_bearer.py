@@ -1,54 +1,39 @@
-from datetime import datetime, timezone
-
 from fastapi import HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.crud.user import get_user_by_email
-from src.crud.users_token import get_active_user_token
-from src.db.db_connection import SessionLocal
+from src.utils.auth.auth0_token import Auth0TokenError, Auth0TokenValidator
 from src.utils.auth.auth_handler import Authentication as auth
 
 
 class JWTBearer(HTTPBearer):
-    async def __call__(self, request: Request):
+    """Requires a valid bearer token: either a legacy local backend JWT or an
+    Auth0-issued access token (verified against the tenant JWKS)."""
+
+    async def __call__(self, request: Request) -> str:
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
-        if credentials:
-            if credentials.scheme.lower() != "bearer":
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Invalid authentication scheme"
-                )
-            token = credentials.credentials
-            user_email = auth.verify_token(token)
-            if not user_email:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Invalid/Expired token"
-                )
+        if not credentials:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Authorization header missing",
+            )
+        if credentials.scheme.lower() != "bearer":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid authentication scheme",
+            )
 
-            db = SessionLocal()
-            try:
-                user = get_user_by_email(db, user_email)
-                token_entry = (
-                    get_active_user_token(
-                        db,
-                        userid=user.id,
-                        token=token,
-                        now=datetime.now(timezone.utc),
-                    )
-                    if user
-                    else None
-                )
-            finally:
-                db.close()
+        token = credentials.credentials
 
-            if not token_entry:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Token has been revoked or is no longer active",
-                )
+        # Legacy local JWT (issued by /auth/login) — decodes with our secret.
+        if auth.verify_token(token):
             return token
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authorization header missing"
-        )
+
+        # Otherwise it must be a valid Auth0 access token.
+        try:
+            Auth0TokenValidator().verify(token)
+        except Auth0TokenError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid Auth0 token: {exc}",
+            )
+        return token

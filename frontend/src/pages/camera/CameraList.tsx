@@ -9,6 +9,7 @@ import { LiveViewModal } from './LiveViewModal';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { useNsTranslation } from '../../hooks/Usetranslation';
 import { FormButton } from '../../components/ui/FormButton';
+import { StatusToggle } from '../../components/ui/StatusToggle';
 import { DeleteModalPopup } from '../../components/ui/DeleteModalPopup';
 
 export const CameraList = () => {
@@ -75,8 +76,8 @@ export const CameraList = () => {
 
         onSuccess: (_data, { status }) => {
             toast.success(
-                status ? i18n.t('camera:toast.status_activated_title')   : i18n.t('camera:toast.status_deactivated_title'),
-                status ? i18n.t('camera:toast.status_activated_detail')  : i18n.t('camera:toast.status_deactivated_detail')
+                status ? i18n.t('camera:toast.status_activated_title') : i18n.t('camera:toast.status_deactivated_title'),
+                status ? i18n.t('camera:toast.status_activated_detail') : i18n.t('camera:toast.status_deactivated_detail')
             );
         },
 
@@ -104,13 +105,13 @@ export const CameraList = () => {
     // ── Filtered data ─────────────────────────────────────────────────────────
     const filteredData = (data ?? []).filter(cam => {
         const name = getLocalizedName(cam).toLowerCase();
-        const loc  = (cam.location_name ?? '').toLowerCase();
+        const loc = (cam.location_name ?? '').toLowerCase();
 
-        const matchName     = filterName.trim() === '' || name.includes(filterName.toLowerCase());
+        const matchName = filterName.trim() === '' || name.includes(filterName.toLowerCase());
         const matchLocation = filterLocation === '' || loc === filterLocation.toLowerCase();
-        const matchStatus   =
+        const matchStatus =
             filterStatus === 'all' ||
-            (filterStatus === 'active'   && cam.status) ||
+            (filterStatus === 'active' && cam.status) ||
             (filterStatus === 'inactive' && !cam.status);
 
         return matchName && matchLocation && matchStatus;
@@ -129,7 +130,7 @@ export const CameraList = () => {
                 name,
                 defaultValue: `Are you sure you want to delete camera "${name}"?`,
             }),
-            header:    t('delete_dialog.header'),
+            header: t('delete_dialog.header'),
             onConfirm: () => deleteCamera(row.id),
         });
     };
@@ -161,51 +162,26 @@ export const CameraList = () => {
     };
 
     const statusTemplate = (row: Camera) => (
-        <StatusToggleCell
-            row={row}
-            onToggle={handleToggle}
+        <StatusToggle
+            active={row.status}
+            onToggle={() => handleToggle(row.id, !row.status)}
             labelActive={t('status.active')}
             labelInactive={t('status.inactive')}
         />
     );
 
-    interface StatusToggleCellProps {
-        row: Camera;
-        onToggle: (id: number, status: boolean) => Promise<void>;
-        labelActive: string;
-        labelInactive: string;
-    }
-
-    const StatusToggleCell = ({ row, onToggle, labelActive, labelInactive }: StatusToggleCellProps) => {
-        const [isToggling, setIsToggling] = useState(false);
-
-        const handleClick = async () => {
-            if (isToggling) return;
-            setIsToggling(true);
-            try {
-                await onToggle(row.id, !row.status);
-            } finally {
-                setIsToggling(false);
-            }
-        };
-
-        return (
-            <span title={row.status ? labelActive : labelInactive} className="inline-block">
-                <FormButton
-                    type="button"
-                    variant="ghost"
-                    label=""
-                    className={`status-toggle ${row.status ? 'status-toggle--on' : 'status-toggle--off'}`}
-                    onClick={handleClick}
-                    disabled={isToggling}
-                    ariaLabel={`Toggle status for ${row.name_en}`}
-                />
-            </span>
-        );
-    };
-
     const actionsTemplate = (row: Camera) => (
         <div className="flex items-center gap-2">
+
+            <FormButton
+                label=""
+                variant="ghost"
+                size="sm"
+                iconLeft="pi pi-th-large"  
+                ariaLabel="ROI Editor"
+                title="Open ROI Editor"
+                onClick={() => navigate(`/roi-editor?cameraId=${row.id}`)}
+            />
             <FormButton
                 label=""
                 variant="ghost"
@@ -245,13 +221,13 @@ export const CameraList = () => {
 
     // ── Column definitions ────────────────────────────────────────────────────
     const columns: TableColumn<Camera>[] = [
-        { header: t('columns.name'),       body: nameTemplate,     sortable: true, sortField: 'name_en'       },
-        { header: t('columns.location'),   field: 'location_name', sortable: true, sortField: 'location_name' },
-        { header: t('columns.codec'),      field: 'codec'                                                      },
-        { header: t('columns.resolution'), field: 'resolution'                                                 },
-        { header: t('columns.fps'),        field: 'fps'                                                        },
-        { header: t('columns.status'),     body: statusTemplate,   sortable: true, sortField: 'status'        },
-        { header: t('columns.actions'),    body: actionsTemplate,  style: { width: '8rem' }                   },
+        { header: t('columns.name'), body: nameTemplate, sortable: true, sortField: 'name_en' },
+        { header: t('columns.location'), field: 'location_name', sortable: true, sortField: 'location_name' },
+        { header: t('columns.codec'), field: 'codec' },
+        { header: t('columns.resolution'), field: 'resolution' },
+        { header: t('columns.fps'), field: 'fps' },
+        { header: t('columns.status'), body: statusTemplate, sortable: true, sortField: 'status' },
+        { header: t('columns.actions'), body: actionsTemplate, style: { width: '8rem' } },
     ];
 
     // ── Table header slot ─────────────────────────────────────────────────────
@@ -322,8 +298,8 @@ export const CameraList = () => {
                                focus:outline-none focus:ring-2 focus:ring-gray-300
                                bg-white text-gray-700 w-44"
                 >
-                    <option value="all">{t('filters.status_all',      { defaultValue: 'All Statuses' })}</option>
-                    <option value="active">{t('filters.status_active',   { defaultValue: 'Active' })}</option>
+                    <option value="all">{t('filters.status_all', { defaultValue: 'All Statuses' })}</option>
+                    <option value="active">{t('filters.status_active', { defaultValue: 'Active' })}</option>
                     <option value="inactive">{t('filters.status_inactive', { defaultValue: 'Inactive' })}</option>
                 </select>
 

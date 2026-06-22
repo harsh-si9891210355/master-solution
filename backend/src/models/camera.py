@@ -1,6 +1,8 @@
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.db_connection import Base
@@ -20,6 +22,11 @@ class Camera(Base):
     # directly (no transcode) instead of re-encoding the main rtsp_url.
     substream_rtsp_url: Mapped[str | None] = mapped_column("substream_rtspurl", String(255), nullable=True)
     status: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Rich nested camera configuration (identity.code/tags, connectivity, video
+    # streams, ai, recording, alerts, capabilities, status audit). The flat
+    # columns above remain authoritative for streaming/events; this JSONB blob
+    # holds everything in the nested API schema that has no dedicated column.
+    config: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     status_modified_by: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=False,

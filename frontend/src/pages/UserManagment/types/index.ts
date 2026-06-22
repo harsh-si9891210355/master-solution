@@ -8,6 +8,10 @@ export interface UserList {
     role_name: string;
     is_active: boolean;
     status: boolean;
+    department: string | null;
+    city: string | null;
+    state: string | null;
+    country: string | null;
 }
 
 export interface AddUserValues {

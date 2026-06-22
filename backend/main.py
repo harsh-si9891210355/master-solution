@@ -11,6 +11,7 @@ from src.core.config import settings
 from src.crud.role import seed_roles
 from src.db.db_connection import Base, engine
 from src.db.db_connection import SessionLocal
+from src.db.migrations import ensure_user_profile_columns, ensure_camera_config_column
 from src.services.v1.stream_service import StreamService
 from src.models.camera import Camera  # noqa: F401
 from src.models.camera_usecase import CameraUsecase  # noqa: F401
@@ -30,6 +31,7 @@ from src.routes.router import api_router
 from src.services.translation import TranslationService
 from src.services.translation.exceptions import TranslationInitializationError
 from prometheus_fastapi_instrumentator import Instrumentator
+from src.core.metrics import collect_business_metrics_loop
 
 logger = LoggingConfig().setup_logging()
 
@@ -70,6 +72,9 @@ async def _sync_cameras_background() -> None:
 @app.on_event("startup")
 async def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
+    # Additively backfill columns added to existing tables (create_all won't).
+    ensure_user_profile_columns(engine)
+    ensure_camera_config_column(engine)
     db = SessionLocal()
     try:
         seed_roles(db)
@@ -88,6 +93,10 @@ async def on_startup() -> None:
     # Register camera RTSP paths in MediaMTX without blocking startup.
     # The task retries until MediaMTX is reachable (up to ~60 s).
     asyncio.create_task(_sync_cameras_background())
+
+    # Periodically refresh business-level Prometheus gauges (active users,
+    # camera fleet size, open incidents, …) for Grafana.
+    asyncio.create_task(collect_business_metrics_loop())
 
 
 @app.exception_handler(RequestValidationError)

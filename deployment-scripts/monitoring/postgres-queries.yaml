@@ -1,0 +1,47 @@
+# Custom queries for postgres-exporter (in addition to its built-in
+# pg_stat_database / pg_stat_activity metrics). Business counts live in the
+# backend's /metrics; this file focuses on DB-engine health and connections.
+
+pg_connections_by_state:
+  query: |
+    SELECT state,
+           count(*) AS count
+    FROM pg_stat_activity
+    WHERE datname = current_database()
+    GROUP BY state
+  metrics:
+    - state:
+        usage: "LABEL"
+        description: "Connection state (active, idle, idle in transaction, …)"
+    - count:
+        usage: "GAUGE"
+        description: "Number of backend connections in this state"
+
+# NOTE: database size is already exposed by the exporter's built-in
+# pg_database_size_bytes metric, so we don't redefine it here (it would collide).
+
+pg_locks_count:
+  query: |
+    SELECT mode,
+           count(*) AS count
+    FROM pg_locks
+    GROUP BY mode
+  metrics:
+    - mode:
+        usage: "LABEL"
+        description: "Lock mode"
+    - count:
+        usage: "GAUGE"
+        description: "Number of locks held in this mode"
+
+pg_long_running_queries:
+  query: |
+    SELECT count(*) AS count
+    FROM pg_stat_activity
+    WHERE state = 'active'
+      AND now() - query_start > interval '30 seconds'
+      AND query NOT ILIKE '%pg_stat_activity%'
+  metrics:
+    - count:
+        usage: "GAUGE"
+        description: "Queries running longer than 30s"
