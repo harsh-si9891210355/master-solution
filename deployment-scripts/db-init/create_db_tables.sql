@@ -91,12 +91,15 @@ CREATE TABLE IF NOT EXISTS cameras (
     substream_rtspurl VARCHAR(255),
     status BOOLEAN NOT NULL DEFAULT TRUE,
     status_modified_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    config JSONB,
     last_modified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Migration for existing databases: add the optional substream URL column.
 ALTER TABLE cameras ADD COLUMN IF NOT EXISTS substream_rtspurl VARCHAR(255);
+-- Migration for existing databases: add the nested-config JSONB column.
+ALTER TABLE cameras ADD COLUMN IF NOT EXISTS config JSONB;
 
 CREATE TABLE IF NOT EXISTS camera_translations (
     id SERIAL PRIMARY KEY,
