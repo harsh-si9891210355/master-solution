@@ -63,6 +63,30 @@ class Settings(BaseSettings):
     smtp_password: str = "nzpb hkub mhlz djkk"
     argos_model_cache_dir: str = str(Path(".argos-models"))
 
+    # --- Auth0 ---------------------------------------------------------------
+    # The frontend logs in via Auth0 (Universal Login / "Login with Microsoft")
+    # and sends the Auth0-issued access token to the backend, which validates it
+    # against the tenant JWKS. Auth0 owns the token; the backend issues none.
+    auth0_domain: str = "dev-d2x11lcqgic0sb80.us.auth0.com"  # tenant domain (no scheme)
+    # Application (Universal Login) client used by the frontend SDK.
+    auth0_client_id: str = "mdYChGQzvXBmeDLpcCCfcuOG0yPhLe87"
+    # API identifier the frontend requests the access token for (the `audience`
+    # passed to the Auth0 SDK). Validated as the token's `aud` claim. The token's
+    # issuer is derived as f"https://{auth0_domain}/" in the validator.
+    auth0_audience: str = "https://master-solution-api"
+    # --- Admin-invite flow (Auth0 owns the password) -------------------------
+    # Machine-to-Machine app authorized for the Auth0 Management API
+    # (https://{domain}/api/v2/). Used to create the user when an admin invites
+    # them (works even if self-signups are disabled). Create this in the Auth0
+    # dashboard: Applications → APIs → Auth0 Management API → Machine to Machine.
+    auth0_mgmt_client_id: str = ""
+    auth0_mgmt_client_secret: str = ""
+    # Database connection (email/password) admin-invited users are created in.
+    auth0_connection: str = "Username-Password-Authentication"
+    # Where the user is sent after setting their password via the invite link.
+    # Should be the frontend login page (set FRONTEND_URL in the env to match).
+    frontend_url: str = "http://localhost:8080"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

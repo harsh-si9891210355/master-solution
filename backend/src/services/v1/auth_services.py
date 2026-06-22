@@ -1,3 +1,4 @@
+import secrets
 import smtplib
 from datetime import datetime, timezone
 from email.mime.text import MIMEText
@@ -11,10 +12,22 @@ from src.crud.user import create_user, get_user_by_email, get_users_by_role_code
 from src.crud.users_token import create_user_token, get_active_user_token, revoke_all_user_tokens, revoke_user_token, get_any_active_user_token
 from src.crud.access import get_role_permissions
 from src.models.user import User
-from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, TokenResponse, UserCreate, UserLogin, UserResponse
+from src.schemas.auth import ForgotPasswordResponse, LoginSignupResponse, MessageResponse, SessionResponse, TokenResponse, UserCreate, UserLogin, UserResponse
 from src.utils.translation import resolve_translation
 from src.utils.auth.auth_handler import Authentication
+from src.utils.auth.auth0_client import Auth0Client, Auth0Error
+from src.utils.auth.auth0_token import Auth0TokenValidator, Auth0TokenError
 from src.utils.hashing_service import Hasher
+
+
+# Role assigned to users auto-provisioned on their first Auth0 login.
+DEFAULT_AUTH0_ROLE_CODE = "user"
+
+
+def _role_permission_names(db: Session, role_id: int) -> list[str]:
+    """Permissions for a role formatted as "resource:scope"."""
+    role_permissions = get_role_permissions(db, role_id)
+    return [f"{rp.resource.name}:{rp.scope.name}" for rp in role_permissions]
 
 
 def _store_access_token(db: Session, user: User, token: str, request: Request) -> None:
@@ -210,32 +223,7 @@ def reset_password(db: Session, reset_token: str, new_password: str) -> MessageR
 
 
 def get_current_user_from_token(db: Session, token: str) -> User:
-    user_email = Authentication.verify_token(token)
-    if not user_email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired access token",
-        )
-
-    user = get_user_by_email(db, user_email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-
-    token_entry = get_active_user_token(
-        db,
-        userid=user.id,
-        token=token,
-        now=datetime.now(timezone.utc),
-    )
-    if not token_entry:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been revoked or is no longer active",
-        )
-    return user
+    return resolve_user_from_token(db, token)
 
 
 def logout_user(db: Session, token: str) -> None:
@@ -264,44 +252,123 @@ def build_user_response(user: User, language: str) -> UserResponse:
         role_name=role_name,
         is_active=user.is_active,
         status=user.status,
+        department=user.department,
+        city=user.city,
+        state=user.state,
+        country=user.country,
     )
 
-def set_password(
-    db: Session,
-    token: str,
-    password: str,
-):
-    email = Authentication.verify_token(token)
 
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
+def set_password(db: Session, email: str) -> MessageResponse:
+    """(Re)send the Auth0 set-password email for a managed user.
 
+    The actual password is set by the user on Auth0's hosted page via the link;
+    Auth0 — not this backend — stores it. This just triggers/resends that email.
+    """
     user = get_user_by_email(db, email)
-
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
-    update_user_password(
-        db,
-        user=user,
-        hashed_password=Hasher.get_hashed_password(password),
-    )
+    try:
+        Auth0Client().send_set_password_email(email)
+    except Auth0Error as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Could not send the set-password email: {exc}",
+        )
 
-    # Activate user after password setup
-    user.is_active = True
+    return MessageResponse(message="Password setup email sent")
 
-    db.add(user)
-    db.commit()
-    db.refresh(user)
 
-    revoke_all_user_tokens(db, userid=user.id)
+def resolve_auth0_user(db: Session, token: str) -> User:
+    """Validate an Auth0-issued access token and return the matching local user.
 
-    return MessageResponse(
-        message="Password set successfully"
+    On first login the user won't exist yet, so we create one with the default
+    role (find-or-create by email). Raises 401 if the token is invalid.
+
+    Shared by the /auth/session exchange and the route guards (JWTBearer /
+    require_permission), so every protected route accepts the Auth0 token.
+    """
+    validator = Auth0TokenValidator()
+    try:
+        profile = validator.get_profile(token)
+    except Auth0TokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Auth0 token: {exc}",
+        )
+
+    user = get_user_by_email(db, profile["email"])
+    if not user:
+        role = get_role_by_code(db, DEFAULT_AUTH0_ROLE_CODE)
+        if not role:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Default role '{DEFAULT_AUTH0_ROLE_CODE}' is not configured",
+            )
+        user = create_user(
+            db,
+            email=profile["email"],
+            first_name=profile["first_name"],
+            last_name=profile["last_name"],
+            mobile_number=None,
+            role_id=role.id,
+            # Auth0 owns the credential; no usable local password.
+            hashed_password=Hasher.get_hashed_password(secrets.token_urlsafe(32)),
+            is_active=True,
+        )
+    elif not user.is_active:
+        # First login after an admin invite: capture the real name from Auth0
+        # (the invite only stored the email) and activate the account.
+        update_user(
+            db,
+            user=user,
+            first_name=profile["first_name"],
+            last_name=profile["last_name"],
+            is_active=True,
+        )
+
+    return user
+
+
+def resolve_user_from_token(db: Session, token: str) -> User:
+    """Resolve the request's user from either auth scheme.
+
+    1. Legacy local backend JWT (issued by /auth/login) — verified with our
+       secret and checked against the active-token store.
+    2. Otherwise an Auth0 access token (the primary path).
+
+    An Auth0 token won't decode with the local secret, so step 1 simply returns
+    None for it and we fall through to Auth0 — the two schemes don't collide.
+    """
+    local_email = Authentication.verify_token(token)
+    if local_email:
+        user = get_user_by_email(db, local_email)
+        if user:
+            active_token = get_active_user_token(
+                db,
+                userid=user.id,
+                token=token,
+                now=datetime.now(timezone.utc),
+            )
+            if active_token:
+                return user
+
+    return resolve_auth0_user(db, token)
+
+
+def get_or_create_session(db: Session, token: str, language: str) -> SessionResponse:
+    """Resolve an Auth0-issued access token to a local user + permissions.
+
+    Auth0 owns the access token (issued to the frontend via Universal Login).
+    We validate it, find-or-create the matching local user, and return identity
+    + authorization only — no backend token is issued.
+    """
+    user = resolve_auth0_user(db, token)
+    return SessionResponse(
+        user=build_user_response(user, language),
+        permissions=_role_permission_names(db, user.role_id),
     )
