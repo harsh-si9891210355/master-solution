@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router'
-import { getCameraDetails, getCameraFrame, refreshCameraFrame, updateRoi, getAuthToken } from '@/pages/ROI/api/roiApi'
+import { getCameraDetails, getCameraRoi, getCameraFrame, refreshCameraFrame, updateRoi, getAuthToken } from '@/pages/ROI/api/roiApi'
+import { usecaseService } from '@/pages/usecase/api/usecaseService'
 import type {
   Annotation,
   RectAnnotation,
@@ -266,9 +267,30 @@ export const useRoiEditor = (cameraIdProp?: string | number) => {
     Promise.allSettled([
       getCameraDetails(parsedCameraId),
       loadCanvasFrame(parsedCameraId),
+      usecaseService.getUsecases(),
+      getCameraRoi(parsedCameraId),
     ])
-      .then(([detailsResult, frameResult]) => {
+      .then(([detailsResult, frameResult, usecasesResult, roiResult]) => {
         if (!isMounted) return
+
+        // The saved ROI is served by the dedicated /roi/getroi endpoint — the
+        // camera details response does not include it — so resolve it from there.
+        const fetchedRoi =
+          roiResult.status === 'fulfilled' && roiResult.value.code === 200
+            ? roiResult.value.roi ?? null
+            : null
+        if (roiResult.status === 'rejected') {
+          console.error('Failed to load saved ROI:', (roiResult as any).reason)
+        }
+
+        const usecaseNameById = new Map<number, string>()
+        if (usecasesResult.status === 'fulfilled') {
+          ;(usecasesResult.value.data.usecases ?? [])
+            .filter((u) => u.status)
+            .forEach((u) => usecaseNameById.set(u.id, u.name))
+        } else {
+          console.error('Failed to load use cases for ROI:', (usecasesResult as any).reason)
+        }
 
         if (detailsResult.status === 'fulfilled') {
           const res = detailsResult.value
@@ -276,17 +298,28 @@ export const useRoiEditor = (cameraIdProp?: string | number) => {
             const details = res.cameraDetails
             setCameraDetails(details)
 
-            const cameraUsecases = details.usecases || []
-            setLabelOptions(cameraUsecases.map((u: any) => u.usecaseName))
+            const resolvedUsecases = (details.usecases || [])
+              .map((u: any) => {
+                const usecaseId = u.usecaseId ?? u.usecase_id ?? u.id
+                const isActive = u.is_active ?? true
+                const usecaseName = u.usecaseName ?? u.name ?? usecaseNameById.get(usecaseId)
+                return { usecaseId, usecaseName, isActive }
+              })
+              .filter(
+                (u): u is { usecaseId: number; usecaseName: string; isActive: boolean } =>
+                  u.isActive && typeof u.usecaseId === 'number' && Boolean(u.usecaseName)
+              )
+
+            setLabelOptions(resolvedUsecases.map((u) => u.usecaseName))
             setUseCases(
-              cameraUsecases.map((u: any) => ({
+              resolvedUsecases.map((u) => ({
                 usecaseId: u.usecaseId,
                 usecaseName: u.usecaseName,
                 is_active: true,
               }))
             )
 
-            initialCameraRoiRef.current = details.roi ?? null
+            initialCameraRoiRef.current = fetchedRoi ?? details.roi ?? null
             initialRoiAppliedRef.current = false
           } else {
             setLabelOptions([])

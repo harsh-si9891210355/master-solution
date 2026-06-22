@@ -18,6 +18,12 @@ export interface CameraDetailsApiResponse {
   };
 }
 
+export interface RoiGetApiResponse {
+  code: number;
+  message: string;
+  roi: any | null;
+}
+
 export interface UpdateRoiRequest {
   cameraId: number;
   roi: any[];
@@ -54,9 +60,27 @@ export const getCameraDetails = async (cameraId: number): Promise<CameraDetailsA
   }
 };
 
+export const getCameraRoi = async (cameraId: number): Promise<RoiGetApiResponse> => {
+  try {
+    const response = await api.get(`/roi/getroi`, { params: { cameraId } });
+    const data = response.data;
+    return {
+      code: 200,
+      message: data?.message ?? 'OK',
+      roi: data?.roi ?? null,
+    };
+  } catch (error: any) {
+    return {
+      code: error?.response?.status ?? 500,
+      message: error?.message ?? 'Failed to fetch ROI',
+      roi: null,
+    };
+  }
+};
+
 export const getCameraFrame = async (cameraId: number): Promise<CameraFrameApiResponse> => {
   try {
-    const response = await api.get(`/camera/${cameraId}/frame`);
+    const response = await api.get(`/roi/${cameraId}/frame`);
     const data = response.data;
     return {
       code: 200,
@@ -74,7 +98,7 @@ export const getCameraFrame = async (cameraId: number): Promise<CameraFrameApiRe
 
 export const refreshCameraFrame = async (cameraId: number): Promise<CameraFrameApiResponse> => {
   try {
-    const response = await api.post(`/camera/${cameraId}/frame/refresh`);
+    const response = await api.post(`/roi/${cameraId}/frame/refresh`);
     const data = response.data;
     return {
       code: 200,
@@ -92,7 +116,7 @@ export const refreshCameraFrame = async (cameraId: number): Promise<CameraFrameA
 
 export const updateRoi = async (payload: UpdateRoiRequest): Promise<UpdateRoiResponse> => {
   try {
-    const response = await api.post(`/camera/${payload.cameraId}/roi`, { roi: payload.roi });
+    const response = await api.put(`/roi/updateroi`, payload);
     return {
       code: 200,
       message: response.data?.message ?? 'ROI saved successfully',
