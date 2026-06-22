@@ -118,14 +118,45 @@ CREATE TABLE IF NOT EXISTS camera_usecase (
 
 CREATE TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
+    unique_event_id VARCHAR(6),
     camera_id INTEGER NOT NULL REFERENCES cameras(id),
-    location_id INTEGER NOT NULL REFERENCES locations(id),
-    usecase_id INTEGER NOT NULL REFERENCES usecases(id),
+    location_id INTEGER REFERENCES locations(id),
+    usecase_id INTEGER REFERENCES usecases(id),
+    metadata TEXT,
     evidence_url VARCHAR(255),
-    created_date_time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    event_start_time TIMESTAMPTZ NOT NULL,
-    event_end_time TIMESTAMPTZ NOT NULL
+    evidence_storage_path VARCHAR(400),
+    number_of_frames INTEGER,
+    frames_range VARCHAR(400),
+    event_timestamp BIGINT,
+    created_date_time TIMESTAMPTZ DEFAULT NOW(),
+    event_start_time TIMESTAMPTZ,
+    event_end_time TIMESTAMPTZ,
+    is_email_sent SMALLINT NOT NULL DEFAULT 0,
+    is_notification_sent SMALLINT NOT NULL DEFAULT 0,
+    is_event_read SMALLINT NOT NULL DEFAULT 0,
+    event_stream_quality SMALLINT NOT NULL DEFAULT 1,
+    notification_status SMALLINT
 );
+
+-- Migration for existing databases: add the new event columns and relax the
+-- over-strict NOT NULLs (idempotent / safe to re-run).
+ALTER TABLE events
+    ADD COLUMN IF NOT EXISTS unique_event_id VARCHAR(6),
+    ADD COLUMN IF NOT EXISTS metadata TEXT,
+    ADD COLUMN IF NOT EXISTS evidence_storage_path VARCHAR(400),
+    ADD COLUMN IF NOT EXISTS number_of_frames INTEGER,
+    ADD COLUMN IF NOT EXISTS frames_range VARCHAR(400),
+    ADD COLUMN IF NOT EXISTS event_timestamp BIGINT,
+    ADD COLUMN IF NOT EXISTS is_email_sent SMALLINT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS is_notification_sent SMALLINT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS is_event_read SMALLINT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS event_stream_quality SMALLINT NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS notification_status SMALLINT;
+ALTER TABLE events ALTER COLUMN location_id DROP NOT NULL;
+ALTER TABLE events ALTER COLUMN usecase_id DROP NOT NULL;
+ALTER TABLE events ALTER COLUMN event_start_time DROP NOT NULL;
+ALTER TABLE events ALTER COLUMN event_end_time DROP NOT NULL;
+ALTER TABLE events ALTER COLUMN created_date_time DROP NOT NULL;
 
 CREATE TABLE IF NOT EXISTS resources (
     id BIGSERIAL PRIMARY KEY,
