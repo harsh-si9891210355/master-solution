@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from src.db.db_connection import get_db
@@ -28,8 +30,27 @@ def create_event(
 def get_events(
     request: Request,
     db: Session = Depends(get_db),
+    camera_id: int | None = Query(default=None),
+    location_id: int | None = Query(default=None),
+    usecase_id: int | None = Query(default=None),
+    from_date: datetime | None = Query(default=None, description="Filter created_date_time >= from_date (ISO 8601)"),
+    to_date: datetime | None = Query(default=None, description="Filter created_date_time <= to_date (ISO 8601)"),
+    event_is_read_filter: bool | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=200),
 ) -> EventsResponse:
-    return EventsResponse(events=get_all_event_details(db, request.state.lang))
+    return get_all_event_details(
+        db,
+        request.state.lang,
+        camera_id=camera_id,
+        location_id=location_id,
+        usecase_id=usecase_id,
+        from_date=from_date,
+        to_date=to_date,
+        event_is_read_filter=event_is_read_filter,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/{event_id}", response_model=EventResponse, dependencies=[Depends(require_permission("event:read"))])
