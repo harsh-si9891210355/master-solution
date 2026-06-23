@@ -16,6 +16,8 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import { EditProfile } from "@/pages/profile/EditProfile";
 import MasterLayout from "@/components/layout/MasterLayout";
 import { ROIEditor } from "@/pages/ROI/ROIEditor";
+import { EventsList } from "@/pages/events/EventsList";
+import { EventDetail } from "@/pages/events/EventDetail";
 
 export const router = createBrowserRouter([
   // ── Public routes ────────────────────────────────────────────────────────
@@ -35,7 +37,8 @@ export const router = createBrowserRouter([
         children: [
           { path: "/dashboard", element: <Dashboard /> },
           { path: "/profile", element: <EditProfile /> },
-          { path: "/events", element: <div>Events List</div> },
+          { path: "/events", element: <EventsList /> },
+          { path: "/events/:id", element: <EventDetail /> },
           { path: "/cameras", element: <CameraList /> },
           { path: "/cameras/add", element: <AddCameraForm /> },
           { path: "/cameras/edit/:id", element: <AddCameraForm /> },

@@ -1,0 +1,39 @@
+{
+    "events": {
+        "title": "Events",
+        "empty_message": "No events found.",
+        "error_message": "Failed to load events.",
+        "columns": {
+            "id":        "ID",
+            "camera":    "Camera",
+            "location":  "Location",
+            "usecase":   "Use Case",
+            "start":     "Start Time",
+            "end":       "End Time",
+            "created":   "Detected At",
+            "actions":   "Actions"
+        },
+        "actions": {
+            "view": "View"
+        },
+        "detail": {
+            "title":            "Event Details",
+            "subtitle":         "Full detail and video evidence for this event.",
+            "back":             "Back",
+            "loading":          "Loading event...",
+            "error":            "Failed to load event.",
+            "evidence":         "Video Evidence",
+            "no_evidence":      "No video evidence available for this event.",
+            "information":      "Event Information",
+            "event_id":         "Event ID",
+            "camera":           "Camera",
+            "location":         "Location",
+            "usecase":          "Use Case",
+            "description":      "Description",
+            "start_time":       "Start Time",
+            "end_time":         "End Time",
+            "created":          "Detected At",
+            "duration":         "Duration"
+        }
+    }
+}

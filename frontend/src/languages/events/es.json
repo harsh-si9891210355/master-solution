@@ -1,0 +1,39 @@
+{
+    "events": {
+        "title": "Eventos",
+        "empty_message": "No se encontraron eventos.",
+        "error_message": "Error al cargar los eventos.",
+        "columns": {
+            "id":        "ID",
+            "camera":    "Cámara",
+            "location":  "Ubicación",
+            "usecase":   "Caso de Uso",
+            "start":     "Hora de Inicio",
+            "end":       "Hora de Fin",
+            "created":   "Detectado el",
+            "actions":   "Acciones"
+        },
+        "actions": {
+            "view": "Ver"
+        },
+        "detail": {
+            "title":            "Detalles del Evento",
+            "subtitle":         "Detalle completo y evidencia en video de este evento.",
+            "back":             "Volver",
+            "loading":          "Cargando evento...",
+            "error":            "Error al cargar el evento.",
+            "evidence":         "Evidencia en Video",
+            "no_evidence":      "No hay evidencia en video disponible para este evento.",
+            "information":      "Información del Evento",
+            "event_id":         "ID del Evento",
+            "camera":           "Cámara",
+            "location":         "Ubicación",
+            "usecase":          "Caso de Uso",
+            "description":      "Descripción",
+            "start_time":       "Hora de Inicio",
+            "end_time":         "Hora de Fin",
+            "created":          "Detectado el",
+            "duration":         "Duración"
+        }
+    }
+}
