@@ -5,6 +5,7 @@ type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface FormButtonProps {
+    title?: string;
     label: string;
     variant?: ButtonVariant;
     size?: ButtonSize;
@@ -35,6 +36,7 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 };
 
 export const FormButton = ({
+    title,
     label,
     variant = 'primary',
     size = 'md',
@@ -53,6 +55,7 @@ export const FormButton = ({
 
     return (
         <Button
+            title={title}
             type={type}
             label={label}
             icon={icon}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router';
 import { cameraService } from './api/cameraService';
@@ -24,14 +24,11 @@ export const CameraList = () => {
     const [liveViewCamera, setLiveViewCamera] = useState<Camera | null>(null);
     const [isLiveViewVisible, setIsLiveViewVisible] = useState(false);
 
-    // ── Filter state ──────────────────────────────────────────────────────────
     const [filterName, setFilterName] = useState('');
     const [filterLocation, setFilterLocation] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
-
     const [canGoBack, setCanGoBack] = useState(false);
 
-    // Pre-apply filter when navigated from dashboard with state
     useEffect(() => {
         const navState = location.state as { statusFilter?: 'active' | 'inactive'; from?: string } | null;
         if (navState?.statusFilter) {
@@ -41,7 +38,6 @@ export const CameraList = () => {
         setCanGoBack(window.history.length > 2 || Boolean(navState?.from));
     }, [location.state]);
 
-    // ── Data ─────────────────────────────────────────────────────────────────
     const { data, isLoading, isError } = useQuery({
         queryKey: ['cameras'],
         queryFn: () => cameraService.getCameras().then(res => res.data.cameras),
@@ -69,7 +65,7 @@ export const CameraList = () => {
             await queryClient.cancelQueries({ queryKey: ['cameras'] });
             const previous = queryClient.getQueryData(['cameras']);
             queryClient.setQueryData(['cameras'], (old: Camera[] | undefined) =>
-                old?.map(c => c.id === id ? { ...c, status } : c)
+                old?.map(c => c.identity.id === id ? { ...c, status: { ...c.status, active: status } } : c)
             );
             return { previous };
         },
@@ -98,29 +94,32 @@ export const CameraList = () => {
 
     // ── Localised name helper ─────────────────────────────────────────────────
     const getLocalizedName = (row: Camera): string => {
-        if (currentLang === 'es') return row.name_es || row.name_en;
-        return row.name_en;
+        if (currentLang === 'es') return row.identity.es || row.identity.en || '';
+        return row.identity.en || '';
     };
 
     // ── Filtered data ─────────────────────────────────────────────────────────
-    const filteredData = (data ?? []).filter(cam => {
-        const name = getLocalizedName(cam).toLowerCase();
-        const loc = (cam.location_name ?? '').toLowerCase();
+    const filteredData = useMemo(() => {
+        if (!data) return [];
+        return data.filter(cam => {
+            const name = getLocalizedName(cam).toLowerCase();
+            const loc = (cam.location.locationName ?? '').toLowerCase();
 
-        const matchName = filterName.trim() === '' || name.includes(filterName.toLowerCase());
-        const matchLocation = filterLocation === '' || loc === filterLocation.toLowerCase();
-        const matchStatus =
-            filterStatus === 'all' ||
-            (filterStatus === 'active' && cam.status) ||
-            (filterStatus === 'inactive' && !cam.status);
+            const matchName = filterName.trim() === '' || name.includes(filterName.toLowerCase());
+            const matchLocation = filterLocation === '' || loc === filterLocation.toLowerCase();
+            const matchStatus =
+                filterStatus === 'all' ||
+                (filterStatus === 'active' && cam.status.active) ||
+                (filterStatus === 'inactive' && !cam.status.active);
 
-        return matchName && matchLocation && matchStatus;
-    });
+            return matchName && matchLocation && matchStatus;
+        });
+    }, [data, filterName, filterLocation, filterStatus, currentLang]);
 
-    // Unique locations for the dropdown
-    const locationOptions = Array.from(
-        new Set((data ?? []).map(c => c.location_name).filter(Boolean))
-    ).sort();
+    const locationOptions = useMemo(() =>
+        Array.from(new Set((data ?? []).map(c => c.location.locationName).filter(Boolean))).sort(),
+        [data]
+    );
 
     // ── Delete handler ────────────────────────────────────────────────────────
     const handleDelete = (row: Camera) => {
@@ -131,7 +130,7 @@ export const CameraList = () => {
                 defaultValue: `Are you sure you want to delete camera "${name}"?`,
             }),
             header: t('delete_dialog.header'),
-            onConfirm: () => deleteCamera(row.id),
+            onConfirm: () => deleteCamera(row.identity.id),
         });
     };
 
@@ -155,7 +154,7 @@ export const CameraList = () => {
                 </div>
                 <div>
                     <div className="font-medium text-gray-800">{name}</div>
-                    <div className="text-xs text-gray-400 font-mono">{row.rtsp_url}</div>
+                    <div className="text-xs text-gray-400 font-mono">{row.connectivity.rtspUrl}</div>
                 </div>
             </div>
         );
@@ -163,49 +162,45 @@ export const CameraList = () => {
 
     const statusTemplate = (row: Camera) => (
         <StatusToggle
-            active={row.status}
-            onToggle={() => handleToggle(row.id, !row.status)}
-            labelActive={t('status.active')}
-            labelInactive={t('status.inactive')}
+            active={row.status.active}
+            onToggle={() => handleToggle(row.identity.id, !row.status.active)}
         />
     );
 
     const actionsTemplate = (row: Camera) => (
         <div className="flex items-center gap-2">
-
             <FormButton
                 label=""
                 variant="ghost"
                 size="sm"
-                iconLeft="pi pi-th-large"  
+                iconLeft="pi pi-th-large"
                 ariaLabel="ROI Editor"
                 title="Open ROI Editor"
-                onClick={() => navigate(`/roi-editor?cameraId=${row.id}`)}
+                onClick={() => navigate(`/roi-editor?cameraId=${row.identity.id}`)}
             />
             <FormButton
                 label=""
                 variant="ghost"
                 size="sm"
                 iconLeft="pi pi-eye"
-                ariaLabel={t('actions.view')}
+                title={t('actions.view')}
                 onClick={() => handleOpenLiveView(row)}
-                disabled={!row.rtsp_url}
-                title={row.rtsp_url ? undefined : 'No RTSP URL configured'}
+                disabled={!row.connectivity.rtspUrl}
             />
             <FormButton
                 label=""
                 variant="ghost"
                 size="sm"
                 iconLeft="pi pi-pencil"
-                ariaLabel={t('actions.edit')}
-                onClick={() => navigate(`/cameras/edit/${row.id}`)}
+                title={t('actions.edit')}
+                onClick={() => navigate(`/cameras/edit/${row.identity.id}`)}
             />
             <FormButton
                 label=""
                 variant="secondary"
                 size="sm"
                 iconLeft="pi pi-sitemap"
-                ariaLabel={t('actions.usecases')}
+                title={t('actions.usecases')}
                 onClick={() => handleOpenUsecaseModal(row)}
             />
             <FormButton
@@ -213,7 +208,7 @@ export const CameraList = () => {
                 variant="danger"
                 size="sm"
                 iconLeft="pi pi-trash"
-                ariaLabel={t('actions.delete')}
+                title={t('actions.delete')}
                 onClick={() => handleDelete(row)}
             />
         </div>
@@ -221,25 +216,63 @@ export const CameraList = () => {
 
     // ── Column definitions ────────────────────────────────────────────────────
     const columns: TableColumn<Camera>[] = [
-        { header: t('columns.name'), body: nameTemplate, sortable: true, sortField: 'name_en' },
-        { header: t('columns.location'), field: 'location_name', sortable: true, sortField: 'location_name' },
-        { header: t('columns.codec'), field: 'codec' },
-        { header: t('columns.resolution'), field: 'resolution' },
-        { header: t('columns.fps'), field: 'fps' },
-        { header: t('columns.status'), body: statusTemplate, sortable: true, sortField: 'status' },
+        { header: t('columns.name'), body: nameTemplate, sortable: true, sortField: 'identity.en' },
+        { header: t('columns.location'), body: (row) => row.location.locationName, sortable: true, sortField: 'location.locationName' },
+        {
+            header: t('columns.protocol', { defaultValue: 'Protocol' }),
+            body: (row) => row.connectivity.protocol
+                ? <span className="text-xs font-mono bg-gray-100 px-1.5 py-0.5 rounded">{row.connectivity.protocol}</span>
+                : <span className="text-gray-400 text-xs">—</span>,
+        },
+        { header: t('columns.codec'), body: (row) => row.video.codec },
+        { header: t('columns.resolution'), body: (row) => row.video.nativeResolution },
+        { header: t('columns.fps'), body: (row) => `${row.video.nativeFps} fps` },
+        {
+            header: t('columns.capabilities', { defaultValue: 'Capabilities' }),
+            body: (row) => (
+                <div className="flex items-center gap-1.5">
+                    {row.capabilities.isPTZ && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">PTZ</span>
+                    )}
+                    {row.capabilities.supportsEdgeAI && (
+                        <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">AI</span>
+                    )}
+                    {row.capabilities.supportsAudio && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">
+                            <i className="pi pi-volume-up text-xs" />
+                        </span>
+                    )}
+                    {!row.capabilities.isPTZ && !row.capabilities.supportsEdgeAI && !row.capabilities.supportsAudio && (
+                        <span className="text-gray-400 text-xs">—</span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            header: t('columns.ai', { defaultValue: 'AI' }),
+            body: (row) => row.ai.enabled
+                ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">Enabled</span>
+                : <span className="text-xs text-gray-400">Off</span>,
+        },
+        {
+            header: t('columns.recording', { defaultValue: 'Recording' }),
+            body: (row) => row.recording.enabled
+                ? <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1 w-fit">
+                    <i className="pi pi-circle-fill text-xs" /> REC
+                </span>
+                : <span className="text-xs text-gray-400">Off</span>,
+        },
+        { header: t('columns.status'), body: statusTemplate, sortable: true, sortField: 'status.active' },
         { header: t('columns.actions'), body: actionsTemplate, style: { width: '8rem' } },
     ];
 
     // ── Table header slot ─────────────────────────────────────────────────────
     const tableHeader = (
         <div className="flex flex-col gap-3">
-            {/* Top row: title on the left · back + add on the right */}
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-800">{t('title')}</h2>
-
                 <div className="flex items-center gap-2">
-                    {/* Back button — only shown when in-app history exists */}
-                    {canGoBack && (
+                    {/* {canGoBack && (
                         <FormButton
                             label={t('actions.back', { defaultValue: 'Back' })}
                             variant="ghost"
@@ -248,7 +281,7 @@ export const CameraList = () => {
                             ariaLabel={t('actions.back', { defaultValue: 'Go back' })}
                             onClick={() => navigate(-1)}
                         />
-                    )}
+                    )} */}
                     <FormButton
                         label={t('add_camera')}
                         variant="primary"
@@ -258,9 +291,7 @@ export const CameraList = () => {
                 </div>
             </div>
 
-            {/* Filter row */}
             <div className="flex items-center gap-3 flex-wrap">
-                {/* Name search */}
                 <div className="relative">
                     <i className="pi pi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
                     <input
@@ -268,42 +299,31 @@ export const CameraList = () => {
                         value={filterName}
                         onChange={e => setFilterName(e.target.value)}
                         placeholder={t('filters.name_placeholder', { defaultValue: 'Search by name…' })}
-                        className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md
-                                   focus:outline-none focus:ring-2 focus:ring-gray-300
-                                   bg-white text-gray-700 w-44"
+                        className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white text-gray-700 w-44"
                     />
                 </div>
 
-                {/* Location dropdown */}
                 <select
                     value={filterLocation}
                     onChange={e => setFilterLocation(e.target.value)}
-                    className="px-3 py-1.5 text-sm border border-gray-200 rounded-md
-                               focus:outline-none focus:ring-2 focus:ring-gray-300
-                               bg-white text-gray-700 w-44"
+                    className="px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white text-gray-700 w-44"
                 >
-                    <option value="">
-                        {t('filters.all_locations', { defaultValue: 'All Locations' })}
-                    </option>
+                    <option value="">{t('filters.all_locations', { defaultValue: 'All Locations' })}</option>
                     {locationOptions.map(loc => (
                         <option key={loc} value={loc}>{loc}</option>
                     ))}
                 </select>
 
-                {/* Status dropdown */}
                 <select
                     value={filterStatus}
                     onChange={e => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="px-3 py-1.5 text-sm border border-gray-200 rounded-md
-                               focus:outline-none focus:ring-2 focus:ring-gray-300
-                               bg-white text-gray-700 w-44"
+                    className="px-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white text-gray-700 w-44"
                 >
                     <option value="all">{t('filters.status_all', { defaultValue: 'All Statuses' })}</option>
                     <option value="active">{t('filters.status_active', { defaultValue: 'Active' })}</option>
                     <option value="inactive">{t('filters.status_inactive', { defaultValue: 'Inactive' })}</option>
                 </select>
 
-                {/* Clear filters */}
                 {(filterName || filterLocation || filterStatus !== 'all') && (
                     <button
                         onClick={() => { setFilterName(''); setFilterLocation(''); setFilterStatus('all'); }}
@@ -329,18 +349,12 @@ export const CameraList = () => {
             <SelectUsecaseModal
                 camera={selectedCamera}
                 visible={isUsecaseModalVisible}
-                onHide={() => {
-                    setIsUsecaseModalVisible(false);
-                    setSelectedCamera(null);
-                }}
+                onHide={() => { setIsUsecaseModalVisible(false); setSelectedCamera(null); }}
             />
             <LiveViewModal
                 camera={liveViewCamera}
                 visible={isLiveViewVisible}
-                onHide={() => {
-                    setIsLiveViewVisible(false);
-                    setLiveViewCamera(null);
-                }}
+                onHide={() => { setIsLiveViewVisible(false); setLiveViewCamera(null); }}
             />
             <div className="p-4">
                 <PrimeTable<Camera>

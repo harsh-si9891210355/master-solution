@@ -12,12 +12,12 @@ export interface StreamConfig {
 }
 
 export interface StreamInfo {
-    camera_id:             number;
-    stream_path:           string;
-    live_webrtc_url:       string;
+    camera_id: number;
+    stream_path: string;
+    live_webrtc_url: string;
     playback_get_base_url: string;
-    mediamtx_ready:        boolean;
-    stream_config:         StreamConfig;
+    mediamtx_ready: boolean;
+    stream_config: StreamConfig;
 }
 
 export interface RecordingSpan {
@@ -32,21 +32,21 @@ export interface RecordingSpan {
 }
 
 export interface RecordingSpansResponse {
-    camera_id:             number;
-    stream_path:           string;
+    camera_id: number;
+    stream_path: string;
     playback_get_base_url: string;
-    spans:                 RecordingSpan[];
-    stream_config:         StreamConfig;
+    spans: RecordingSpan[];
+    stream_config: StreamConfig;
 }
 
 export const cameraService = {
-    getCameras:      ()                                => api.get<{ cameras: Camera[] }>('/camera'),
-    getCameraById:   (id: number)                      => api.get<Camera>(`/camera/${id}`),
-    createCamera:    (data: CameraFormValues)          => api.post<Camera>('/camera', data),
-    updateCamera:    (id: number, data: CameraFormValues) => api.post<Camera>(`/camera/${id}`, data),
-    deleteCamera:    (id: number)                      => api.delete<{ message: string }>(`/camera/${id}`),
-    updateStatus:    (id: number, status: boolean)     => api.patch<{ message: string }>(`/camera/${id}/status`, { status }),
+    getCameras: () => api.get<{ cameras: Camera[] }>('/camera'),
+    getCameraById: (id: number) => api.get<Camera>(`/camera/${id}`),
+    createCamera: (data: Partial<Camera>) => api.post('/camera', data),
+    updateCamera: (id: number, data: Partial<Camera>) => api.post(`/camera/${id}`, data),
+    deleteCamera: (id: number) => api.delete<{ message: string }>(`/camera/${id}`),
+    updateStatus: (id: number, status: boolean) => api.patch<{ message: string }>(`/camera/${id}/status`, { status }),
     updateCameraUseCase: (id: number, data: UpdateCameraUseCaseRequest) => api.post<Camera>(`/camera/${id}/update_camera_usecase`, data),
-    getStreamInfo:   (id: number)                      => api.get<StreamInfo>(`/stream/${id}`),
-    getRecordingSpans: (id: number)                    => api.get<RecordingSpansResponse>(`/stream/${id}/recordings`),
+    getStreamInfo: (id: number) => api.get<StreamInfo>(`/stream/${id}`),
+    getRecordingSpans: (id: number) => api.get<RecordingSpansResponse>(`/stream/${id}/recordings`),
 };

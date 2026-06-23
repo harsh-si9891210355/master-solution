@@ -4,8 +4,8 @@ interface StatusToggleProps {
     active: boolean;
     /** Called with the new value; may be async (optimistic update upstream). */
     onToggle: () => void | Promise<void>;
-    labelActive: string;
-    labelInactive: string;
+    labelActive?: string;
+    labelInactive?: string;
     /** Externally disable the toggle (e.g. can't deactivate your own account). */
     disabled?: boolean;
     /** Tooltip shown when disabled externally. */

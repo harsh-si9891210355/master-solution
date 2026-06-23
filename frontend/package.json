@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.18.0",
+    "@auth0/auth0-react": "^2.19.0",
     "@fontsource/material-icons": "^5.2.7",
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^9.0.1",

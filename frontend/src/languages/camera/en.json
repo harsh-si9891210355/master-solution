@@ -18,7 +18,8 @@
     "actions": {
       "edit": "Edit",
       "delete": "Delete",
-      "usecases": "Usecases"
+      "usecases": "Usecases",
+      "view": "View Camera"
     },
     "delete_dialog": {
       "message": "Are you sure you want to delete camera \"{{name}}\"?",

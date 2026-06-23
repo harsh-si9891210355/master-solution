@@ -2,44 +2,120 @@ import type { StreamConfig } from '../api/cameraService';
 
 export interface CameraUsecase {
     usecase_id: number;
-    is_active:  boolean;
+    is_active: boolean;
 }
 
 export interface Camera {
-    id:                 number;
-    name_en:            string;
-    name_es:            string | null;
-    name_fr:            string | null;
-    name:               string;       
-    location_id:        number;
-    location_name:      string;
-    codec:              string;
-    resolution:         string;
-    height:             number;
-    fps:                string;
-    rtsp_url:           string | null;
-    substream_rtsp_url: string | null;
-    status:             boolean;
-    status_modified_by: number;
-    usecases:           CameraUsecase[];
-    last_modified_at:   string | null;
-    created_at:         string;
+    identity: {
+        id: number;
+        code: string | null;
+        displayName: string;
+        en: string;
+        es: string;
+        fr: string;
+        tags: string[] | null;
+    };
+    location: {
+        siteId: number | null;
+        locationId: number;
+        zoneId: number | null;
+        zoneType: string | null;
+        locationName: string;
+    };
+    connectivity: {
+        protocol: string | null;
+        ipAddress: string | null;
+        port: number | null;
+        credentials: string | null;
+        isOnline: boolean | null;
+        lastHeartbeatAt: string | null;
+        rtspUrl: string;
+        substreamRtspUrl: string | null;
+    };
+    video: {
+        codec: string;
+        nativeResolution: string;
+        nativeFps: number;
+        height: number;
+        streams: unknown | null;
+    };
+    ai: {
+        enabled: boolean | null;
+        processingMode: string | null;
+        useCases: unknown | null;
+        regionsOfInterest: unknown | null;
+        schedules: unknown | null;
+    };
+    recording: {
+        enabled: boolean | null;
+        retentionDays: number | null;
+        storageTier: string | null;
+    };
+    alerts: {
+        enabled: boolean | null;
+        rules: unknown | null;
+    };
+    capabilities: {
+        isPTZ: boolean | null;
+        supportsEdgeAI: boolean | null;
+        supportsAudio: boolean | null;
+    };
+    status: {
+        active: boolean;
+        createdAt: string;
+        createdBy: number;
+        updatedAt: string;
+        updatedBy: number | null;
+    };
+}
+
+export interface CamerasResponse {
+    cameras: Camera[];
 }
 
 export interface CameraFormValues {
-    name_en:            string;
-    name_es:            string | null;
-    name_fr:            string | null;
-    location_id:        number | null;
-    codec:              string;
-    resolution:         string;
-    height:             number;
-    fps:                string;
-    rtsp_url:           string | null;
+    // Identity
+    name_en: string;
+    name_es: string | null;
+    name_fr: string | null;
+
+    // Location
+    location_id: number | null;
+
+    // Connectivity
+    rtsp_url: string | null;
     substream_rtsp_url: string | null;
-    status:             boolean;
-    status_modified_by: number;
-    usecases:           CameraUsecase[];
+    protocol: string | null;
+    ip_address: string | null;
+    port: number | null;
+
+    // Video
+    codec: string;
+    resolution: string;
+    fps: string;
+    height: number;
+
+    // AI
+    ai_enabled: boolean;
+    processing_mode: string | null;
+
+    // Recording
+    recording_enabled: boolean;
+    retention_days: number | null;
+    storage_tier: string | null;
+
+    // Capabilities
+    is_ptz: boolean;
+    supports_edge_ai: boolean;
+    supports_audio: boolean;
+
+    // Alerts
+    alerts_enabled: boolean;
+
+    // Meta
+    status: boolean;
+    status_modified_by?: number;
+    usecases: CameraUsecase[];
 }
 
 export interface UpdateCameraUseCaseRequest {
