@@ -19,7 +19,7 @@ import logging
 from sqlalchemy import create_engine, text
 
 from src.config import settings
-from src.models import CameraStreamConfig, FrameOverrides, UsecaseBinding
+from src.models import ROI, CameraStreamConfig, FrameOverrides, UsecaseBinding
 from src.sources.base import CameraProvider, parse_roi
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ _QUERY = text(
         c.codec             AS codec,
         c.resolution        AS resolution,
         c.fps               AS fps,
+        c.roi               AS roi,
         ct.name             AS camera_name,
         l_t.name            AS location_name,
         u.id                AS usecase_id,
@@ -92,6 +93,7 @@ class DatabaseProvider(CameraProvider):
             return []
 
         cameras: dict[int, CameraStreamConfig] = {}
+        camera_roi_raw: dict[int, object] = {}
         for row in rows:
             cid = int(row["camera_id"])
             cfg = cameras.get(cid)
@@ -107,11 +109,17 @@ class DatabaseProvider(CameraProvider):
                     overrides=FrameOverrides(),
                 )
                 cameras[cid] = cfg
+                # Raw per-camera ROI (cameras.roi JSONB, set via the ROI editor).
+                # Each shape carries the use-cases it applies to.
+                camera_roi_raw[cid] = row.get("roi")
 
             uid = int(row["usecase_id"])
             name = str(row["usecase_name"] or f"usecase-{uid}")
             slug = _slugify(name, uid)
-            roi = parse_roi(self._roi_overlay.get(f"{cid}:{uid}"))
+            # Per-use-case ROI: only the shapes assigned to this use-case. An
+            # optional per-(camera,use-case) overlay entry overrides the DB ROI.
+            overlay = self._roi_overlay.get(f"{cid}:{uid}")
+            roi = parse_roi(overlay) if overlay else ROI.from_backend(camera_roi_raw[cid], uid)
             cfg.usecases.append(
                 UsecaseBinding(usecase_id=uid, name=name, slug=slug, roi=roi)
             )

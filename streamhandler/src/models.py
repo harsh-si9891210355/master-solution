@@ -15,21 +15,21 @@ import numpy as np
 
 
 class ROIType(str, Enum):
-    FULL = "full"        # whole frame
-    RECT = "rect"        # [x, y, w, h]
-    POLYGON = "polygon"  # list of [x, y] vertices
+    RECT = "rect"        # points = [[x, y, w, h]]
+    POLYGON = "polygon"  # points = list of [x, y] vertices
 
 
 @dataclass(frozen=True)
 class ROI:
-    """Region of interest for a (camera, use-case) pairing.
+    """Region of interest for a (camera, use-case) pairing — a single rect or
+    polygon zone. "No ROI" is represented by the binding's roi being None
+    (the whole frame is then analysed).
 
     Coordinates are normalised to [0, 1] by default so they survive the
     resolution change between the source stream and the downsized output frame.
-    AI services scale these against the frame dimensions in the envelope.
     """
 
-    type: ROIType = ROIType.FULL
+    type: ROIType
     points: list[list[float]] = field(default_factory=list)
     normalized: bool = True
 
@@ -37,8 +37,47 @@ class ROI:
         return {"type": self.type.value, "points": self.points, "normalized": self.normalized}
 
     @classmethod
-    def full(cls) -> "ROI":
-        return cls(type=ROIType.FULL, points=[], normalized=True)
+    def from_backend(cls, raw: Any, usecase_id: int) -> "ROI | None":
+        """Convert the app's per-camera `cameras.roi` JSONB into an ROI for one
+        use-case, or None if no shape is assigned to it.
+
+        That column stores a list of shapes, each assigned to zero or more
+        use-cases via a ``usecases: [{usecaseId, usecaseName}, …]`` array:
+          * rect    -> {type:rect, x, y, w, h, usecases:[…]}
+          * polygon -> {type:polygon, points:[[x,y]…], usecases:[…]}
+
+        Returns the first shape assigned to this use-case (a shape with an empty
+        ``usecases`` list applies to none).
+        """
+        if not raw:
+            return None
+        items = raw if isinstance(raw, list) else [raw]
+        for shape in items:
+            if not isinstance(shape, dict) or not cls._shape_applies(shape, usecase_id):
+                continue
+            stype = str(shape.get("type", "")).lower()
+            try:
+                if stype == "rect" and all(k in shape for k in ("x", "y", "w", "h")):
+                    return cls(
+                        type=ROIType.RECT,
+                        points=[[float(shape["x"]), float(shape["y"]),
+                                 float(shape["w"]), float(shape["h"])]],
+                    )
+                if stype == "polygon" and shape.get("points"):
+                    pts = [[float(p[0]), float(p[1])] for p in shape["points"]]
+                    if len(pts) >= 3:
+                        return cls(type=ROIType.POLYGON, points=pts)
+            except (TypeError, ValueError, IndexError):
+                continue
+        return None
+
+    @staticmethod
+    def _shape_applies(shape: dict, usecase_id: int) -> bool:
+        """True if this ROI shape is assigned to the given use-case."""
+        for u in shape.get("usecases", []) or []:
+            if isinstance(u, dict) and u.get("usecaseId") == usecase_id:
+                return True
+        return False
 
 
 @dataclass(frozen=True)
@@ -48,7 +87,7 @@ class UsecaseBinding:
     usecase_id: int
     name: str
     slug: str
-    roi: ROI = field(default_factory=ROI.full)
+    roi: ROI | None = None
 
     def metadata(self) -> dict[str, Any]:
         return {"id": self.usecase_id, "name": self.name, "slug": self.slug}
@@ -98,7 +137,9 @@ class CameraStreamConfig:
             self.overrides.frame_height,
             self.overrides.jpeg_quality,
             tuple(
-                (u.usecase_id, u.slug, u.roi.type.value, tuple(map(tuple, u.roi.points)))
+                (u.usecase_id, u.slug,
+                 u.roi.type.value if u.roi else None,
+                 tuple(map(tuple, u.roi.points)) if u.roi else ())
                 for u in self.usecases
             ),
         )

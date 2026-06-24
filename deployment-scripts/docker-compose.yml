@@ -146,14 +146,30 @@ services:
     ports:
       - "5672:5672"     # AMQP — producers/consumers
       - "15672:15672"   # Management UI: http://localhost:15672 (guest/guest)
+      - "15692:15692"   # Prometheus metrics (rabbitmq_prometheus plugin)
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+      # Enable the prometheus plugin + per-queue metrics for Grafana.
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
+
+  # Redis metrics exporter for Grafana (scraped by Prometheus job "redis").
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
 
   streamhandler:
     build:

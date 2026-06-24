@@ -78,6 +78,24 @@ class EventBatch:
             raw_message=msg,
         )
 
+    # -- overlay context (from the camera/usecase/roi metadata in the message) --
+    @property
+    def camera_name(self) -> str | None:
+        return (self.raw_message.get("camera") or {}).get("name")
+
+    @property
+    def location_name(self) -> str | None:
+        cam = self.raw_message.get("camera") or {}
+        return cam.get("location") or cam.get("location_name")
+
+    @property
+    def usecase_name(self) -> str | None:
+        return (self.raw_message.get("usecase") or {}).get("name") or self.usecase_slug
+
+    @property
+    def roi_spec(self) -> dict:
+        return self.raw_message.get("roi") or {}
+
     def frame_times(self) -> list[datetime]:
         out = []
         for f in self.frames:

@@ -1,14 +1,14 @@
-"""ROI (no-walking zone) geometry.
+"""ROI (no-walking zone) geometry — drawing only.
 
-Turns the ROI metadata carried in the frame envelope into a pixel-space polygon
-for the given frame size, and tests whether a person's reference point lies
-inside it. The envelope carries a single shape (or null for "no ROI"):
+The Event Manager doesn't run the in-zone test (the AI service already did and
+sent `in_roi` flags); it just renders the zone onto the evidence video. It
+builds a pixel-space polygon from the ROI metadata and draws it as a translucent
+filled overlay with an outline + label. The envelope carries a single shape (or
+null for "no ROI"):
 
   * {"type": "rect",    "points": [[x, y, w, h]]}
   * {"type": "polygon", "points": [[x, y], …]}
-  * null / missing  -> no ROI; the whole frame is analysed
-
-Coordinates are normalised ([0, 1]) by default, or absolute pixels.
+  * null / missing  -> no ROI; nothing is drawn
 """
 
 from __future__ import annotations
@@ -18,17 +18,12 @@ import logging
 import cv2
 import numpy as np
 
-from src.config import settings
-from src.models import Detection
-
 logger = logging.getLogger(__name__)
 
 
 class RoiZone:
-    """A single rect/polygon zone at a frame size (None polygon = whole frame)."""
-
     def __init__(self, polygon: np.ndarray | None) -> None:
-        self._polygon = polygon
+        self._polygon = polygon  # None = no ROI (nothing to draw)
 
     @property
     def is_full_frame(self) -> bool:
@@ -55,30 +50,28 @@ class RoiZone:
             elif rtype == "polygon":
                 coords = [scale(px, py) for px, py in pts]
             else:
-                logger.warning("Unsupported ROI type '%s' — analysing whole frame", rtype)
+                logger.warning("Unsupported ROI type '%s' — not drawn", rtype)
                 return cls(None)
         except (ValueError, TypeError, IndexError):
-            logger.warning("Malformed ROI %r — analysing whole frame", roi)
+            logger.warning("Malformed ROI %r — not drawn", roi)
             return cls(None)
 
         if len(coords) < 3:
             return cls(None)
         return cls(np.array(coords, dtype=np.int32))
 
-    def reference_point(self, det: Detection) -> tuple[int, int]:
-        if settings.roi_reference_point == "center":
-            return ((det.x1 + det.x2) // 2, (det.y1 + det.y2) // 2)
-        # "foot": bottom-centre of the bbox — best for floor/zone violations.
-        return ((det.x1 + det.x2) // 2, det.y2)
-
-    def contains(self, point: tuple[int, int]) -> bool:
+    def draw(self, image: np.ndarray, *, color=(0, 140, 255), alpha: float = 0.25,
+             label: str | None = "ROI") -> np.ndarray:
+        """Translucent filled polygon + outline + label. No-op when no ROI.
+        Mutates and returns `image`."""
         if self._polygon is None:
-            return True
-        return cv2.pointPolygonTest(self._polygon, (float(point[0]), float(point[1])), False) >= 0
-
-    def annotate(self, det: Detection) -> Detection:
-        """Set det.in_roi and det.reference_point for the zone test."""
-        ref = self.reference_point(det)
-        det.reference_point = ref
-        det.in_roi = self.contains(ref)
-        return det
+            return image
+        overlay = image.copy()
+        cv2.fillPoly(overlay, [self._polygon], color)
+        cv2.addWeighted(overlay, alpha, image, 1.0 - alpha, 0, image)
+        cv2.polylines(image, [self._polygon], isClosed=True, color=color, thickness=2)
+        if label:
+            top = self._polygon[self._polygon[:, 1].argmin()]
+            cv2.putText(image, label, (int(top[0]), max(14, int(top[1]) - 6)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2, cv2.LINE_AA)
+        return image

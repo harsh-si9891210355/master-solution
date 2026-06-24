@@ -134,7 +134,7 @@ class FramePublisher:
         for binding in camera.usecases:
             envelope = dict(base_envelope)
             envelope["usecase"] = binding.metadata()
-            envelope["roi"] = binding.roi.to_dict()
+            envelope["roi"] = binding.roi.to_dict() if binding.roi else None
             try:
                 payload = json.dumps(envelope, separators=(",", ":")).encode("utf-8")
                 self._broker.publish(

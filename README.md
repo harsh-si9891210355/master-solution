@@ -165,4 +165,3 @@ periodically), starts decoding frames, and the pipeline begins flowing:
 - [streamhandler/README.md](streamhandler/README.md) — RTSP → JPEG → Redis/RabbitMQ
 - [ai-person-detection/README.md](ai-person-detection/README.md) — person detection + ROI analysis
 - [eventmanager/README.md](eventmanager/README.md) — event aggregation + evidence video
- 

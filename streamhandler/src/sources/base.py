@@ -23,15 +23,18 @@ class CameraProvider(abc.ABC):
         """
 
 
-def parse_roi(raw: dict | None) -> "ROI":
-    """Parse an ROI dict from config into an ROI model. Defaults to full-frame."""
+def parse_roi(raw: dict | None) -> "ROI | None":
+    """Parse an ROI dict (rect or polygon) from config. Returns None for a
+    missing / full-frame ROI (the whole frame is then analysed)."""
     from src.models import ROI, ROIType
 
     if not raw:
-        return ROI.full()
-    rtype = ROIType(str(raw.get("type", "full")).lower())
+        return None
+    rtype = str(raw.get("type", "")).lower()
     points = [[float(x) for x in pt] for pt in raw.get("points", [])]
     normalized = bool(raw.get("normalized", True))
-    if rtype == ROIType.FULL:
-        return ROI.full()
-    return ROI(type=rtype, points=points, normalized=normalized)
+    if rtype == "rect":
+        return ROI(type=ROIType.RECT, points=points, normalized=normalized)
+    if rtype == "polygon":
+        return ROI(type=ROIType.POLYGON, points=points, normalized=normalized)
+    return None
