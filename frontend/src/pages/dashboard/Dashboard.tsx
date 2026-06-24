@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import {
     Bar, BarChart, CartesianGrid, Cell,
     Pie, PieChart, ResponsiveContainer,
@@ -11,6 +12,7 @@ import { UsersTab, UsersKpis, UsersLogin, UsersRole } from '@/pages/dashboard/Us
 import { EventsTab, EventsKpis, EventsRecent } from '@/pages/dashboard/EventsTab';
 import { CamerasTab, CamerasKpis, CamerasTrend, CamerasHub } from '@/pages/dashboard/CamersTab';
 import { AIInsightTab } from '@/pages/dashboard/AiInsightTab';
+import { NotificationTab } from '@/pages/dashboard/notifications/NotificationTab';
 import type {
     DashboardWidget,
     DashboardWidgetId,
@@ -177,7 +179,8 @@ function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: DateFilt
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 const TABS: { id: DashboardTab; icon: string; labelKey: string }[] = [
     { id: 'ai',      icon: '🤖', labelKey: 'tabs.ai'      },
-    { id: 'events', icon: '🔔', labelKey: 'tabs.events' },
+    { id: 'notifications', icon: '🔔', labelKey: 'tabs.notifications' },
+    { id: 'events', icon: '📊', labelKey: 'tabs.events' },
     { id: 'cameras', icon: '📹', labelKey: 'tabs.cameras' },
     { id: 'users', icon: '👥', labelKey: 'tabs.users' },
 ];
@@ -288,7 +291,16 @@ export const Dashboard = () => {
     const { t, i18n } = useNsTranslation('dashboard');
     const locale = normalizeLocale(i18n.language);
 
-    const [activeTab, setActiveTab] = useState<DashboardTab>('events');
+    const [searchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState<DashboardTab>(
+        (searchParams.get('tab') as DashboardTab) || 'events',
+    );
+
+    // Deep links (e.g. the navbar bell → /dashboard?tab=notifications) switch tabs.
+    useEffect(() => {
+        const tabParam = searchParams.get('tab') as DashboardTab | null;
+        if (tabParam) setActiveTab(tabParam);
+    }, [searchParams]);
     const [preset, setPreset] = useState<Preset>('30d');
     const [range, setRange] = useState<DateRange>(getPresetRange('30d'));
     const [isEditMode, setIsEditMode] = useState(false);
@@ -326,7 +338,7 @@ export const Dashboard = () => {
         if (nextPreset !== 'custom') setRange(getPresetRange(nextPreset));
     };
 
-    const tabHasWidgets = activeTab !== 'ai';
+    const tabHasWidgets = activeTab !== 'ai' && activeTab !== 'notifications';
 
     const currentOrder = activeTab === 'events' ? eventsWidgetOrder : activeTab === 'cameras' ? camerasWidgetOrder : usersWidgetOrder;
 
@@ -764,6 +776,9 @@ export const Dashboard = () => {
             {activeTab === 'ai' && (
     <AIInsightTab />
 )}
+            {activeTab === 'notifications' && (
+                <NotificationTab />
+            )}
 
             <div className="db-footer">{t('footer')}</div>
         </div>

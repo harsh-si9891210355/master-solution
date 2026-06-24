@@ -7,7 +7,8 @@
       "cameras": "Cameras",
       "users": "Users",
       "events": "Events",
-      "ai": "AI Insight"
+      "ai": "AI Insight",
+      "notifications": "Notifications"
     },
     "layout": {
       "customize": "Customize Layout",

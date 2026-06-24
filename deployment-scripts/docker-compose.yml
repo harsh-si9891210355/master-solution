@@ -42,10 +42,17 @@ services:
     depends_on:
       db-init:
         condition: service_completed_successfully
+      redis:
+        condition: service_started
     env_file:
       - ../backend/.env
     environment:
       LOG_DIR: /logs/backend
+      # Real-time alert bridge — backend WebSocket subscribes to these Redis
+      # channels that the notification-service publishes to.
+      REDIS_URL: redis://redis:6379/0
+      # VAPID public key for Web Push. Set VAPID_PUBLIC_KEY in backend/.env to the
+      # same public key configured (with its private key) in notification-service.
     ports:
       - "8000:8000"
     volumes:
@@ -249,6 +256,35 @@ services:
       - ../eventmanager:/app
     ports:
       - "9107:9107"   # Prometheus metrics
+    restart: unless-stopped
+
+  # --- Notification Service: events → user-facing alerts ------------------
+  # Consumes the notification-queue (published by the eventmanager), classifies
+  # each event into a severity + category, persists an Alert, and fans it out to
+  # recipients over in-app (Redis pub/sub → backend WebSocket), Web Push (VAPID)
+  # and email — applying per-user preferences, quiet hours and dedup. Drives
+  # acknowledgement-based escalation via a Redis sorted set.
+  notification-service:
+    build:
+      context: ../notification-service
+    container_name: master-solution-notification-service
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../notification-service/.env
+    environment:
+      NS_REDIS_URL: redis://redis:6379/0
+      NS_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+      NS_DATABASE_URL: postgresql://postgres:postgres@db:5432/master_solution
+    volumes:
+      - ../notification-service:/app
+    ports:
+      - "9108:9108"   # Prometheus metrics
     restart: unless-stopped
 
   # --- Web UIs for inspecting the frame pipeline --------------------------

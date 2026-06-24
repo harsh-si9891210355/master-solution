@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
+import { useAlertStore } from '@/store/alertStore'
 import { useNsTranslation } from '@/hooks/Usetranslation'
 import { DeleteModalPopup } from '@/components/ui/DeleteModalPopup'
 
@@ -15,6 +16,15 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user)
   const avatar = useAuthStore((s) => s.avatar)
   const storeLogout = useAuthStore((s) => s.logout)
+
+  const unreadCount = useAlertStore((s) => s.unreadCount)
+  const isConnected = useAlertStore((s) => s.isConnected)
+  const markAllRead = useAlertStore((s) => s.markAllRead)
+
+  const handleBellClick = () => {
+    markAllRead()
+    navigate('/dashboard?tab=notifications')
+  }
 
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -71,8 +81,28 @@ export default function Navbar() {
       {/* Left — page brand */}
       <h1 className="text-sm font-semibold text-gray-700">Master Solution</h1>
 
-      {/* Right — profile dropdown */}
-      <div className="relative" ref={menuRef}>
+      {/* Right — notification bell + profile dropdown */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleBellClick}
+          className="relative flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-50 transition-colors"
+          title={isConnected ? 'Notifications (live)' : 'Notifications (reconnecting…)'}
+          aria-label="Notifications"
+        >
+          <i className="pi pi-bell text-lg text-gray-600" />
+          <span
+            className="absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ring-2 ring-white"
+            style={{ background: isConnected ? '#34D399' : '#9CA3AF' }}
+          />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </button>
+
+        <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -116,6 +146,7 @@ export default function Navbar() {
             </button>
           </div>
         )}
+        </div>
       </div>
 
       <DeleteModalPopup.LogoutHost />

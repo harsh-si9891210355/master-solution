@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from config.logging_config import LoggingConfig
 from src.core.config import settings
 from src.crud.role import seed_roles
+from src.crud.permission_seed import seed_notification_permissions
 from src.db.db_connection import Base, engine
 from src.db.db_connection import SessionLocal
 from src.db.migrations import ensure_user_profile_columns
@@ -26,6 +27,11 @@ from src.models.users_token import UsersToken  # noqa: F401
 from src.models.resource import Resource  # noqa: F401
 from src.models.scope import Scope  # noqa: F401
 from src.models.role_permission import RolePermission  # noqa: F401
+from src.models.alert import Alert, AlertTimeline  # noqa: F401
+from src.models.notification_preference import NotificationPreference  # noqa: F401
+from src.models.notification_subscription import NotificationSubscription  # noqa: F401
+from src.models.notification_delivery import NotificationDelivery  # noqa: F401
+from src.models.escalation_rule import EscalationRule, EscalationStep  # noqa: F401
 from src.middleware.language import LanguageMiddleware
 from src.routes.router import api_router
 from src.services.translation import TranslationService
@@ -77,6 +83,7 @@ async def on_startup() -> None:
     db = SessionLocal()
     try:
         seed_roles(db)
+        seed_notification_permissions(db)
     finally:
         db.close()
 

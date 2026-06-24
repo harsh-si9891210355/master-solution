@@ -11,6 +11,10 @@ from src.routes.v1.permission import router as permission_router
 from src.routes.v1.roles import router as roles_router
 from src.routes.v1.translation import router as translation_router
 from src.routes.v1.stream import router as stream_router
+from src.routes.v1.alert import router as alert_router
+from src.routes.v1.notification import router as notification_router
+from src.routes.v1.escalation import router as escalation_router
+from src.routes.v1.ws import router as ws_router
 
 
 v1_router = APIRouter()
@@ -27,3 +31,7 @@ v1_router.include_router(permission_router, prefix="/permission", tags=["Permiss
 v1_router.include_router(roles_router, prefix="/roles", tags=["Roles"])
 v1_router.include_router(translation_router, tags=["Translation"])
 v1_router.include_router(stream_router, prefix="/stream", tags=["Stream"])
+v1_router.include_router(alert_router, prefix="/alert", tags=["Alert"])
+v1_router.include_router(notification_router, prefix="/notification", tags=["Notification"])
+v1_router.include_router(escalation_router, prefix="/escalation", tags=["Escalation"])
+v1_router.include_router(ws_router, prefix="/ws", tags=["WebSocket"])

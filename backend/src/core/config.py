@@ -72,6 +72,17 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:8080"
 
+    # --- Real-time alerts (WebSocket + Redis pub/sub bridge) -----------------
+    redis_url: str = "redis://redis:6379/0"
+    # Redis channels the WebSocket relays to connected clients.
+    ws_broadcast_channel: str = "alerts:all"
+    ws_user_channel_prefix: str = "alerts:user:"
+
+    # --- Web Push (VAPID) ----------------------------------------------------
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    vapid_subject: str = "mailto:admin@visionx.local"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
