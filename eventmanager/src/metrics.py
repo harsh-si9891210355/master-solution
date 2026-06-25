@@ -27,6 +27,12 @@ BUILD_LATENCY = Histogram(
     "em_event_build_seconds", "Time to build+store+persist a new event",
     buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0),
 )
+END_TO_END_LATENCY = Histogram(
+    "em_end_to_end_seconds",
+    "Full pipeline latency: first-frame capture -> event pushed to the "
+    "notification queue (StreamHandler + AI + Event Manager)",
+    buckets=(0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 20.0, 30.0, 60.0),
+)
 
 
 def start_metrics_server() -> None:

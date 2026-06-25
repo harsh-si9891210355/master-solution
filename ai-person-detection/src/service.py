@@ -34,6 +34,7 @@ from src.metrics import (
     BATCHES_FAILED,
     BROKER_UP,
     EVENTS_PUBLISHED,
+    PIPELINE_TO_ANALYZED,
     PUBLISH_ERRORS,
 )
 from src.publisher import EventPublisher
@@ -114,6 +115,13 @@ class PersonDetectionService:
             envelope = json.loads(body)
             frames = self._resolve_frames(envelope)
             event = self._analyzer.analyze(envelope, frames, _now_ms())
+            # Stamp the moment of publish as analyzed_at_ms, and record the
+            # capture -> analyzed latency (queue wait + redis fetch + inference).
+            analyzed_at = _now_ms()
+            event["analyzed_at_ms"] = analyzed_at
+            captured_at = event.get("captured_at_ms")
+            if captured_at:
+                PIPELINE_TO_ANALYZED.observe(max(0.0, (analyzed_at - captured_at) / 1000.0))
             publisher.publish(json.dumps(event, separators=(",", ":")).encode("utf-8"))
             EVENTS_PUBLISHED.inc()
         except (AMQPConnectionError, AMQPChannelError):
