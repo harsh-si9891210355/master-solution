@@ -71,8 +71,8 @@ class Settings(BaseSettings):
     target_fps: float = 5.0
     # Output resolution. 0 on either axis keeps the source dimension. When both
     # are set and keep_aspect is True the frame is letterboxed to fit.
-    frame_width: int = 1280
-    frame_height: int = 720
+    frame_width: int = 854
+    frame_height: int = 480
     frame_keep_aspect: bool = True
     # JPEG encode quality (1-100).
     jpeg_quality: int = 80

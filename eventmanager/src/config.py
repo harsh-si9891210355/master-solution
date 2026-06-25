@@ -49,8 +49,8 @@ class Settings(BaseSettings):
     event_gap_threshold_s: float = 30.0
 
     # --- Evidence video ------------------------------------------------------
-    evidence_width: int = 1280
-    evidence_height: int = 720
+    evidence_width: int = 854
+    evidence_height: int = 480
     video_fps: int = 1
     video_crf: int = 20
     # Which rendered video to store as the event's evidence_url: raw | processed.
