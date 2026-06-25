@@ -159,6 +159,12 @@ services:
     restart: unless-stopped
     environment:
       REDIS_ADDR: redis://redis:6379
+      # Group the StreamHandler claim-check frame keys (sh:frames:<cam>:<batch>)
+      # so Grafana can chart how many frame batches are stored and their memory.
+      # Lua pattern -> the matched substring "sh:frames" becomes the key_group.
+      REDIS_EXPORTER_CHECK_KEY_GROUPS: "^sh:frames"
+      REDIS_EXPORTER_CHECK_KEY_GROUPS_BATCH_SIZE: "1000"
+      REDIS_EXPORTER_MAX_DISTINCT_KEY_GROUPS: "100"
     ports:
       - "9121:9121"
     depends_on:

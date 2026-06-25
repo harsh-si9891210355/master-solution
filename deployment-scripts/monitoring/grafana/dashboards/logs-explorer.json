@@ -35,7 +35,7 @@
         "includeAll": true,
         "multi": true,
         "allValue": ".+",
-        "refresh": 2,
+        "refresh": 1,
         "current": {
           "text": [
             "All"
@@ -43,7 +43,11 @@
           "value": [
             "$__all"
           ]
-        }
+        },
+        "sort": 1,
+        "regex": "",
+        "hide": 0,
+        "options": []
       },
       {
         "name": "search",
