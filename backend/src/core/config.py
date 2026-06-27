@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     # runOnReady) that publishes a reduced-quality "<path>-rec" sibling, and we
     # record only that sibling. All knobs below are env-configurable.
     #
+    # Master switch: record & store the camera feed at all. False = live-only
+    # (WebRTC stays up, but nothing is recorded to disk; overrides the modes below).
+    rec_store_enabled: bool = True
     # rec_enabled=False falls back to the old behaviour: record the live path
     # directly at full source quality (no transcode).
     rec_enabled: bool = True

@@ -37,10 +37,13 @@ class StreamService:
 
     def _rec_mode(self, substream_url: str | None) -> str:
         """How recordings are produced for a camera:
+        - "off":       live-only — nothing is recorded or stored
         - "substream": record the camera's low-quality substream directly (no FFmpeg)
         - "transcode": FFmpeg downscales the main stream into the -rec sibling
         - "direct":    record the main stream as-is at full quality
         """
+        if not settings.rec_store_enabled:
+            return "off"
         if substream_url and settings.rec_prefer_substream:
             return "substream"
         if settings.rec_enabled:
