@@ -46,7 +46,7 @@ class StreamService:
             return "off"
         if substream_url and settings.rec_prefer_substream:
             return "substream"
-        if settings.rec_enabled:
+        if settings.rec_transcode_enabled:
             return "transcode"
         return "direct"
 

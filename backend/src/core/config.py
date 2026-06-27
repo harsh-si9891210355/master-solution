@@ -35,9 +35,9 @@ class Settings(BaseSettings):
     # Master switch: record & store the camera feed at all. False = live-only
     # (WebRTC stays up, but nothing is recorded to disk; overrides the modes below).
     rec_store_enabled: bool = True
-    # rec_enabled=False falls back to the old behaviour: record the live path
-    # directly at full source quality (no transcode).
-    rec_enabled: bool = True
+    # rec_transcode_enabled=False falls back to the old behaviour: record the
+    # live path directly at full source quality (no transcode).
+    rec_transcode_enabled: bool = True
     # If a camera has a low-quality substream URL configured, record that directly
     # (no FFmpeg / zero transcode CPU) instead of transcoding the main stream.
     # Set False to ignore substreams and always use the transcode path.
