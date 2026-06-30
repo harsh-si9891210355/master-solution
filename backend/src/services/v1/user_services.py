@@ -1,94 +1,73 @@
 import secrets
 
-from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.crud.role import get_role_by_code
 from src.crud.user import create_user, delete_user, get_all_users, get_user_by_email, get_user_by_id, update_user
 from src.schemas.auth import UserInvite, UserResponse
-from src.schemas.user import UserUpdate
+from src.schemas.common import CommonFailureResponse
+from src.schemas.user import UserDeleteResponse, UsersResponse, UserUpdate
 from src.services.v1.auth_services import build_user_response
-from src.utils.hashing_service import Hasher
 from src.utils.auth.auth0_client import Auth0Client, Auth0Error
+from src.utils.error_handler import handle_db_exceptions
+from src.utils.hashing_service import Hasher
 
 
-def create_user_details(db: Session, payload: UserInvite, language: str) -> UserResponse:
-    existing_user = get_user_by_email(db, payload.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email is already registered",
-        )
+@handle_db_exceptions
+def create_user_details(db: Session, payload: UserInvite, language: str) -> UserResponse | CommonFailureResponse:
+    if get_user_by_email(db, payload.email):
+        return CommonFailureResponse(code=400, message="Email is already registered")
 
     role = get_role_by_code(db, payload.role_code)
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role code",
-        )
+        return CommonFailureResponse(code=400, message="Invalid role code")
 
-    # Create the user in Auth0 and have Auth0 email them the set-password link.
-    # If Auth0 fails we never create the local row, so the two stores can't drift.
-    auth0 = Auth0Client()
+    # Provision in Auth0 first; if it fails we never create the local row so the
+    # two stores can't drift.
     try:
+        auth0 = Auth0Client()
         auth0.create_user(payload.email)
         auth0.send_set_password_email(payload.email)
     except Auth0Error as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Could not invite the user via Auth0: {exc}",
-        )
+        return CommonFailureResponse(code=502, message=f"Could not invite the user via Auth0: {exc}")
 
-    # Only the email is collected at invite time; the name is filled in from
-    # Auth0 on the user's first login (see get_or_create_session). Seed
-    # first_name from the email local-part so the NOT NULL columns are valid.
-    local_part = payload.email.split("@")[0]
     user = create_user(
         db,
         email=payload.email,
-        first_name=local_part,
+        first_name=payload.email.split("@")[0],  # filled in on first login
         last_name="",
         mobile_number=None,
         role_id=role.id,
-        # Auth0 owns the credential; no usable local password.
         hashed_password=Hasher.get_hashed_password(secrets.token_urlsafe(32)),
         is_active=False,
     )
-
     return build_user_response(user, language)
 
 
-def get_user_details(db: Session, user_id: int, language: str) -> UserResponse:
+@handle_db_exceptions
+def get_user_details(db: Session, user_id: int, language: str) -> UserResponse | CommonFailureResponse:
     user = get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        return CommonFailureResponse(code=404, message="User not found")
     return build_user_response(user, language)
 
 
-def get_all_user_details(db: Session, language: str) -> list[UserResponse]:
-    users = get_all_users(db)
-    return [build_user_response(user, language) for user in users]
+@handle_db_exceptions
+def get_all_user_details(db: Session, language: str) -> UsersResponse | CommonFailureResponse:
+    return UsersResponse(users=[build_user_response(user, language) for user in get_all_users(db)])
 
 
-def update_user_details(db: Session, user_id: int, payload: UserUpdate, language: str) -> UserResponse:
+@handle_db_exceptions
+def update_user_details(db: Session, user_id: int, payload: UserUpdate, language: str) -> UserResponse | CommonFailureResponse:
     user = get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        return CommonFailureResponse(code=404, message="User not found")
 
     role_id = None
     if payload.role_code is not None:
         role = get_role_by_code(db, payload.role_code)
         if not role:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid role code",
-            )
+            return CommonFailureResponse(code=400, message="Invalid role code")
         role_id = role.id
 
     updated_user = update_user(
@@ -104,34 +83,23 @@ def update_user_details(db: Session, user_id: int, payload: UserUpdate, language
     return build_user_response(updated_user, language)
 
 
-def delete_user_details(db: Session, user_id: int) -> None:
+@handle_db_exceptions
+def delete_user_details(db: Session, user_id: int) -> UserDeleteResponse | CommonFailureResponse:
     user = get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        return CommonFailureResponse(code=404, message="User not found")
     delete_user(db, user=user)
+    return UserDeleteResponse(message="User deleted successfully")
 
 
-def change_user_status_details(
-    db: Session,
-    user_id: int,
-    is_active: bool,
-    language: str,
-) -> UserResponse:
+@handle_db_exceptions
+def change_user_status_details(db: Session, user_id: int, is_active: bool, language: str) -> UserResponse | CommonFailureResponse:
     user = get_user_by_id(db, user_id)
-
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        return CommonFailureResponse(code=404, message="User not found")
 
     user.is_active = is_active
-
     db.add(user)
     db.commit()
     db.refresh(user)
-
     return build_user_response(user, language)

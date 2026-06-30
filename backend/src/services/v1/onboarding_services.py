@@ -1,22 +1,21 @@
 """Local (non-Auth0) admin-invite + first-time-login onboarding.
 
-This is a self-contained flow that lives alongside — and does not touch — the
-existing Auth0 invite/login code. Passwords are stored locally (bcrypt/pbkdf2
-via Hasher); the user is emailed a temporary password and a link to the
-first-time-login page.
+Self-contained flow that lives alongside the Auth0 invite/login code. Passwords
+are stored locally (via Hasher); the user is emailed a temporary password and a
+link to the first-time-login page.
 """
 
 import secrets
 import smtplib
 from email.mime.text import MIMEText
 
-from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.core.config import settings
 from src.crud.role import get_role_by_code
 from src.crud.user import create_user, get_user_by_email, update_user_password
 from src.schemas.auth import MessageResponse, UserResponse
+from src.schemas.common import CommonFailureResponse
 from src.schemas.onboarding import (
     CompleteProfileRequest,
     FirstTimeLoginRequest,
@@ -25,6 +24,7 @@ from src.schemas.onboarding import (
 )
 from src.services.v1.auth_services import build_user_response
 from src.utils.auth.auth_handler import Authentication
+from src.utils.error_handler import handle_db_exceptions
 from src.utils.hashing_service import Hasher
 
 
@@ -58,21 +58,16 @@ def _send_temp_password_email(to_email: str, temp_password: str) -> None:
         server.send_message(msg)
 
 
-def invite_local_user(db: Session, payload: LocalUserInvite, language: str) -> UserResponse:
+@handle_db_exceptions
+def invite_local_user(db: Session, payload: LocalUserInvite, language: str) -> UserResponse | CommonFailureResponse:
     """Admin creates a user with a temporary password and emails it to them."""
     existing = get_user_by_email(db, payload.email)
     if existing and existing.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email is already registered",
-        )
+        return CommonFailureResponse(code=400, message="Email is already registered")
 
     role = get_role_by_code(db, payload.role_code)
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role code",
-        )
+        return CommonFailureResponse(code=400, message="Invalid role code")
 
     temp_password = _generate_temp_password()
     hashed = Hasher.get_hashed_password(temp_password)
@@ -96,55 +91,37 @@ def invite_local_user(db: Session, payload: LocalUserInvite, language: str) -> U
     return build_user_response(user, language)
 
 
-def first_time_login(db: Session, payload: FirstTimeLoginRequest) -> FirstTimeLoginResponse:
+@handle_db_exceptions
+def first_time_login(db: Session, payload: FirstTimeLoginRequest) -> FirstTimeLoginResponse | CommonFailureResponse:
     """Step 1: verify the temporary password and set the new one. Returns a
     short-lived token that authorises the profile step."""
     user = get_user_by_email(db, payload.email)
     if not user or not Hasher.verify_password(payload.temporary_password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or temporary password",
-        )
+        return CommonFailureResponse(code=401, message="Invalid email or temporary password")
 
     if user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account is already set up. Please log in.",
-        )
+        return CommonFailureResponse(code=400, message="Account is already set up. Please log in.")
 
-    update_user_password(
-        db, user=user, hashed_password=Hasher.get_hashed_password(payload.new_password)
-    )
-
+    update_user_password(db, user=user, hashed_password=Hasher.get_hashed_password(payload.new_password))
     token = Authentication.create_access_token({Authentication.EMAIL_KEY: user.email})
     return FirstTimeLoginResponse(token=token)
 
 
-def complete_profile(db: Session, payload: CompleteProfileRequest) -> MessageResponse:
+@handle_db_exceptions
+def complete_profile(db: Session, payload: CompleteProfileRequest) -> MessageResponse | CommonFailureResponse:
     """Step 2: save the profile and activate the account."""
     email = Authentication.verify_token(payload.token)
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
+        return CommonFailureResponse(code=400, message="Invalid or expired token")
 
     user = get_user_by_email(db, email)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        return CommonFailureResponse(code=404, message="User not found")
 
     if user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Profile already completed. Please log in.",
-        )
+        return CommonFailureResponse(code=400, message="Profile already completed. Please log in.")
 
-    mobile = None
-    if payload.mobile_number:
-        mobile = f"{payload.country_code or ''}{payload.mobile_number}".strip()
+    mobile = f"{payload.country_code or ''}{payload.mobile_number}".strip() if payload.mobile_number else None
 
     user.first_name = payload.first_name
     user.last_name = payload.last_name
