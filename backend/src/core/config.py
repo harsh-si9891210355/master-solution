@@ -46,7 +46,8 @@ class Settings(BaseSettings):
     # Recording frame rate; 0 keeps the camera's source fps.
     rec_fps: int = 15
     # Keep only the last X hours of recordings (MediaMTX recordDeleteAfter).
-    rec_retention_hours: int = 12
+    # 168 = 7 days, NVR-style retention used by the Event Information timeline.
+    rec_retention_hours: int = 168
     # Optional constant target bitrate, e.g. "800k". Empty = encoder default (CRF/CQ).
     rec_video_bitrate: str = ""
     # Extra FFmpeg flags appended verbatim to the transcode command (space-separated).

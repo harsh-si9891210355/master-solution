@@ -62,6 +62,12 @@ export interface DVRPlayerProps {
     rtspUrl?: string;
     events?: CameraEvent[];
     streamConfig?: StreamConfig | null;
+    /**
+     * When set, the player skips the initial live connection and opens directly
+     * in DVR playback seeked to this wall-clock timestamp (ms). Used by the Event
+     * Information timeline to show the recorded stream for a past event.
+     */
+    initialSeekMs?: number | null;
 }
 
 export interface LiveViewModalProps {

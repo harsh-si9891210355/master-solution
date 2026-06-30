@@ -73,6 +73,7 @@ export const DVRPlayer = ({
     rtspUrl,
     events = [],
     streamConfig,
+    initialSeekMs = null,
 }: DVRPlayerProps) => {
     const config =
         streamConfig ??
@@ -100,6 +101,9 @@ export const DVRPlayer = ({
 
     const activeClipRef =
         useRef<ActiveClip | null>(null);
+
+    const didInitialSeekRef =
+        useRef(false);
 
     const [mode, setMode] =
         useState<PlayerMode>('live');
@@ -566,9 +570,28 @@ export const DVRPlayer = ({
         };
 
     /**
-     * INITIAL LIVE
+     * INITIAL CONNECT
+     *
+     * When `initialSeekMs` is provided we open straight into DVR playback (the
+     * recorded-stream pane of the Event Information timeline) instead of live.
+     * The actual seek happens once recording spans have loaded — see below.
      */
     useEffect(() => {
+        if (
+            initialSeekMs !==
+            null
+        ) {
+            setMode('playback');
+
+            setStatus(
+                'connecting'
+            );
+
+            return () => {
+                void cleanupVideo();
+            };
+        }
+
         if (
             liveWebrtcUrl
         ) {
@@ -580,6 +603,7 @@ export const DVRPlayer = ({
         };
     }, [
         liveWebrtcUrl,
+        initialSeekMs,
     ]);
 
     /**
@@ -895,6 +919,74 @@ export const DVRPlayer = ({
                 src
             );
         };
+
+    /**
+     * INITIAL SEEK (recorded pane)
+     *
+     * Once spans are available, jump to the requested timestamp. We bypass the
+     * 12h live-scrubber clamp so any event inside the recording retention window
+     * (up to 7 days) is reachable; if it falls outside the recorded spans we
+     * surface a clear message rather than playing the wrong moment.
+     */
+    useEffect(() => {
+        if (
+            initialSeekMs ===
+            null
+        ) {
+            return;
+        }
+
+        if (
+            didInitialSeekRef.current
+        ) {
+            return;
+        }
+
+        if (
+            normalizedSpans.length ===
+            0
+        ) {
+            return;
+        }
+
+        didInitialSeekRef.current =
+            true;
+
+        const firstStartMs =
+            normalizedSpans[0]
+                .startMs;
+
+        const lastEndMs =
+            normalizedSpans[
+                normalizedSpans.length -
+                    1
+            ].endMs;
+
+        if (
+            initialSeekMs <
+                firstStartMs ||
+            initialSeekMs >
+                lastEndMs
+        ) {
+            setMode('playback');
+
+            setStatus('error');
+
+            setErrorMsg(
+                'No recording available for this time (outside the retention window).'
+            );
+
+            return;
+        }
+
+        void startPlaybackAt(
+            initialSeekMs
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        initialSeekMs,
+        normalizedSpans,
+    ]);
 
     const handleSeekTarget =
         (

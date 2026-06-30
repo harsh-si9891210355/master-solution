@@ -5,6 +5,7 @@ import { eventService } from './api/eventService';
 import { PrimeTable, type TableColumn } from '../../components/ui/Primetable';
 import { FormButton } from '../../components/ui/FormButton';
 import { useNsTranslation } from '../../hooks/Usetranslation';
+import { EventModeToggle } from './components/EventModeToggle';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatDateTime = (value: string | null) => {
@@ -77,6 +78,7 @@ export const EventsList = () => {
     const tableHeader = (
         <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">{t('title')}</h2>
+            <EventModeToggle mode="table" />
         </div>
     );
 
