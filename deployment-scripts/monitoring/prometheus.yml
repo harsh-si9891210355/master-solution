@@ -41,14 +41,20 @@ scrape_configs:
     static_configs:
       - targets: ["nginx-exporter:9113"]
 
+  # RabbitMQ queue metrics (rabbitmq_prometheus plugin, enabled via
+  # rabbitmq/enabled_plugins + rabbitmq.conf).
+  - job_name: "rabbitmq"
+    static_configs:
+      - targets: ["rabbitmq:15692"]
+
+  # Redis metrics (redis-exporter service).
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
   # --- GPU metrics: uncomment once the dcgm-exporter service is enabled in
-  #     docker-compose.yml (NVIDIA hosts only). ---
+  #     docker-compose.yml (NVIDIA hosts only). The "GPU (NVIDIA / DCGM)" row on
+  #     the home dashboard reads these. ---
   # - job_name: "gpu"
   #   static_configs:
   #     - targets: ["dcgm-exporter:9400"]
-
-  # --- Event queue (not built yet): when a Redis/RabbitMQ broker + its
-  #     exporter are added, register the exporter target here. e.g.
-  # - job_name: "redis"
-  #   static_configs:
-  #     - targets: ["redis-exporter:9121"]

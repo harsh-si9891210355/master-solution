@@ -26,6 +26,12 @@ BATCH_LATENCY = Histogram(
     "aipd_batch_seconds", "End-to-end per-batch processing latency",
     buckets=(0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
 )
+PIPELINE_TO_ANALYZED = Histogram(
+    "aipd_captured_to_analyzed_seconds",
+    "Latency from first-frame capture to this AI service publishing its event "
+    "(StreamHandler + queue wait + redis fetch + inference)",
+    buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 20.0),
+)
 BROKER_UP = Gauge("aipd_broker_connected", "1 if connected to RabbitMQ")
 
 

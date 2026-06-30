@@ -40,6 +40,7 @@ class BatchAnalyzer:
         roi_spec = envelope.get("roi", {})
 
         analyses: list[FrameAnalysis] = []
+        inference_ms_total = 0.0
         for idx, blob in enumerate(frames):
             meta = meta_list[idx] if idx < len(meta_list) else {}
             w = int(meta.get("width", default_w) or default_w)
@@ -74,7 +75,9 @@ class BatchAnalyzer:
 
             t0 = time.monotonic()
             detections = self._detector.detect(image)
-            INFERENCE_LATENCY.observe(time.monotonic() - t0)
+            dt = time.monotonic() - t0
+            INFERENCE_LATENCY.observe(dt)
+            inference_ms_total += dt * 1000.0
 
             for det in detections:
                 zone.annotate(det)
@@ -86,9 +89,10 @@ class BatchAnalyzer:
                 VIOLATIONS.inc()
             analyses.append(fa)
 
-        return self._build_event(envelope, analyses, roi_spec, now_ms, started)
+        return self._build_event(envelope, analyses, roi_spec, now_ms, started, inference_ms_total)
 
-    def _build_event(self, envelope, analyses: list[FrameAnalysis], roi_spec, now_ms, started) -> dict:
+    def _build_event(self, envelope, analyses: list[FrameAnalysis], roi_spec, now_ms, started,
+                     inference_ms_total: float = 0.0) -> dict:
         frames_with_person = sum(1 for a in analyses if a.person_count > 0)
         frames_with_violation = sum(1 for a in analyses if a.violation)
         total_detections = sum(a.person_count for a in analyses)
@@ -100,6 +104,9 @@ class BatchAnalyzer:
             "service": settings.service_name,
             "event_type": "person_detection",
             "batch_id": envelope.get("batch_id"),
+            # Latency clock carried from the StreamHandler; analyzed_at_ms is
+            # finalised at publish time in the service.
+            "captured_at_ms": envelope.get("captured_at_ms"),
             "produced_at_ms": envelope.get("produced_at_ms"),
             "analyzed_at_ms": now_ms,
             "camera": envelope.get("camera", {}),
@@ -121,6 +128,7 @@ class BatchAnalyzer:
                 "max_persons_in_frame": max_in_frame,
                 "violation": frames_with_violation > 0,
                 "processing_ms": round((time.monotonic() - started) * 1000, 2),
+                "inference_ms": round(inference_ms_total, 2),
             },
             "frames": [a.to_dict() for a in analyses],
         }

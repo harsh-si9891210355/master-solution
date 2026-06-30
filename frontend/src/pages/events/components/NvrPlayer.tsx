@@ -247,6 +247,22 @@ export const NvrPlayer = ({
         [spans],
     );
 
+    // Recordings can have gaps (no footage for a stretch of wall-clock time).
+    // When a seek target lands in a gap, snap it BACK to the last footage before
+    // it (the end of the previous span) so a rewind never skips forward over the
+    // hole — which is what made "back 10s" jump 20s/40s/1min. Only when there is
+    // no earlier footage do we snap forward to the first available recording.
+    const snapToFootage = useCallback(
+        (targetMs: number): number | null => {
+            if (spans.length === 0) return null;
+            if (spans.some((s) => targetMs >= s.startMs && targetMs < s.endMs)) return targetMs;
+            const prior = [...spans].reverse().find((s) => s.endMs <= targetMs);
+            if (prior) return prior.endMs - 1;
+            return spans[0].startMs;
+        },
+        [spans],
+    );
+
     const goLive = useCallback(() => {
         pendingSeekRef.current = null;
         activeClipRef.current = null;
@@ -256,13 +272,16 @@ export const NvrPlayer = ({
     }, [attachLive]);
 
     const startPlaybackAt = useCallback(
-        (targetMs: number) => {
+        (rawTargetMs: number) => {
             if (!playbackGetBaseUrl || spans.length === 0) {
                 setMode('playback');
                 setStatus('error');
                 setErrorMsg('No recordings are available yet');
                 return;
             }
+            // Snap targets that fall in a recording gap to real footage (backward)
+            // before computing the clip, so seeks land on actual recorded video.
+            const targetMs = snapToFootage(rawTargetMs) ?? rawTargetMs;
             const span = findSpan(targetMs);
             if (!span || targetMs < spans[0].startMs || targetMs > spans[spans.length - 1].endMs) {
                 setMode('playback');
@@ -291,7 +310,7 @@ export const NvrPlayer = ({
             setDisplayMs(targetMs);
             void attachPlayback(src);
         },
-        [attachPlayback, config, findSpan, playbackGetBaseUrl, spans],
+        [attachPlayback, config, findSpan, playbackGetBaseUrl, snapToFootage, spans],
     );
 
     // Seek to an absolute wall-clock time (jumps to live if near the edge).

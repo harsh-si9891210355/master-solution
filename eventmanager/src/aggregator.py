@@ -22,12 +22,14 @@ from __future__ import annotations
 import logging
 import os
 import threading
+import time
 from collections import defaultdict
 
 from src.config import settings
 from src.db import EventStore
-from src.frame_codec import FrameResolver
+from src.frame_codec import Annotator, FrameResolver
 from src.metrics import (
+    END_TO_END_LATENCY,
     EVENTS_CREATED,
     EVENTS_EXTENDED,
     FRAMES_DECODED,
@@ -43,6 +45,10 @@ from src.storage import EvidenceStore
 from src import video_builder
 
 logger = logging.getLogger(__name__)
+
+
+def _now_ms() -> int:
+    return int(time.time() * 1000)
 
 
 class _KeyedLocks:
@@ -104,19 +110,35 @@ class EventAggregator:
             logger.error("No location_id for camera %s; cannot persist event", batch.camera_id)
             return
 
-        # --- decode frames (raw + processed) ---
+        # --- decode frames + render annotated (raw + processed) ---
+        annotator = Annotator(
+            batch.camera_name, batch.location_name, batch.usecase_name, batch.roi_spec
+        )
         raw_frames, processed_frames = [], []
         for frame in batch.frames:
             raw = self._resolver.resolve_raw(frame)
-            if raw is None:
-                FRAMES_FAILED.inc()
-                continue
-            processed = self._resolver.resolve_processed(frame, raw)
-            raw_frames.append(raw)
-            processed_frames.append(processed if processed is not None else raw)
-            FRAMES_DECODED.inc()
+            if raw is not None:
+                raw_frames.append(raw)
+                # Processed = raw + ROI overlay + AI detections + info banner.
+                # A rendering failure must never drop the event — fall back to
+                # the raw frame so the evidence video is still produced.
+                try:
+                    processed_frames.append(annotator.render(raw, frame))
+                except Exception:
+                    STAGE_ERRORS.labels(stage="annotate").inc()
+                    logger.exception("Annotation failed for camera=%s; using raw frame",
+                                     batch.camera_id)
+                    processed_frames.append(raw)
+                FRAMES_DECODED.inc()
+            else:
+                # No raw frame — fall back to any pre-rendered processed image.
+                proc = self._resolver.resolve_processed_inline(frame)
+                if proc is not None:
+                    processed_frames.append(proc)
+                else:
+                    FRAMES_FAILED.inc()
 
-        if not raw_frames:
+        if not raw_frames and not processed_frames:
             logger.warning("No frames decoded for camera=%s usecase=%s; no video built",
                            batch.camera_id, batch.usecase_id)
             return
@@ -178,14 +200,50 @@ class EventAggregator:
             event_start_time=start_t, event_end_time=end_t, evidence_url=evidence_url,
             raw_url=raw_url, processed_url=processed_url, is_new=True, event_id=event_id,
         )
+
+        # --- per-stage + end-to-end latency breakdown ---
+        timings = self._compute_timings(batch)
         logger.info(
-            "Created event %s camera=%s usecase=%s frames=%d evidence=%s",
-            event_id, batch.camera_id, batch.usecase_id, len(raw_frames), evidence_url,
+            "Created event %s camera=%s usecase=%s frames=%d | end-to-end %sms "
+            "(streamhandler %s, ai %s [infer %s], eventmanager %s) evidence=%s",
+            event_id, batch.camera_id, batch.usecase_id, len(raw_frames),
+            timings.get("end_to_end_ms"), timings.get("streamhandler_ms"),
+            timings.get("ai_ms"), timings.get("ai_inference_ms"),
+            timings.get("eventmanager_ms"), evidence_url,
         )
+        e2e = timings.get("end_to_end_ms")
+        if e2e is not None:
+            END_TO_END_LATENCY.observe(max(0.0, e2e / 1000.0))
 
         # --- notify ---
         try:
-            self._notifier.publish(built.to_notification(batch.usecase_slug, batch.batch_id))
+            self._notifier.publish(
+                built.to_notification(batch.usecase_slug, batch.batch_id, timings)
+            )
         except Exception:
             STAGE_ERRORS.labels(stage="notify").inc()
             logger.exception("Notification publish failed for event %s", event_id)
+
+    def _compute_timings(self, batch: EventBatch) -> dict:
+        """Stage durations (ms) across the whole pipeline. notified_at_ms is now
+        (publish is imminent). All stamps are same-host epoch-ms, so diffs are
+        directly comparable. Missing stamps yield None for the affected stages."""
+        captured = batch.captured_at_ms
+        produced = batch.produced_at_ms
+        analyzed = batch.analyzed_at_ms
+        notified = _now_ms()
+
+        def diff(a, b):
+            return round(b - a, 2) if (a is not None and b is not None) else None
+
+        return {
+            "captured_at_ms": captured,
+            "produced_at_ms": produced,
+            "analyzed_at_ms": analyzed,
+            "notified_at_ms": notified,
+            "streamhandler_ms": diff(captured, produced),       # capture -> queue
+            "ai_ms": diff(produced, analyzed),                  # queue wait + redis + inference
+            "ai_inference_ms": batch.ai_inference_ms,           # pure model time
+            "eventmanager_ms": diff(analyzed, notified),        # queue wait + build + store + db + notify
+            "end_to_end_ms": diff(captured, notified),          # camera -> notification queue
+        }

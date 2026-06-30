@@ -18,7 +18,12 @@ import type { Event } from './types/index';
 // ─────────────────────────────────────────────────────────────────────────────
 const RETENTION_DAYS = 7;
 const ZOOM_MIN = 1.2;
-const ZOOM_MAX = 6;
+const ZOOM_MAX = 8;
+// px per minute. Default is high enough to space 5-minute labels comfortably.
+const DEFAULT_ZOOM = 4;
+// Keep labels at least this many px apart; the label step widens automatically
+// (5 → 10 → 15 → 30 → 60 min) when zoomed out so the ruler never gets congested.
+const LABEL_MIN_GAP_PX = 18;
 
 const ALL_MINS: number[] = [];
 for (let h = 23; h >= 0; h--) {
@@ -78,9 +83,13 @@ export const EventTimeline = () => {
     const [split, setSplit] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [singleSeekMs, setSingleSeekMs] = useState<number | null>(null);
-    const [cur, setCur] = useState(12 * 60);
+    const [cur, setCur] = useState(() => {
+        const now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
+    });
     const [dragging, setDragging] = useState(false);
-    const [pxPerMin, setPxPerMin] = useState(2.2);
+    const [pxPerMin, setPxPerMin] = useState(DEFAULT_ZOOM);
+    const [openCluster, setOpenCluster] = useState<string | null>(null);
 
     const tlRef = useRef<HTMLDivElement>(null);
 
@@ -135,11 +144,34 @@ export const EventTimeline = () => {
         [allEvents, selectedCameraId, selectedDate],
     );
 
-    const detMap = useMemo(() => {
-        const m = new Map<number, Event>();
-        dayEvents.forEach((e) => m.set(minuteOfDay(e.event_start_time), e));
-        return m;
-    }, [dayEvents]);
+    // Place an event at its EXACT time (including seconds) on the descending
+    // 24h rail: ALL_MINS[0] is 23:59 (top), so y grows as the time decreases.
+    const eventY = useCallback(
+        (iso: string) => {
+            const d = new Date(iso);
+            const mo = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+            return (ALL_MINS.length - 1 - mo) * pxPerMin + pxPerMin / 2;
+        },
+        [pxPerMin],
+    );
+
+    // Group events whose thumbnails would visually overlap into one cluster.
+    // The threshold is in pixels, so zooming in naturally splits clusters apart.
+    const clusters = useMemo(() => {
+        const MARKER_PX = 50;
+        const withY = dayEvents
+            .map((e) => ({ e, y: eventY(e.event_start_time) }))
+            .sort((a, b) => a.y - b.y);
+        const out: { id: string; y: number; events: Event[] }[] = [];
+        let prevY = -Infinity;
+        for (const { e, y } of withY) {
+            const last = out[out.length - 1];
+            if (last && y - prevY < MARKER_PX) last.events.push(e);
+            else out.push({ id: String(e.id), y, events: [e] });
+            prevY = y;
+        }
+        return out;
+    }, [dayEvents, eventY]);
 
     const bars = useMemo(
         () =>
@@ -154,6 +186,15 @@ export const EventTimeline = () => {
     );
 
     const canvasH = ALL_MINS.length * pxPerMin;
+
+    // Label every N minutes, widening the step when zoomed out so labels keep at
+    // least LABEL_MIN_GAP_PX between them and never crowd together.
+    const labelStep = useMemo(() => {
+        for (const step of [5, 10, 15, 30, 60]) {
+            if (step * pxPerMin >= LABEL_MIN_GAP_PX) return step;
+        }
+        return 60;
+    }, [pxPerMin]);
 
     // ── Timeline geometry ───────────────────────────────────────────────────────
     const minToY = useCallback(
@@ -249,6 +290,7 @@ export const EventTimeline = () => {
         setSplit(false);
         setSelectedEvent(null);
         setSingleSeekMs(null);
+        setOpenCluster(null);
     }, [selectedCameraId]);
 
     const curY = minToY(cur);
@@ -378,6 +420,10 @@ export const EventTimeline = () => {
                             className="flex-1 overflow-y-auto relative"
                             style={{ scrollbarWidth: 'thin' }}
                             onClick={(e) => {
+                                if (openCluster) {
+                                    setOpenCluster(null);
+                                    return;
+                                }
                                 if (!dragging) seekRecorded(clientYToMin(e.clientY));
                             }}
                         >
@@ -396,14 +442,12 @@ export const EventTimeline = () => {
                                     );
                                 })}
 
-                                {/* Rows */}
+                                {/* Rows: time ruler (labels every 5 min) */}
                                 {ALL_MINS.map((m, idx) => {
                                     const y = idx * pxPerMin;
                                     const min = m % 60;
-                                    const is10 = min % 10 === 0;
+                                    const isLabel = min % labelStep === 0;
                                     const isHr = min === 0;
-                                    const det = detMap.get(m);
-                                    const v = det ? visualForUsecase(det.usecase_name) : null;
 
                                     return (
                                         <div
@@ -412,7 +456,7 @@ export const EventTimeline = () => {
                                             style={{ top: y, height: pxPerMin }}
                                         >
                                             <div className="flex-shrink-0 text-right select-none w-[72px] pr-1.5">
-                                                {is10 && (
+                                                {isLabel && (
                                                     <span
                                                         className={`text-xs leading-none whitespace-nowrap ${
                                                             isHr ? 'font-bold text-gray-800' : 'text-gray-400'
@@ -427,37 +471,100 @@ export const EventTimeline = () => {
                                                 <div
                                                     className="absolute right-0 top-1/2 -translate-y-1/2"
                                                     style={{
-                                                        width: is10 ? 10 : 5,
+                                                        width: isLabel ? 10 : 5,
                                                         height: 1,
-                                                        background: is10 ? '#9ca3af' : '#e2e8f0',
+                                                        background: isLabel ? '#9ca3af' : '#e2e8f0',
                                                     }}
                                                 />
                                             </div>
 
                                             <div className="w-px h-full bg-gray-100 flex-shrink-0" />
+                                        </div>
+                                    );
+                                })}
 
-                                            {det && v && (
-                                                <>
-                                                    <div
-                                                        className={`flex-shrink-0 rounded-full z-10 -ml-1 w-2 h-2 ${v.color} border-2 border-white`}
-                                                    />
-                                                    <i
-                                                        className={`pi ${v.icon} ${v.text} ml-2 flex-shrink-0 text-sm`}
-                                                    />
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openEvent(det);
-                                                        }}
-                                                        className="ml-auto mr-3 flex flex-col items-end gap-0.5 flex-shrink-0 hover:opacity-80"
-                                                        title="Open recorded stream + AI evidence"
-                                                    >
-                                                        <EventThumb ev={det} />
-                                                        <span className="text-[10px] text-gray-500 font-medium max-w-[7rem] truncate">
-                                                            {det.usecase_name}
-                                                        </span>
-                                                    </button>
-                                                </>
+                                {/* Event markers — clustered when they would overlap */}
+                                {clusters.map((cl) => {
+                                    const single = cl.events.length === 1;
+                                    return (
+                                        <div
+                                            key={cl.id}
+                                            className="absolute right-3 z-20"
+                                            style={{ top: cl.y, transform: 'translateY(-50%)' }}
+                                        >
+                                            {single ? (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openEvent(cl.events[0]);
+                                                    }}
+                                                    className="flex flex-col items-end gap-0.5 hover:opacity-80"
+                                                    title="Open recorded stream + AI evidence"
+                                                >
+                                                    <EventThumb ev={cl.events[0]} />
+                                                    <span className="text-[10px] text-gray-500 font-medium max-w-[7rem] truncate">
+                                                        {cl.events[0].usecase_name}
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenCluster((c) => (c === cl.id ? null : cl.id));
+                                                    }}
+                                                    className="relative hover:opacity-90"
+                                                    title={`${cl.events.length} events at this time — click to expand`}
+                                                >
+                                                    {/* stacked-card effect */}
+                                                    <span className="absolute -top-1 -right-1 w-14 h-10 rounded border border-gray-200 bg-gray-300 shadow-sm" />
+                                                    <span className="absolute -top-0.5 -right-0.5 w-14 h-10 rounded border border-gray-200 bg-gray-200 shadow-sm" />
+                                                    <span className="relative block">
+                                                        <EventThumb ev={cl.events[0]} />
+                                                    </span>
+                                                    <span className="absolute -top-2 -left-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shadow ring-2 ring-white">
+                                                        {cl.events.length}
+                                                    </span>
+                                                </button>
+                                            )}
+
+                                            {!single && openCluster === cl.id && (
+                                                <div
+                                                    className="absolute right-full mr-2 top-0 w-56 max-h-72 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl p-1.5 z-50"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <div className="px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                                        {cl.events.length} events
+                                                    </div>
+                                                    {cl.events.map((ev) => {
+                                                        const ev_v = visualForUsecase(ev.usecase_name);
+                                                        return (
+                                                            <button
+                                                                key={ev.id}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setOpenCluster(null);
+                                                                    openEvent(ev);
+                                                                }}
+                                                                className="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-blue-50/60 transition text-left"
+                                                            >
+                                                                <EventThumb ev={ev} />
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-1 text-xs font-medium text-gray-800 truncate">
+                                                                        <i className={`pi ${ev_v.icon} ${ev_v.text} text-[10px]`} />
+                                                                        {ev.usecase_name}
+                                                                    </div>
+                                                                    <div className="text-[10px] text-gray-500">
+                                                                        {new Date(ev.event_start_time).toLocaleTimeString([], {
+                                                                            hour: '2-digit',
+                                                                            minute: '2-digit',
+                                                                            second: '2-digit',
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             )}
                                         </div>
                                     );

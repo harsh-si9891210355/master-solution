@@ -78,6 +78,41 @@ class EventBatch:
             raw_message=msg,
         )
 
+    # -- overlay context (from the camera/usecase/roi metadata in the message) --
+    @property
+    def camera_name(self) -> str | None:
+        return (self.raw_message.get("camera") or {}).get("name")
+
+    @property
+    def location_name(self) -> str | None:
+        cam = self.raw_message.get("camera") or {}
+        return cam.get("location") or cam.get("location_name")
+
+    @property
+    def usecase_name(self) -> str | None:
+        return (self.raw_message.get("usecase") or {}).get("name") or self.usecase_slug
+
+    @property
+    def roi_spec(self) -> dict:
+        return self.raw_message.get("roi") or {}
+
+    # -- pipeline latency timestamps (epoch ms; same-host clocks) --------------
+    @property
+    def captured_at_ms(self) -> int | None:
+        return self.raw_message.get("captured_at_ms")
+
+    @property
+    def produced_at_ms(self) -> int | None:
+        return self.raw_message.get("produced_at_ms")
+
+    @property
+    def analyzed_at_ms(self) -> int | None:
+        return self.raw_message.get("analyzed_at_ms")
+
+    @property
+    def ai_inference_ms(self) -> float | None:
+        return (self.raw_message.get("summary") or {}).get("inference_ms")
+
     def frame_times(self) -> list[datetime]:
         out = []
         for f in self.frames:
@@ -109,7 +144,8 @@ class BuiltEvent:
     is_new: bool = True
     event_id: int | None = None
 
-    def to_notification(self, usecase_slug: str | None, batch_id: str | None) -> dict[str, Any]:
+    def to_notification(self, usecase_slug: str | None, batch_id: str | None,
+                        timings: dict | None = None) -> dict[str, Any]:
         return {
             "event_id": self.event_id,
             "camera_id": self.camera_id,
@@ -123,4 +159,6 @@ class BuiltEvent:
             "raw_url": self.raw_url,
             "processed_url": self.processed_url,
             "is_new": self.is_new,
+            # Per-stage + end-to-end pipeline latency (see Aggregator).
+            "timings_ms": timings or {},
         }

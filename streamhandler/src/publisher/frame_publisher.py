@@ -38,6 +38,7 @@ import time
 from src.config import FrameTransport, RedisCleanup, settings
 from src.metrics import (
     BATCHES_PUBLISHED,
+    CAPTURE_TO_PUBLISH,
     FRAMES_PUBLISHED,
     PUBLISH_ERRORS,
     PUBLISH_LATENCY,
@@ -121,10 +122,14 @@ class FramePublisher:
                 return  # cannot publish references to frames that were not stored
 
         frames_section = self._frames_section(batch, redis_key)
+        # When the first frame of this batch was captured/decoded — the start of
+        # the end-to-end latency clock carried through the whole pipeline.
+        captured_at_ms = min(f.capture_epoch_ms for f in batch.frames)
         base_envelope = {
             "schema_version": SCHEMA_VERSION,
             "producer": settings.service_name,
             "batch_id": batch.batch_id,
+            "captured_at_ms": captured_at_ms,
             "produced_at_ms": batch.created_epoch_ms,
             "camera": camera.metadata(),
             "frames": frames_section,
@@ -134,7 +139,7 @@ class FramePublisher:
         for binding in camera.usecases:
             envelope = dict(base_envelope)
             envelope["usecase"] = binding.metadata()
-            envelope["roi"] = binding.roi.to_dict()
+            envelope["roi"] = binding.roi.to_dict() if binding.roi else None
             try:
                 payload = json.dumps(envelope, separators=(",", ":")).encode("utf-8")
                 self._broker.publish(
@@ -153,4 +158,8 @@ class FramePublisher:
 
         if published_any:
             FRAMES_PUBLISHED.labels(camera_id=str(camera_id)).inc(len(batch.frames))
+            # Time from first-frame capture to leaving the StreamHandler.
+            CAPTURE_TO_PUBLISH.labels(camera_id=str(camera_id)).observe(
+                max(0.0, (batch.created_epoch_ms - captured_at_ms) / 1000.0)
+            )
         PUBLISH_LATENCY.labels(camera_id=str(camera_id)).observe(time.monotonic() - started)
