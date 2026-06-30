@@ -290,7 +290,16 @@ export const NvrPlayer = ({
                 return;
             }
 
-            const clipStart = Math.max(span.startMs, targetMs - config.playback_padding_before_s * 1000);
+            // MediaMTX records segment starts with microsecond precision, but a
+            // span's startMs is floored to milliseconds by `new Date(...).getTime()`.
+            // When the clip snaps exactly to a span start, the floored value is a
+            // fraction of a ms BEFORE the real segment, so `/get` 404s (the start
+            // lands in the gap before the segment). Nudge forward by 1ms to land
+            // inside the segment — the true start is always < startMs + 1ms.
+            const SEGMENT_START_EPSILON_MS = 1;
+            const rawClipStart = Math.max(span.startMs, targetMs - config.playback_padding_before_s * 1000);
+            const clipStart =
+                rawClipStart <= span.startMs ? span.startMs + SEGMENT_START_EPSILON_MS : rawClipStart;
             const desiredEnd = targetMs + config.playback_padding_after_s * 1000;
             const maxEnd = clipStart + config.playback_max_duration_s * 1000;
             const minEnd = clipStart + config.playback_min_duration_s * 1000;

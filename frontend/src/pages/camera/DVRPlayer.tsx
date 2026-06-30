@@ -833,13 +833,23 @@ export const DVRPlayer = ({
                     targetMs
                 );
 
-            const clipStartMs =
+            // MediaMTX records segment starts with microsecond precision, but
+            // span.startMs is floored to ms by `new Date(...).getTime()`. When the
+            // clip snaps exactly to a span start, the floored value is a fraction
+            // of a ms BEFORE the real segment, so `/get` 404s. Nudge forward 1ms.
+            const SEGMENT_START_EPSILON_MS = 1;
+            const rawClipStartMs =
                 Math.max(
                     span.startMs,
                     targetMs -
                         config.playback_padding_before_s *
                             1000
                 );
+            const clipStartMs =
+                rawClipStartMs <= span.startMs
+                    ? span.startMs +
+                      SEGMENT_START_EPSILON_MS
+                    : rawClipStartMs;
 
             const desiredEndMs =
                 targetMs +
