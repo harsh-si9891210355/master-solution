@@ -1314,9 +1314,34 @@ export const DVRPlayer = ({
                 }}
                 onEnded={() => {
                     if (
-                        mode ===
+                        mode !==
                         'playback'
                     ) {
+                        return;
+                    }
+                    // Continue into the next recorded span if one exists before the
+                    // live edge; only go live when there is no more footage ahead.
+                    const clip =
+                        activeClipRef.current;
+                    const next = clip
+                        ? normalizedSpans.find(
+                              (s) =>
+                                  s.startMs >=
+                                  clip.endMs
+                          )
+                        : null;
+                    if (
+                        next &&
+                        (latestMs ===
+                            null ||
+                            next.startMs <
+                                latestMs -
+                                    DVR_EDGE_SAFETY_MS)
+                    ) {
+                        void startPlaybackAt(
+                            next.startMs
+                        );
+                    } else {
                         void goLive();
                     }
                 }}

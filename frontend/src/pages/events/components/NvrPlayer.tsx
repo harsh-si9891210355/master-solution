@@ -14,6 +14,13 @@ import { cameraService, type StreamConfig } from '../../camera/api/cameraService
 // ─────────────────────────────────────────────────────────────────────────────
 
 const EDGE_SAFETY_MS = 5_000;
+// When a seek lands in a recording gap and we snap BACKWARD over the hole, jump
+// to this far before the previous segment's end so its tail actually plays.
+// Landing exactly on the end would play nothing and immediately advance again.
+const GAP_REWIND_TAIL_MS = 10_000;
+
+// Which direction to resolve a seek that falls inside a recording gap.
+type SnapBias = 'nearest' | 'backward' | 'forward';
 
 const DEFAULT_CONFIG: StreamConfig = {
     recording_poll_interval_ms: 2000,
@@ -248,17 +255,25 @@ export const NvrPlayer = ({
     );
 
     // Recordings can have gaps (no footage for a stretch of wall-clock time).
-    // When a seek target lands in a gap, snap it BACK to the last footage before
-    // it (the end of the previous span) so a rewind never skips forward over the
-    // hole — which is what made "back 10s" jump 20s/40s/1min. Only when there is
-    // no earlier footage do we snap forward to the first available recording.
+    // When a seek target lands in a gap, snap it to real footage. The direction
+    // depends on intent (`bias`):
+    //   • 'forward'  — jump to the next segment (opening an event / skipping ahead);
+    //   • 'backward' — jump back over the hole into the previous segment, landing a
+    //     few seconds before its end so the tail plays instead of ending instantly
+    //     (a plain rewind must never skip forward over the hole back to where it was);
+    //   • 'nearest'  — pick whichever edge is closer (absolute drags / initial open).
     const snapToFootage = useCallback(
-        (targetMs: number): number | null => {
+        (targetMs: number, bias: SnapBias = 'nearest'): number | null => {
             if (spans.length === 0) return null;
             if (spans.some((s) => targetMs >= s.startMs && targetMs < s.endMs)) return targetMs;
-            const prior = [...spans].reverse().find((s) => s.endMs <= targetMs);
-            if (prior) return prior.endMs - 1;
-            return spans[0].startMs;
+            const prev = [...spans].reverse().find((s) => s.endMs <= targetMs);
+            const next = spans.find((s) => s.startMs > targetMs);
+            const back = prev ? Math.max(prev.startMs, prev.endMs - GAP_REWIND_TAIL_MS) : null;
+            if (bias === 'backward') return back ?? next?.startMs ?? spans[0].startMs;
+            if (bias === 'forward') return next?.startMs ?? back ?? spans[0].startMs;
+            if (prev && next)
+                return targetMs - prev.endMs <= next.startMs - targetMs ? back : next.startMs;
+            return next?.startMs ?? back ?? spans[0].startMs;
         },
         [spans],
     );
@@ -272,16 +287,17 @@ export const NvrPlayer = ({
     }, [attachLive]);
 
     const startPlaybackAt = useCallback(
-        (rawTargetMs: number) => {
+        (rawTargetMs: number, bias: SnapBias = 'nearest') => {
             if (!playbackGetBaseUrl || spans.length === 0) {
                 setMode('playback');
                 setStatus('error');
                 setErrorMsg('No recordings are available yet');
                 return;
             }
-            // Snap targets that fall in a recording gap to real footage (backward)
-            // before computing the clip, so seeks land on actual recorded video.
-            const targetMs = snapToFootage(rawTargetMs) ?? rawTargetMs;
+            // Snap targets that fall in a recording gap to real footage (in the
+            // requested direction) before computing the clip, so seeks land on
+            // actual recorded video.
+            const targetMs = snapToFootage(rawTargetMs, bias) ?? rawTargetMs;
             const span = findSpan(targetMs);
             if (!span || targetMs < spans[0].startMs || targetMs > spans[spans.length - 1].endMs) {
                 setMode('playback');
@@ -341,7 +357,13 @@ export const NvrPlayer = ({
                 setDisplayMs(clamped);
                 return;
             }
-            startPlaybackAt(clamped);
+            // Resolve gaps in the direction of travel so a rewind snaps back over a
+            // hole (never forward to where it started) and a forward seek snaps ahead.
+            const currentWall =
+                mode === 'playback' && video && clip ? clip.startMs + video.currentTime * 1000 : null;
+            const bias: SnapBias =
+                currentWall == null ? 'nearest' : clamped < currentWall ? 'backward' : 'forward';
+            startPlaybackAt(clamped, bias);
         },
         [earliestMs, goLive, mode, rawLatestMs, startPlaybackAt],
     );
@@ -471,7 +493,19 @@ export const NvrPlayer = ({
                     className="w-full h-full"
                     style={{ objectFit }}
                     onTimeUpdate={handleTimeUpdate}
-                    onEnded={() => mode === 'playback' && goLive()}
+                    onEnded={() => {
+                        if (mode !== 'playback') return;
+                        // When a clip ends, continue into the next recorded span if
+                        // one exists before the live edge; only fall through to live
+                        // when there is genuinely no more footage ahead.
+                        const clip = activeClipRef.current;
+                        const next = clip ? spans.find((s) => s.startMs >= clip.endMs) : null;
+                        if (next && (latestMs == null || next.startMs < latestMs - EDGE_SAFETY_MS)) {
+                            startPlaybackAt(next.startMs);
+                        } else {
+                            goLive();
+                        }
+                    }}
                 />
 
                 {(status === 'connecting' || status === 'idle') && (
