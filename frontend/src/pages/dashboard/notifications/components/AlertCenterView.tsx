@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAlertStore } from '@/store/alertStore';
 import { alertService, type AlertFilters } from '../api/alertService';
 import { CATEGORIES, CATEGORY_LABEL, formatTime, SEVERITIES, SEVERITY_COLOR, STATUS_COLOR, STATUSES } from '../constants';
-import type { Alert } from '../types';
+import type { Alert, Severity } from '../types';
 import { AlertDrawer } from './AlertDrawer';
 
 const Pill = ({ label, color }: { label: string; color: string }) => (
@@ -15,9 +15,21 @@ const Pill = ({ label, color }: { label: string; color: string }) => (
     </span>
 );
 
+const SEVERITY_RANK: Record<Severity, number> = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 };
+
+interface AlertGroup {
+    key: string;
+    alerts: Alert[];
+    latest: Alert;
+    count: number;
+    topSeverity: Severity;
+}
+
 export function AlertCenterView() {
     const [filters, setFilters] = useState<AlertFilters>({ page: 1, page_size: 25 });
     const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [grouped, setGrouped] = useState(true);
+    const [expanded, setExpanded] = useState<Set<string>>(new Set());
     const isConnected = useAlertStore((s) => s.isConnected);
     const liveAlerts = useAlertStore((s) => s.alerts);
 
@@ -49,6 +61,61 @@ export function AlertCenterView() {
         [rows],
     );
 
+    // Bundle repeated alerts (same title + location) into one expandable row.
+    const groups = useMemo<AlertGroup[]>(() => {
+        const map = new Map<string, Alert[]>();
+        for (const a of rows) {
+            const key = `${a.title}__${a.location_id}`;
+            const arr = map.get(key);
+            if (arr) arr.push(a);
+            else map.set(key, [a]);
+        }
+        return Array.from(map.values())
+            .map((alerts) => {
+                const latest = alerts.reduce((m, a) =>
+                    new Date(a.event_start_time).getTime() > new Date(m.event_start_time).getTime() ? a : m, alerts[0]);
+                const topSeverity = alerts.reduce<Severity>((m, a) =>
+                    SEVERITY_RANK[a.severity] > SEVERITY_RANK[m] ? a.severity : m, alerts[0].severity);
+                return { key: `${latest.title}__${latest.location_id}`, alerts, latest, count: alerts.length, topSeverity };
+            })
+            .sort((a, b) =>
+                new Date(b.latest.event_start_time).getTime() - new Date(a.latest.event_start_time).getTime());
+    }, [rows]);
+
+    const toggleGroup = (key: string) =>
+        setExpanded((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+
+    const renderRow = (alert: Alert, nested = false) => (
+        <tr key={alert.id} className={`border-b border-slate-50 hover:bg-slate-50/70 ${nested ? 'bg-slate-50/40' : ''}`}>
+            <td className={`px-4 py-3 whitespace-nowrap text-slate-500 ${nested ? 'pl-10' : ''}`}>{formatTime(alert.event_start_time)}</td>
+            <td className="px-4 py-3"><Pill label={alert.severity} color={SEVERITY_COLOR[alert.severity]} /></td>
+            <td className="px-4 py-3 font-medium text-slate-800">
+                {alert.title}
+                {alert.occurrence_count > 1 && (
+                    <span className="ml-2 text-xs text-slate-400">×{alert.occurrence_count}</span>
+                )}
+            </td>
+            <td className="px-4 py-3 text-slate-600">{CATEGORY_LABEL[alert.category]}</td>
+            <td className="px-4 py-3 text-slate-600">{alert.location_name}</td>
+            <td className="px-4 py-3 text-slate-600">{alert.camera_name}</td>
+            <td className="px-4 py-3"><Pill label={alert.status} color={STATUS_COLOR[alert.status]} /></td>
+            <td className="px-4 py-3 text-right">
+                <button
+                    type="button"
+                    onClick={() => setSelectedId(alert.id)}
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-cyan-600 hover:bg-cyan-50"
+                >
+                    View
+                </button>
+            </td>
+        </tr>
+    );
+
     return (
         <div className="space-y-4">
             {/* Header / filters */}
@@ -70,7 +137,7 @@ export function AlertCenterView() {
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <select className={selectClass} value={filters.severity ?? ''} onChange={(e) => updateFilter({ severity: e.target.value || undefined })}>
                     <option value="">All Severities</option>
                     {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -83,6 +150,17 @@ export function AlertCenterView() {
                     <option value="">All Categories</option>
                     {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
                 </select>
+
+                {/* Smart grouping toggle — bundles repeated alerts so the list isn't flooded. */}
+                <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                    <input
+                        type="checkbox"
+                        checked={grouped}
+                        onChange={(e) => setGrouped(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-400/40"
+                    />
+                    Group similar alerts
+                </label>
             </div>
 
             {/* Table */}
@@ -107,31 +185,37 @@ export function AlertCenterView() {
                         {!isLoading && rows.length === 0 && (
                             <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">No alerts yet. Detections will appear here in real time.</td></tr>
                         )}
-                        {rows.map((alert: Alert) => (
-                            <tr key={alert.id} className="border-b border-slate-50 hover:bg-slate-50/70">
-                                <td className="px-4 py-3 whitespace-nowrap text-slate-500">{formatTime(alert.event_start_time)}</td>
-                                <td className="px-4 py-3"><Pill label={alert.severity} color={SEVERITY_COLOR[alert.severity]} /></td>
-                                <td className="px-4 py-3 font-medium text-slate-800">
-                                    {alert.title}
-                                    {alert.occurrence_count > 1 && (
-                                        <span className="ml-2 text-xs text-slate-400">×{alert.occurrence_count}</span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3 text-slate-600">{CATEGORY_LABEL[alert.category]}</td>
-                                <td className="px-4 py-3 text-slate-600">{alert.location_name}</td>
-                                <td className="px-4 py-3 text-slate-600">{alert.camera_name}</td>
-                                <td className="px-4 py-3"><Pill label={alert.status} color={STATUS_COLOR[alert.status]} /></td>
-                                <td className="px-4 py-3 text-right">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedId(alert.id)}
-                                        className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-cyan-600 hover:bg-cyan-50"
+
+                        {/* Flat view */}
+                        {!grouped && rows.map((alert) => renderRow(alert))}
+
+                        {/* Grouped view — single alerts render directly, repeats collapse into one row. */}
+                        {grouped && groups.map((group) => {
+                            if (group.count === 1) return renderRow(group.latest);
+                            const isOpen = expanded.has(group.key);
+                            return (
+                                <Fragment key={group.key}>
+                                    <tr
+                                        className="cursor-pointer border-b border-slate-100 bg-slate-50/60 hover:bg-slate-100/70"
+                                        onClick={() => toggleGroup(group.key)}
                                     >
-                                        View
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                        <td className="px-4 py-3 whitespace-nowrap text-slate-500">{formatTime(group.latest.event_start_time)}</td>
+                                        <td className="px-4 py-3"><Pill label={group.topSeverity} color={SEVERITY_COLOR[group.topSeverity]} /></td>
+                                        <td className="px-4 py-3 font-medium text-slate-800">
+                                            <span className="mr-1.5 inline-block text-slate-400">{isOpen ? '▾' : '▸'}</span>
+                                            {group.latest.title}
+                                            <span className="ml-2 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-600">{group.count}</span>
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-600">{CATEGORY_LABEL[group.latest.category]}</td>
+                                        <td className="px-4 py-3 text-slate-600">{group.latest.location_name}</td>
+                                        <td className="px-4 py-3 text-slate-400">—</td>
+                                        <td className="px-4 py-3 text-xs text-slate-400">{group.count} events</td>
+                                        <td className="px-4 py-3 text-right text-xs font-medium text-cyan-600">{isOpen ? 'Hide' : 'Expand'}</td>
+                                    </tr>
+                                    {isOpen && group.alerts.map((alert) => renderRow(alert, true))}
+                                </Fragment>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

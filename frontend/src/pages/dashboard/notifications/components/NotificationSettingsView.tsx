@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/ToastProvider';
 import { notificationService } from '../api/notificationService';
 import { disableWebPush, enableWebPush, isWebPushSupported } from '@/lib/webpush';
 import type { NotificationPreference, Severity } from '../types';
+import { EscalationBuilderView } from './EscalationBuilderView';
 
 const Toggle = ({ on, onChange, disabled }: { on: boolean; onChange: () => void; disabled?: boolean }) => (
     <button
@@ -26,7 +27,7 @@ const Row = ({ title, subtitle, children }: { title: string; subtitle?: string; 
     </div>
 );
 
-type TabKey = 'channels' | 'preferences' | 'quiet' | 'sound';
+type TabKey = 'channels' | 'preferences' | 'quiet' | 'sound' | 'escalation';
 
 export function NotificationSettingsView() {
     const toast = useToast();
@@ -40,9 +41,8 @@ export function NotificationSettingsView() {
     });
     useEffect(() => { if (data) setPref(data); }, [data]);
 
-    if (!pref) return <div className="py-10 text-center text-slate-400">Loading settings…</div>;
-
-    const patch = (p: Partial<NotificationPreference>) => setPref({ ...pref, ...p });
+    const patch = (p: Partial<NotificationPreference>) =>
+        setPref((prev) => (prev ? { ...prev, ...p } : prev));
 
     const persist = async (p: Partial<NotificationPreference>) => {
         setSaving(true);
@@ -58,6 +58,7 @@ export function NotificationSettingsView() {
     };
 
     const toggleWebPush = async () => {
+        if (!pref) return;
         if (!pref.web_push_enabled) {
             const result = await enableWebPush();
             if (!result.ok) {
@@ -76,25 +77,36 @@ export function NotificationSettingsView() {
         { key: 'preferences', label: 'User Preferences' },
         { key: 'quiet', label: 'Quiet Hours' },
         { key: 'sound', label: 'Sound' },
+        { key: 'escalation', label: 'Escalation' },
     ];
 
-    const input = 'rounded-lg border border-slate-300 px-3 py-2 text-sm';
+    const input = 'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700';
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="mb-4 flex gap-2 border-b border-slate-100">
+        <div className="space-y-4">
+            <div className="flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white px-3">
                 {TABS.map((t) => (
                     <button
                         key={t.key}
                         type="button"
                         onClick={() => setTab(t.key)}
-                        className={`px-3 py-2 text-sm font-medium ${tab === t.key ? 'border-b-2 border-cyan-500 text-cyan-600' : 'text-slate-500'}`}
+                        className={`whitespace-nowrap px-3 py-3 text-sm font-medium ${tab === t.key ? 'border-b-2 border-cyan-500 text-cyan-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         {t.label}
                     </button>
                 ))}
             </div>
 
+            {tab === 'escalation' && <EscalationBuilderView />}
+
+            {!pref && tab !== 'escalation' && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 py-10 text-center text-slate-400">
+                    Loading settings…
+                </div>
+            )}
+
+            {pref && tab !== 'escalation' && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
             {tab === 'channels' && (
                 <div>
                     <Row title="In-App (Web)" subtitle="Real-time alerts inside the application">
@@ -169,6 +181,8 @@ export function NotificationSettingsView() {
                         <button type="button" disabled={saving} onClick={() => persist({ sound_enabled: pref.sound_enabled, sound_name: pref.sound_name })} className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">Save</button>
                     </div>
                 </div>
+            )}
+            </div>
             )}
         </div>
     );

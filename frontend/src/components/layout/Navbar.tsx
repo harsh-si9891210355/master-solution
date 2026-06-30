@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAlertStore } from '@/store/alertStore'
 import { useNsTranslation } from '@/hooks/Usetranslation'
 import { DeleteModalPopup } from '@/components/ui/DeleteModalPopup'
+import { SEVERITY_COLOR, formatTime } from '@/pages/dashboard/notifications/constants'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -20,14 +21,24 @@ export default function Navbar() {
   const unreadCount = useAlertStore((s) => s.unreadCount)
   const isConnected = useAlertStore((s) => s.isConnected)
   const markAllRead = useAlertStore((s) => s.markAllRead)
-
-  const handleBellClick = () => {
-    markAllRead()
-    navigate('/dashboard?tab=notifications')
-  }
+  const alerts = useAlertStore((s) => s.alerts)
 
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [bellOpen, setBellOpen] = useState(false)
+  const bellRef = useRef<HTMLDivElement>(null)
+
+  // Clicking the bell now opens a quick-view popover instead of jumping away
+  // (and silently marking everything read). Users mark read or "view all" on purpose.
+  const handleBellClick = () => setBellOpen((o) => !o)
+
+  const goToAlerts = (markRead = true) => {
+    if (markRead) markAllRead()
+    setBellOpen(false)
+    navigate('/dashboard?tab=notifications&view=alerts')
+  }
+
+  const recentAlerts = alerts.slice(0, 6)
 
   const firstName = user?.first_name ?? ''
   const lastName = user?.last_name ?? ''
@@ -44,6 +55,16 @@ export default function Navbar() {
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
   }, [open])
+
+  // Close the bell popover when clicking outside.
+  useEffect(() => {
+    if (!bellOpen) return
+    const onClick = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setBellOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [bellOpen])
 
   const handleEditProfile = () => {
     setOpen(false)
@@ -83,6 +104,7 @@ export default function Navbar() {
 
       {/* Right — notification bell + profile dropdown */}
       <div className="flex items-center gap-3">
+        <div className="relative" ref={bellRef}>
         <button
           type="button"
           onClick={handleBellClick}
@@ -101,6 +123,66 @@ export default function Navbar() {
             </span>
           )}
         </button>
+
+        {/* Quick-view popover — peek at recent alerts without leaving the page. */}
+        {bellOpen && (
+          <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-800">Notifications</span>
+                {unreadCount > 0 && (
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-600">
+                    {unreadCount > 99 ? '99+' : unreadCount} new
+                  </span>
+                )}
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  className="text-xs font-medium text-cyan-600 hover:text-cyan-700"
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-80 overflow-y-auto">
+              {recentAlerts.length === 0 ? (
+                <p className="px-4 py-8 text-center text-sm text-gray-400">You're all caught up.</p>
+              ) : (
+                recentAlerts.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => goToAlerts()}
+                    className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                  >
+                    <span
+                      className="mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                      style={{ background: SEVERITY_COLOR[a.severity] }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-gray-700">{a.title}</span>
+                      <span className="block text-xs text-gray-400">
+                        {a.location_name} · {formatTime(a.event_start_time)}
+                      </span>
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => goToAlerts()}
+              className="w-full border-t border-gray-100 px-4 py-2.5 text-center text-sm font-medium text-cyan-600 hover:bg-cyan-50"
+            >
+              View all alerts
+            </button>
+          </div>
+        )}
+        </div>
 
         <div className="relative" ref={menuRef}>
         <button
