@@ -90,6 +90,10 @@ export const EventTimeline = () => {
     const [dragging, setDragging] = useState(false);
     const [pxPerMin, setPxPerMin] = useState(DEFAULT_ZOOM);
     const [openCluster, setOpenCluster] = useState<string | null>(null);
+    // "Go to time" input (24h "HH:MM" or "HH:MM:SS"); seeded with the current marker.
+    const [timeInput, setTimeInput] = useState(
+        () => `${String(Math.floor(cur / 60)).padStart(2, '0')}:${String(cur % 60).padStart(2, '0')}`,
+    );
 
     const tlRef = useRef<HTMLDivElement>(null);
 
@@ -234,6 +238,29 @@ export const EventTimeline = () => {
         },
         [selectedDate],
     );
+
+    // Seek the single recorded player to an exact wall-clock ms on the selected day.
+    const seekRecordedAtMs = useCallback((ms: number) => {
+        const d = new Date(ms);
+        setCur(d.getHours() * 60 + d.getMinutes());
+        setSplit(false);
+        setSelectedEvent(null);
+        setSingleSeekMs(ms);
+    }, []);
+
+    // Parse the "Go to time" field ("HH:MM" / "HH:MM:SS", 24h) and seek to that
+    // moment on the currently-selected day.
+    const jumpToTime = useCallback(() => {
+        const m = timeInput.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (!m) return;
+        const h = Number(m[1]);
+        const min = Number(m[2]);
+        const sec = m[3] ? Number(m[3]) : 0;
+        if (h > 23 || min > 59 || sec > 59) return;
+        const d = startOfDay(selectedDate);
+        d.setHours(h, min, sec, 0);
+        seekRecordedAtMs(d.getTime());
+    }, [timeInput, selectedDate, seekRecordedAtMs]);
 
     const openEvent = (ev: Event) => {
         setSelectedEvent(ev);
@@ -395,6 +422,28 @@ export const EventTimeline = () => {
                             />
                             <i className="pi pi-search-plus text-gray-400 text-xs" />
                         </div>
+                    </div>
+
+                    {/* Go to a custom time */}
+                    <div className="flex items-center gap-2 px-4 py-1.5 border-b border-gray-200 flex-shrink-0">
+                        <i className="pi pi-clock text-gray-400 text-xs" />
+                        <span className="text-[11px] font-medium text-gray-500 whitespace-nowrap">Go to time</span>
+                        <input
+                            type="time"
+                            step={1}
+                            value={timeInput}
+                            onChange={(e) => setTimeInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') jumpToTime();
+                            }}
+                            className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                        />
+                        <button
+                            onClick={jumpToTime}
+                            className="ml-auto px-3 py-1 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
+                        >
+                            Play
+                        </button>
                     </div>
 
                     {/* Tabs */}
