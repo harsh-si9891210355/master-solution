@@ -56,7 +56,7 @@ export function CommandView() {
                 <button
                     type="button"
                     onClick={sendTest}
-                    className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600"
+                    className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                 >
                     Send Test Alert
                 </button>

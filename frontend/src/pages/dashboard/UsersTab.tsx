@@ -84,7 +84,7 @@ export const UsersLogin = ({ data, locale }: { data: UsersTabData; locale: strin
                             <stop offset="95%" stopColor={COLOR_PRIMARY} stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
                     <XAxis dataKey="date" tick={{ fill: '#64748B', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#64748B', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip formatter={((v: any) => [Number(v).toLocaleString(locale), t('users_tab.login_activity.tooltip_label')]) as any} />

@@ -54,7 +54,7 @@ export function AlertCenterView() {
         setFilters((f) => ({ ...f, ...patch, page: patch.page ?? 1 }));
 
     const selectClass =
-        'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/40';
+        'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40';
 
     const activeCount = useMemo(
         () => rows.filter((a) => !['RESOLVED', 'CLOSED'].includes(a.status)).length,
@@ -108,7 +108,7 @@ export function AlertCenterView() {
                 <button
                     type="button"
                     onClick={() => setSelectedId(alert.id)}
-                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-cyan-600 hover:bg-cyan-50"
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
                 >
                     View
                 </button>
@@ -157,7 +157,7 @@ export function AlertCenterView() {
                         type="checkbox"
                         checked={grouped}
                         onChange={(e) => setGrouped(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-400/40"
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/40"
                     />
                     Group similar alerts
                 </label>
@@ -210,7 +210,7 @@ export function AlertCenterView() {
                                         <td className="px-4 py-3 text-slate-600">{group.latest.location_name}</td>
                                         <td className="px-4 py-3 text-slate-400">—</td>
                                         <td className="px-4 py-3 text-xs text-slate-400">{group.count} events</td>
-                                        <td className="px-4 py-3 text-right text-xs font-medium text-cyan-600">{isOpen ? 'Hide' : 'Expand'}</td>
+                                        <td className="px-4 py-3 text-right text-xs font-medium text-blue-700">{isOpen ? 'Hide' : 'Expand'}</td>
                                     </tr>
                                     {isOpen && group.alerts.map((alert) => renderRow(alert, true))}
                                 </Fragment>

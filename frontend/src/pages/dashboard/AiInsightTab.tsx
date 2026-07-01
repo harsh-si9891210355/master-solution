@@ -185,15 +185,15 @@ function Ring({ score, color, label }: { score: number; color: string; label: st
   const r = 32, cx = 40, cy = 40, circ = 2 * Math.PI * r;
   return (
     <svg width="80" height="80" viewBox="0 0 80 80">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(15,23,42,0.06)" strokeWidth="7" />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="7"
         strokeDasharray={circ} strokeDashoffset={circ * (1 - score / 100)}
         strokeLinecap="round" transform={`rotate(-90 ${cx} ${cy})`}
         style={{ transition: 'stroke-dashoffset 1s ease' }} />
       <text x={cx} y={cy - 4} fill={color} textAnchor="middle" dominantBaseline="middle"
-        fontSize="18" fontWeight="700" fontFamily="'DM Mono', monospace">{score}</text>
+        fontSize="18" fontWeight="700" fontFamily="inherit">{score}</text>
       <text x={cx} y={cy + 13} fill="var(--text-muted,#6B7FA3)" textAnchor="middle"
-        fontSize="9" fontFamily="'Outfit',sans-serif">{label}</text>
+        fontSize="9" fontFamily="inherit">{label}</text>
     </svg>
   );
 }
@@ -209,9 +209,9 @@ function StripCell({ domain, data, active, onClick }: {
   return (
     <div onClick={onClick} style={{
       flex: 1, padding: '16px 18px', cursor: 'pointer',
-      background: active ? 'rgba(255,255,255,0.03)' : 'transparent',
+      background: active ? 'rgba(15,23,42,0.03)' : 'transparent',
       borderBottom: active ? `2px solid ${accent}` : '2px solid transparent',
-      borderRight: domain !== 'users' ? '1px solid var(--border-default,rgba(255,255,255,0.07))' : 'none',
+      borderRight: domain !== 'users' ? '1px solid var(--border-default,rgba(15,23,42,0.07))' : 'none',
       transition: 'all 0.2s ease',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -222,11 +222,11 @@ function StripCell({ domain, data, active, onClick }: {
           {data.severityLabel}
         </span>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 800, color: accent, fontFamily: 'monospace', letterSpacing: '-1px', lineHeight: 1 }}>
+      <div style={{ fontSize: 26, fontWeight: 800, color: accent, fontFamily: 'inherit', letterSpacing: '-1px', lineHeight: 1 }}>
         {data.kpis[0].value}
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-muted,#6B7FA3)', margin: '3px 0 10px' }}>{data.kpis[0].sub}</div>
-      <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden', marginBottom: 7 }}>
+      <div style={{ height: 3, background: 'rgba(15,23,42,0.06)', borderRadius: 99, overflow: 'hidden', marginBottom: 7 }}>
         <div style={{ height: '100%', width: `${barPct}%`, background: accent, borderRadius: 99 }} />
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-muted,#6B7FA3)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -244,7 +244,7 @@ function DetailPane({ domain, data, t }: { domain: DomainKey; data: InsightDataM
   const d = data[domain];
   const signalIcon: Record<SignalType, string> = { up: '↑', warn: '⚠', info: '●', down: '↓' };
   return (
-    <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-default,rgba(255,255,255,0.07))', background: 'rgba(0,0,0,0.15)' }}>
+    <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-default,rgba(15,23,42,0.07))', background: '#f8fafc' }}>
       <p style={{ fontSize: 13, color: 'var(--text-dimmer,#8899BB)', lineHeight: 1.7, marginBottom: 14 }}>{d.headline}</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
@@ -254,7 +254,7 @@ function DetailPane({ domain, data, t }: { domain: DomainKey; data: InsightDataM
               <span style={{ fontSize: 14 }}>{k.icon}</span>
               <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-muted,#6B7FA3)' }}>{k.label}</span>
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'monospace', color: k.accent, letterSpacing: '-0.5px' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'inherit', color: k.accent, letterSpacing: '-0.5px' }}>
               <AnimCount target={parseInt(k.value.replace(/,/g, ''), 10)} />
             </div>
             <div style={{ fontSize: 10, color: 'var(--text-muted,#6B7FA3)', marginTop: 2 }}>{k.sub}</div>
@@ -290,7 +290,7 @@ function DetailPane({ domain, data, t }: { domain: DomainKey; data: InsightDataM
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border-default,rgba(255,255,255,0.07))', paddingTop: 12 }}>
+      <div style={{ borderTop: '1px solid var(--border-default,rgba(15,23,42,0.07))', paddingTop: 12 }}>
         <div style={{ fontSize: 10, color: 'var(--text-muted,#6B7FA3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '1px' }}>
           {t('ai_insight_tab.recommended_actions')}
         </div>
@@ -339,18 +339,18 @@ function TimelineView({ t }: { t: (k: string) => string }) {
         </span>
         <div style={{ display: 'flex', gap: 5 }}>
           {filterKeys.map(f => (
-            <button key={f.key} onClick={() => setFilter(f.key)} style={{ fontSize: 11, fontWeight: 600, padding: '4px 12px', borderRadius: 99, border: '1px solid', borderColor: filter === f.key ? 'rgba(255,255,255,0.18)' : 'var(--border-default,rgba(255,255,255,0.07))', background: filter === f.key ? 'rgba(255,255,255,0.07)' : 'transparent', color: filter === f.key ? 'var(--text-heading,#fff)' : 'var(--text-muted,#6B7FA3)', cursor: 'pointer' }}>
+            <button key={f.key} onClick={() => setFilter(f.key)} style={{ fontSize: 11, fontWeight: 600, padding: '4px 12px', borderRadius: 99, border: '1px solid', borderColor: filter === f.key ? 'rgba(15,23,42,0.18)' : 'var(--border-default,rgba(15,23,42,0.07))', background: filter === f.key ? 'rgba(15,23,42,0.07)' : 'transparent', color: filter === f.key ? 'var(--text-heading,#fff)' : 'var(--text-muted,#6B7FA3)', cursor: 'pointer' }}>
               {t(f.tKey)}
             </button>
           ))}
         </div>
       </div>
       <div style={{ position: 'relative', paddingLeft: 22 }}>
-        <div style={{ position: 'absolute', left: 7, top: 6, bottom: 6, width: 1, background: 'var(--border-default,rgba(255,255,255,0.07))' }} />
+        <div style={{ position: 'absolute', left: 7, top: 6, bottom: 6, width: 1, background: 'var(--border-default,rgba(15,23,42,0.07))' }} />
         {filtered.map((item, i) => (
           <div key={i} style={{ position: 'relative', paddingBottom: 16 }}>
             <div style={{ position: 'absolute', left: -15, top: 4, width: 10, height: 10, borderRadius: '50%', background: dotColor[item.sev], border: '2px solid var(--bg-card,#0D1320)', boxShadow: item.sev === 'critical' ? `0 0 8px ${dotColor[item.sev]}` : 'none' }} />
-            <div style={{ fontSize: 10, color: 'var(--text-muted,#6B7FA3)', fontFamily: 'monospace', marginBottom: 3 }}>{item.time}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted,#6B7FA3)', fontFamily: 'inherit', marginBottom: 3 }}>{item.time}</div>
             <div style={{ fontSize: 12, color: 'var(--text-primary,#F0F4FF)', lineHeight: 1.55, marginBottom: 6 }}>{item.text}</div>
             <div style={{ display: 'flex', gap: 5 }}>
               <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: SEV[item.sev].bg, color: SEV[item.sev].text, border: `1px solid ${SEV[item.sev].border}` }}>
@@ -400,7 +400,7 @@ function HealthView({ t }: { t: (k: string) => string }) {
     <div style={{ padding: '16px 20px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
         {scores.map(s => (
-          <div key={s.title} style={{ background: 'var(--bg-card-inner,#111827)', borderRadius: 12, padding: '14px 16px', border: '1px solid var(--border-default,rgba(255,255,255,0.07))' }}>
+          <div key={s.title} style={{ background: 'var(--bg-card-inner,#111827)', borderRadius: 12, padding: '14px 16px', border: '1px solid var(--border-default,rgba(15,23,42,0.07))' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-heading,#fff)' }}>{s.title}</span>
               <span style={{ fontSize: 13, width: 28, height: 28, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${s.color}18`, border: `1px solid ${s.color}30` }}>{s.icon}</span>
@@ -413,9 +413,9 @@ function HealthView({ t }: { t: (k: string) => string }) {
                 <div key={r.label}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, color: 'var(--text-muted,#6B7FA3)' }}>{r.label}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', color: r.color }}>{r.val}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'inherit', color: r.color }}>{r.val}</span>
                   </div>
-                  <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ height: 3, background: 'rgba(15,23,42,0.06)', borderRadius: 99, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${r.pct}%`, background: r.color, borderRadius: 99 }} />
                   </div>
                 </div>
@@ -452,10 +452,10 @@ export const AIInsightTab = () => {
 
   return (
     <div style={{ paddingTop: 14 }}>
-      <div style={{ background: 'var(--bg-card,#0D1320)', border: '1px solid var(--border-default,rgba(255,255,255,0.07))', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--shadow-card,0 4px 24px rgba(0,0,0,0.4))' }}>
+      <div style={{ background: 'var(--bg-card,#0D1320)', border: '1px solid var(--border-default,rgba(15,23,42,0.07))', borderRadius: 18, overflow: 'hidden', boxShadow: 'var(--shadow-card,0 4px 24px rgba(0,0,0,0.4))' }}>
 
         {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: '1px solid var(--border-default,rgba(255,255,255,0.07))', background: 'var(--bg-surface,#141C2E)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: '1px solid var(--border-default,rgba(15,23,42,0.07))', background: 'var(--bg-surface,#141C2E)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: C_EMERALD, display: 'inline-block', animation: 'db-pulse 2s infinite' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-heading,#fff)' }}>{t('ai_insight_tab.title')}</span>
@@ -464,14 +464,14 @@ export const AIInsightTab = () => {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ display: 'flex', gap: 2, background: 'var(--bg-card-inner,#111827)', border: '1px solid var(--border-default,rgba(255,255,255,0.07))', borderRadius: 10, padding: 3 }}>
+            <div style={{ display: 'flex', gap: 2, background: 'var(--bg-card-inner,#111827)', border: '1px solid var(--border-default,rgba(15,23,42,0.07))', borderRadius: 10, padding: 3 }}>
               {viewBtns.map(b => (
                 <button key={b.key} onClick={() => setView(b.key)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 7, fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: view === b.key ? 'var(--bg-surface-3,#1F2D47)' : 'transparent', color: view === b.key ? 'var(--text-heading,#fff)' : 'var(--text-muted,#6B7FA3)', transition: 'all 0.15s ease' }}>
                   <span style={{ fontSize: 11 }}>{b.icon}</span>{t(b.tKey)}
                 </button>
               ))}
             </div>
-            <button onClick={handleRefresh} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '6px 12px', borderRadius: 99, border: '1px solid var(--border-subtle,rgba(255,255,255,0.12))', background: 'transparent', color: 'var(--text-muted,#6B7FA3)', cursor: 'pointer' }}>
+            <button onClick={handleRefresh} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '6px 12px', borderRadius: 99, border: '1px solid var(--border-subtle,rgba(15,23,42,0.12))', background: 'transparent', color: 'var(--text-muted,#6B7FA3)', cursor: 'pointer' }}>
               <span style={{ display: 'inline-block', animation: refreshing ? 'spin 0.8s linear infinite' : 'none', fontSize: 13 }}>↻</span>
             </button>
           </div>
@@ -480,7 +480,7 @@ export const AIInsightTab = () => {
         {/* Command view */}
         {view === 'command' && (
           <>
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default,rgba(255,255,255,0.07))' }}>
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default,rgba(15,23,42,0.07))' }}>
               {(Object.keys(insightData) as DomainKey[]).map(domain => (
                 <StripCell key={domain} domain={domain} data={insightData[domain]} active={activeDomain === domain} onClick={() => setActiveDomain(domain)} />
               ))}
@@ -493,12 +493,12 @@ export const AIInsightTab = () => {
         {view === 'health'   && <HealthView   t={t} />}
 
         {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderTop: '1px solid var(--border-default,rgba(255,255,255,0.07))', background: 'var(--bg-surface,#141C2E)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderTop: '1px solid var(--border-default,rgba(15,23,42,0.07))', background: 'var(--bg-surface,#141C2E)' }}>
           <span style={{ fontSize: 11, color: 'var(--text-muted,#6B7FA3)', display: 'flex', alignItems: 'center', gap: 5 }}>
             🕐 {t('ai_insight_tab.updated')}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button style={{ fontSize: 12, fontWeight: 600, padding: '5px 14px', borderRadius: 99, border: '1px solid var(--border-subtle,rgba(255,255,255,0.12))', background: 'transparent', color: 'var(--text-dimmer,#8899BB)', cursor: 'pointer' }}>
+            <button style={{ fontSize: 12, fontWeight: 600, padding: '5px 14px', borderRadius: 99, border: '1px solid var(--border-subtle,rgba(15,23,42,0.12))', background: 'transparent', color: 'var(--text-dimmer,#8899BB)', cursor: 'pointer' }}>
               {t('ai_insight_tab.full_summary_btn')} ↗
             </button>
             <button style={{ fontSize: 12, fontWeight: 600, padding: '5px 14px', borderRadius: 99, border: `1px solid rgba(6,182,212,0.35)`, background: 'rgba(6,182,212,0.12)', color: C_CYAN, cursor: 'pointer' }}>

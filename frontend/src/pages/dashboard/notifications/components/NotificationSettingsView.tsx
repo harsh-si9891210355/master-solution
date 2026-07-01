@@ -11,7 +11,7 @@ const Toggle = ({ on, onChange, disabled }: { on: boolean; onChange: () => void;
         type="button"
         disabled={disabled}
         onClick={onChange}
-        className={`relative h-6 w-11 rounded-full transition-colors ${on ? 'bg-cyan-500' : 'bg-slate-300'} disabled:opacity-50`}
+        className={`relative h-6 w-11 rounded-full transition-colors ${on ? 'bg-blue-700' : 'bg-slate-300'} disabled:opacity-50`}
     >
         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />
     </button>
@@ -90,7 +90,7 @@ export function NotificationSettingsView() {
                         key={t.key}
                         type="button"
                         onClick={() => setTab(t.key)}
-                        className={`whitespace-nowrap px-3 py-3 text-sm font-medium ${tab === t.key ? 'border-b-2 border-cyan-500 text-cyan-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`whitespace-nowrap px-3 py-3 text-sm font-medium ${tab === t.key ? 'border-b-2 border-blue-600 text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         {t.label}
                     </button>
@@ -139,7 +139,7 @@ export function NotificationSettingsView() {
                         <button type="button" className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-200" onClick={() => persist({ muted_until: new Date(Date.now() + 3600_000).toISOString() })}>Mute 1h</button>
                     </Row>
                     <div className="flex justify-end">
-                        <button type="button" disabled={saving} onClick={() => persist({ min_severity: pref.min_severity })} className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">Save</button>
+                        <button type="button" disabled={saving} onClick={() => persist({ min_severity: pref.min_severity })} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">Save</button>
                     </div>
                 </div>
             )}
@@ -161,7 +161,7 @@ export function NotificationSettingsView() {
                         <Toggle on={pref.override_critical} onChange={() => patch({ override_critical: !pref.override_critical })} />
                     </Row>
                     <div className="flex justify-end">
-                        <button type="button" disabled={saving} onClick={() => persist({ quiet_hours_enabled: pref.quiet_hours_enabled, quiet_hours_start: pref.quiet_hours_start, quiet_hours_end: pref.quiet_hours_end, override_critical: pref.override_critical })} className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">Save</button>
+                        <button type="button" disabled={saving} onClick={() => persist({ quiet_hours_enabled: pref.quiet_hours_enabled, quiet_hours_start: pref.quiet_hours_start, quiet_hours_end: pref.quiet_hours_end, override_critical: pref.override_critical })} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">Save</button>
                     </div>
                 </div>
             )}
@@ -178,7 +178,7 @@ export function NotificationSettingsView() {
                         </select>
                     </div>
                     <div className="flex justify-end">
-                        <button type="button" disabled={saving} onClick={() => persist({ sound_enabled: pref.sound_enabled, sound_name: pref.sound_name })} className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">Save</button>
+                        <button type="button" disabled={saving} onClick={() => persist({ sound_enabled: pref.sound_enabled, sound_name: pref.sound_name })} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">Save</button>
                     </div>
                 </div>
             )}

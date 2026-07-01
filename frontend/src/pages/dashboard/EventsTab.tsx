@@ -108,7 +108,7 @@ export const EventsRecent = ({ data, locale }: { data: EventsTabData; locale: st
             <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                        <tr style={{ borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
                             {(['time','event','location','camera','severity'] as const).map(col => (
                                 <th key={col} style={{ padding: '12px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                     {t(`events_tab.recent.col_${col}`)}
@@ -118,8 +118,8 @@ export const EventsRecent = ({ data, locale }: { data: EventsTabData; locale: st
                     </thead>
                     <tbody>
                         {data.recentEvents.map((ev, i) => (
-                            <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                            <tr key={i} style={{ borderBottom: '1px solid rgba(15,23,42,0.04)' }}
+                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(15,23,42,0.02)')}
                                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                                 <td style={{ padding: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{ev.time}</td>
                                 <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-heading)' }}>{ev.event}</td>

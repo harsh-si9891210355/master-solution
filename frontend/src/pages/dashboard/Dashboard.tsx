@@ -13,6 +13,7 @@ import { EventsTab, EventsKpis, EventsRecent } from '@/pages/dashboard/EventsTab
 import { CamerasTab, CamerasKpis, CamerasTrend, CamerasHub } from '@/pages/dashboard/CamersTab';
 import { AIInsightTab } from '@/pages/dashboard/AiInsightTab';
 import { NotificationTab } from '@/pages/dashboard/notifications/NotificationTab';
+import { MasterOverview } from '@/pages/dashboard/MasterOverview';
 import type {
     DashboardWidget,
     DashboardWidgetId,
@@ -178,6 +179,7 @@ function DateFilterBar({ locale, preset, range, onPreset, onRange, t }: DateFilt
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 const TABS: { id: DashboardTab; icon: string; labelKey: string }[] = [
+    { id: 'overview', icon: '🧭', labelKey: 'tabs.master' },
     { id: 'ai',      icon: '🤖', labelKey: 'tabs.ai'      },
     { id: 'notifications', icon: '🔔', labelKey: 'tabs.notifications' },
     { id: 'events', icon: '📊', labelKey: 'tabs.events' },
@@ -293,7 +295,7 @@ export const Dashboard = () => {
 
     const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<DashboardTab>(
-        (searchParams.get('tab') as DashboardTab) || 'events',
+        (searchParams.get('tab') as DashboardTab) || 'overview',
     );
 
     // Deep links (e.g. the navbar bell → /dashboard?tab=notifications) switch tabs.
@@ -338,7 +340,7 @@ export const Dashboard = () => {
         if (nextPreset !== 'custom') setRange(getPresetRange(nextPreset));
     };
 
-    const tabHasWidgets = activeTab !== 'ai' && activeTab !== 'notifications';
+    const tabHasWidgets = activeTab === 'events' || activeTab === 'cameras' || activeTab === 'users';
 
     const currentOrder = activeTab === 'events' ? eventsWidgetOrder : activeTab === 'cameras' ? camerasWidgetOrder : usersWidgetOrder;
 
@@ -519,7 +521,7 @@ export const Dashboard = () => {
                     <p className="db-panel-sub">{t('panels.peak_hours.subtitle')}</p>
                     <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={scaled.eventsByHour} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
                             <XAxis dataKey="hour" tick={{ fill: '#64748B', fontSize: 9 }} axisLine={false} tickLine={false}
                                 tickFormatter={v => parseInt(v, 10) % 6 === 0 ? `${v}${t('panels.peak_hours.hour_suffix')}` : ''} />
                             <YAxis tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -585,10 +587,10 @@ export const Dashboard = () => {
                         maxHeight: 180,
                         overflowY: 'auto',
                         paddingRight: 4,
-                        background: 'rgba(0,0,0,0.2)',
+                        background: '#f1f5f9',
                         padding: 12,
                         borderRadius: 8,
-                        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)'
+                        boxShadow: 'inset 0 1px 3px rgba(15,23,42,0.06)'
                     }}>
                         {Array.from({ length: 194 }).map((_, i) => {
                             const id = i + 1;
@@ -761,6 +763,17 @@ export const Dashboard = () => {
                 t={t}
             />
 
+            {activeTab === 'overview' && (
+                <MasterOverview
+                    data={data}
+                    monthlyData={scaled.eventsByMonth}
+                    hourlyTemplate={data.eventsByHour}
+                    eventTypes={scaled.eventTypeBreakdown}
+                    locale={locale}
+                    t={t}
+                    onNavigate={tab => { setActiveTab(tab); setIsEditMode(false); setDraggedWidgetId(null); }}
+                />
+            )}
             {activeTab === 'events' && (
                 <WidgetGrid widgets={orderedEventsWidgets}  isEditMode={isEditMode} draggedId={draggedWidgetId}
                     onDragStart={id => setDraggedWidgetId(id)} onDrop={(src, tgt) => moveWidget(src as DashboardWidgetId, tgt)} onDragEnd={() => setDraggedWidgetId(null)} t={t} />
