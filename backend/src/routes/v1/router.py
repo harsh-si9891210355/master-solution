@@ -11,6 +11,7 @@ from src.routes.v1.permission import router as permission_router
 from src.routes.v1.roles import router as roles_router
 from src.routes.v1.translation import router as translation_router
 from src.routes.v1.stream import router as stream_router
+from src.routes.v1.dashboard import router as dashboard_router
 
 
 v1_router = APIRouter()
@@ -27,3 +28,4 @@ v1_router.include_router(permission_router, prefix="/permission", tags=["Permiss
 v1_router.include_router(roles_router, prefix="/roles", tags=["Roles"])
 v1_router.include_router(translation_router, tags=["Translation"])
 v1_router.include_router(stream_router, prefix="/stream", tags=["Stream"])
+v1_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
