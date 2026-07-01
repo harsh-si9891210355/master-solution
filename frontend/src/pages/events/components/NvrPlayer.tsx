@@ -42,6 +42,29 @@ interface NormalizedSpan {
     playback_get_base_url?: string;
 }
 
+// Recording segments arrive fragmented — often overlapping or split by sub-second
+// cuts. Coalesce segments on the same path that overlap or sit within this gap into
+// one logical span, so a clip plays through instead of ending on a 5s fragment and
+// flipping to live. Real gaps (larger than this) stay separate.
+const SPAN_MERGE_GAP_MS = 2_000;
+
+const mergeSpans = (spans: NormalizedSpan[]): NormalizedSpan[] => {
+    const out: NormalizedSpan[] = [];
+    for (const s of spans) {
+        const last = out[out.length - 1];
+        if (
+            last &&
+            s.playback_get_base_url === last.playback_get_base_url &&
+            s.startMs <= last.endMs + SPAN_MERGE_GAP_MS
+        ) {
+            last.endMs = Math.max(last.endMs, s.endMs);
+        } else {
+            out.push({ ...s });
+        }
+    }
+    return out;
+};
+
 interface ActiveClip {
     startMs: number;
     endMs: number;
@@ -107,13 +130,15 @@ export const NvrPlayer = ({
                 const { data } = await cameraService.getRecordingSpans(cameraId);
                 if (cancelled) return;
                 setSpans(
-                    data.spans
-                        .map((s) => ({
-                            startMs: new Date(s.start).getTime(),
-                            endMs: new Date(s.end).getTime(),
-                            playback_get_base_url: s.playback_get_base_url,
-                        }))
-                        .sort((a, b) => a.startMs - b.startMs),
+                    mergeSpans(
+                        data.spans
+                            .map((s) => ({
+                                startMs: new Date(s.start).getTime(),
+                                endMs: new Date(s.end).getTime(),
+                                playback_get_base_url: s.playback_get_base_url,
+                            }))
+                            .sort((a, b) => a.startMs - b.startMs),
+                    ),
                 );
             } catch {
                 /* spans are best-effort; live still works */
@@ -495,13 +520,16 @@ export const NvrPlayer = ({
                     onTimeUpdate={handleTimeUpdate}
                     onEnded={() => {
                         if (mode !== 'playback') return;
-                        // When a clip ends, continue into the next recorded span if
-                        // one exists before the live edge; only fall through to live
-                        // when there is genuinely no more footage ahead.
+                        // When a clip ends, continue from where it stopped if any
+                        // footage remains before the live edge — either later in the
+                        // same span (clip was capped by max duration) or in a
+                        // following span. Only fall through to live when there is
+                        // genuinely no more recorded footage ahead.
                         const clip = activeClipRef.current;
-                        const next = clip ? spans.find((s) => s.startMs >= clip.endMs) : null;
-                        if (next && (latestMs == null || next.startMs < latestMs - EDGE_SAFETY_MS)) {
-                            startPlaybackAt(next.startMs);
+                        const cont = clip ? spans.find((s) => s.endMs > clip.endMs + 1_000) : null;
+                        const resumeMs = cont && clip ? Math.max(cont.startMs, clip.endMs) : null;
+                        if (resumeMs != null && (latestMs == null || resumeMs < latestMs - EDGE_SAFETY_MS)) {
+                            startPlaybackAt(resumeMs, 'forward');
                         } else {
                             goLive();
                         }

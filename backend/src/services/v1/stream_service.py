@@ -75,6 +75,12 @@ class StreamService:
 
         cmd = [
             "ffmpeg", "-nostdin", "-loglevel", "warning",
+            # Stamp incoming frames with the system wall-clock so the republished
+            # stream's timestamps track absolute time. Without this the re-encoder's
+            # startup PTS drift from real time, and MediaMTX's recorder detects
+            # "drift between recording duration and absolute time" and resets ~5s in,
+            # producing a throwaway 5s first segment before the real one.
+            "-use_wallclock_as_timestamps", "1",
             "-rtsp_transport", "tcp", "-i", src,
             "-an",                              # drop audio
             "-vf", ",".join(filters),
