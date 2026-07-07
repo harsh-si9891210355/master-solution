@@ -46,6 +46,20 @@ select {
   background-clip: padding-box;
 }
 
+/* Native dropdowns: guarantee readable colors so the control and its option
+   list are never invisible (white-on-white / transparent text). Components can
+   still override the background with their own utility classes. */
+select {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+select option,
+select optgroup {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
 /* Chrome / WebKit autofill override */
 input:-webkit-autofill,
 textarea:-webkit-autofill,

@@ -1,22 +1,26 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { AlertCenterView } from './components/AlertCenterView';
 import { CommandView } from './components/CommandView';
-import { EscalationBuilderView } from './components/EscalationBuilderView';
 import { NotificationSettingsView } from './components/NotificationSettingsView';
-import { ThreatRadar } from './components/ThreatRadar';
 
-type View = 'command' | 'alerts' | 'radar' | 'escalation' | 'settings';
+type View = 'overview' | 'alerts' | 'settings';
 
-const VIEWS: { key: View; label: string; icon: string }[] = [
-    { key: 'command', label: 'Command', icon: '🛰️' },
-    { key: 'alerts', label: 'Alert Center', icon: '🔔' },
-    { key: 'radar', label: 'Threat Radar', icon: '🎯' },
-    { key: 'escalation', label: 'Escalation', icon: '⏫' },
-    { key: 'settings', label: 'Settings', icon: '⚙️' },
+const VIEWS: { key: View; label: string; icon: string; hint: string }[] = [
+    { key: 'overview', label: 'Overview', icon: '📡', hint: 'Live status and recent activity at a glance' },
+    { key: 'alerts', label: 'Alerts', icon: '🔔', hint: 'Review, filter and act on every alert' },
+    { key: 'settings', label: 'Settings', icon: '⚙️', hint: 'Channels, quiet hours, sound and escalation rules' },
 ];
 
+const isView = (v: string | null): v is View =>
+    v === 'overview' || v === 'alerts' || v === 'settings';
+
 export function NotificationTab() {
-    const [view, setView] = useState<View>('command');
+    const [searchParams] = useSearchParams();
+    const initial = searchParams.get('view');
+    const [view, setView] = useState<View>(isView(initial) ? initial : 'overview');
+
+    const active = VIEWS.find((v) => v.key === view) ?? VIEWS[0];
 
     return (
         <div className="space-y-5">
@@ -27,6 +31,7 @@ export function NotificationTab() {
                         key={v.key}
                         type="button"
                         onClick={() => setView(v.key)}
+                        title={v.hint}
                         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
                             view === v.key
                                 ? 'bg-slate-900 text-white'
@@ -39,10 +44,11 @@ export function NotificationTab() {
                 ))}
             </div>
 
-            {view === 'command' && <CommandView />}
+            {/* Plain-language description of the active view */}
+            <p className="text-sm text-slate-400">{active.hint}</p>
+
+            {view === 'overview' && <CommandView />}
             {view === 'alerts' && <AlertCenterView />}
-            {view === 'radar' && <ThreatRadar />}
-            {view === 'escalation' && <EscalationBuilderView />}
             {view === 'settings' && <NotificationSettingsView />}
         </div>
     );

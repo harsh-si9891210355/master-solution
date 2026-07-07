@@ -81,7 +81,7 @@ export function EscalationBuilderView() {
         });
     };
 
-    const input = 'rounded-lg border border-slate-300 px-3 py-2 text-sm';
+    const input = 'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700';
 
     return (
         <div className="grid gap-5 lg:grid-cols-2">
