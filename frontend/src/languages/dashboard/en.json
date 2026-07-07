@@ -4,11 +4,38 @@
     "subtitle": "All cameras · All use cases",
     "footer": "© 2025 SentinelAI · All rights reserved · Version v2.0.0",
     "tabs": {
+      "master": "Overview",
       "cameras": "Cameras",
       "users": "Users",
       "events": "Events",
       "ai": "AI Insight",
       "notifications": "Notifications"
+    },
+    "master": {
+      "badge": "EXECUTIVE VIEW",
+      "banner_title": "Command Center Overview",
+      "banner_sub": "The single screen for leadership — the headline numbers and best chart from every section. Open any section for the full detail.",
+      "open": "View full {{tab}}",
+      "ai_sub": "System health scores across events, cameras and users.",
+      "events_sub": "Activity trend and the breakdown of what is being detected.",
+      "cameras_sub": "Fleet health trend and live operations status.",
+      "users_sub": "Login activity and how the team is composed by role.",
+      "notifications_sub": "Live threat radar and the latest critical alerts.",
+      "kpi": {
+        "total_events": "Total Events",
+        "total_events_sub": "{{pct}} resolved",
+        "critical": "Critical Events",
+        "critical_sub": "Need attention now",
+        "cameras_online": "Cameras Online",
+        "cameras_online_sub": "{{pct}} of fleet up",
+        "active_users": "Active Users",
+        "active_users_sub": "{{pct}} engaged"
+      },
+      "health": {
+        "resolved": "{{pct}} resolved",
+        "online": "{{pct}} fleet online",
+        "active": "{{pct}} active"
+      }
     },
     "layout": {
       "customize": "Customize Layout",

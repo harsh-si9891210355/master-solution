@@ -76,12 +76,12 @@ export const CamerasTrend = ({ data, locale }: { data: CamerasTabData; locale: s
                 <p className="db-panel-sub">{t('cameras_tab.health_trend.subtitle')}</p>
                 <ResponsiveContainer width="100%" height={210}>
                     <BarChart data={data.healthTrend} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" vertical={false} />
                         <XAxis dataKey="date" tick={{ fill: '#64748B', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#64748B', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip
-                            contentStyle={{ background: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8 }}
-                            itemStyle={{ color: '#fff', fontSize: 12 }}
+                            contentStyle={{ background: '#ffffff', borderColor: 'rgba(15,23,42,0.1)', borderRadius: 8 }}
+                            itemStyle={{ color: '#1e293b', fontSize: 12 }}
                             formatter={((v: any) => [fmt(Number(v)), '']) as any}
                         />
                         <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
@@ -96,15 +96,15 @@ export const CamerasTrend = ({ data, locale }: { data: CamerasTabData; locale: s
                     <p className="db-panel-title">Operations Control Center</p>
                     <p className="db-panel-sub" style={{ marginBottom: 16 }}>Unified diagnostics and system status signals.</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(15,23,42,0.02)', borderRadius: 6, border: '1px solid rgba(15,23,42,0.04)' }}>
                             <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Average Uptime</span>
                             <span style={{ color: COLOR_ONLINE, fontWeight: 600, fontSize: 13 }}>99.85%</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(15,23,42,0.02)', borderRadius: 6, border: '1px solid rgba(15,23,42,0.04)' }}>
                             <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Total Incidents Logged</span>
                             <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 13 }}>1,284 Events</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(15,23,42,0.02)', borderRadius: 6, border: '1px solid rgba(15,23,42,0.04)' }}>
                             <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Pending Diagnostics</span>
                             <span style={{ color: COLOR_MAINTENANCE, fontWeight: 600, fontSize: 13 }}>3 Units</span>
                         </div>
@@ -251,18 +251,18 @@ export const CamerasHub = ({ data, locale }: { data: CamerasTabData; locale: str
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{chartPage + 1} / {chartPageCount}</span>
                                 <button disabled={chartPage === 0} onClick={() => setChartPage(p => p - 1)}
-                                    style={{ padding: '2px 7px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', color: chartPage === 0 ? 'var(--text-dim)' : '#fff', cursor: chartPage === 0 ? 'not-allowed' : 'pointer' }}>‹</button>
+                                    style={{ padding: '2px 7px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(15,23,42,0.06)', background: 'rgba(15,23,42,0.02)', color: chartPage === 0 ? 'var(--text-dim)' : '#1e293b', cursor: chartPage === 0 ? 'not-allowed' : 'pointer' }}>‹</button>
                                 <button disabled={chartPage === chartPageCount - 1} onClick={() => setChartPage(p => p + 1)}
-                                    style={{ padding: '2px 7px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', color: chartPage === chartPageCount - 1 ? 'var(--text-dim)' : '#fff', cursor: chartPage === chartPageCount - 1 ? 'not-allowed' : 'pointer' }}>›</button>
+                                    style={{ padding: '2px 7px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(15,23,42,0.06)', background: 'rgba(15,23,42,0.02)', color: chartPage === chartPageCount - 1 ? 'var(--text-dim)' : '#1e293b', cursor: chartPage === chartPageCount - 1 ? 'not-allowed' : 'pointer' }}>›</button>
                             </div>
                         )}
                     </div>
                     <ResponsiveContainer width="100%" height={chartSlice.length * 38 + 40}>
                         <BarChart data={chartSlice} layout="vertical" margin={{ top: 5, right: 10, left: 15, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" horizontal={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.06)" horizontal={false} />
                             <XAxis type="number" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis dataKey="name" type="category" tick={{ fill: '#e2e8f0', fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} width={90} />
-                            <Tooltip contentStyle={{ background: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8 }} itemStyle={{ fontSize: 11, color: '#fff' }} />
+                            <YAxis dataKey="name" type="category" tick={{ fill: '#475569', fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} width={90} />
+                            <Tooltip contentStyle={{ background: '#ffffff', borderColor: 'rgba(15,23,42,0.1)', borderRadius: 8 }} itemStyle={{ fontSize: 11, color: '#1e293b' }} />
                             <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
                             <Bar dataKey="online"      name="Online"      stackId="a" fill={COLOR_ONLINE} />
                             <Bar dataKey="maintenance" name="Maintenance" stackId="a" fill={COLOR_MAINTENANCE} />
@@ -275,7 +275,7 @@ export const CamerasHub = ({ data, locale }: { data: CamerasTabData; locale: str
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                         <div style={{ display: 'flex', gap: 4 }}>
                             {(['all', 'online', 'offline', 'maintenance'] as const).map(tab => (
-                                <button key={tab} onClick={() => handleFilterChange(tab)} style={{ padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, border: filter === tab ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent', background: filter === tab ? 'rgba(255,255,255,0.08)' : 'transparent', color: filter === tab ? '#fff' : 'var(--text-muted)', cursor: 'pointer', textTransform: 'uppercase' }}>
+                                <button key={tab} onClick={() => handleFilterChange(tab)} style={{ padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, border: filter === tab ? '1px solid rgba(15,23,42,0.15)' : '1px solid transparent', background: filter === tab ? 'rgba(15,23,42,0.08)' : 'transparent', color: filter === tab ? '#fff' : 'var(--text-muted)', cursor: 'pointer', textTransform: 'uppercase' }}>
                                     {tab}
                                 </button>
                             ))}
@@ -288,7 +288,7 @@ export const CamerasHub = ({ data, locale }: { data: CamerasTabData; locale: str
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                         <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                            <tr style={{ borderBottom: '1px solid rgba(15,23,42,0.08)' }}>
                                 <th style={{ padding: '8px 10px', textAlign: 'left',   color: 'var(--text-muted)', fontWeight: 600 }}>Device ID</th>
                                 <th style={{ padding: '8px 10px', textAlign: 'left',   color: 'var(--text-muted)', fontWeight: 600 }}>Location</th>
                                 <th style={{ padding: '8px 10px', textAlign: 'right',  color: 'var(--text-muted)', fontWeight: 600 }}>Uptime</th>
@@ -297,7 +297,7 @@ export const CamerasHub = ({ data, locale }: { data: CamerasTabData; locale: str
                         </thead>
                         <tbody>
                             {paginatedCameras.map(cam => (
-                                <tr key={cam.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                <tr key={cam.id} style={{ borderBottom: '1px solid rgba(15,23,42,0.04)' }}>
                                     <td style={{ padding: '8px 10px', color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{cam.id}</td>
                                     <td style={{ padding: '8px 10px', color: 'var(--text-dimmer)' }}>{cam.location}</td>
                                     <td style={{ padding: '8px 10px', color: 'var(--text-primary)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>{cam.uptime}%</td>
@@ -320,8 +320,8 @@ export const CamerasHub = ({ data, locale }: { data: CamerasTabData; locale: str
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
                             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Showing {page * pageSize + 1} - {Math.min((page + 1) * pageSize, filteredCameras.length)} of {filteredCameras.length}</span>
                             <div style={{ display: 'flex', gap: 6 }}>
-                                <button disabled={page === 0} onClick={() => setPage(p => p - 1)} style={{ padding: '2px 8px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', color: page === 0 ? 'var(--text-dim)' : '#fff', cursor: page === 0 ? 'not-allowed' : 'pointer' }}>Prev</button>
-                                <button disabled={page === pageCount - 1} onClick={() => setPage(p => p + 1)} style={{ padding: '2px 8px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', color: page === pageCount - 1 ? 'var(--text-dim)' : '#fff', cursor: page === pageCount - 1 ? 'not-allowed' : 'pointer' }}>Next</button>
+                                <button disabled={page === 0} onClick={() => setPage(p => p - 1)} style={{ padding: '2px 8px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(15,23,42,0.06)', background: 'rgba(15,23,42,0.02)', color: page === 0 ? 'var(--text-dim)' : '#1e293b', cursor: page === 0 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={page === pageCount - 1} onClick={() => setPage(p => p + 1)} style={{ padding: '2px 8px', fontSize: 11, borderRadius: 4, border: '1px solid rgba(15,23,42,0.06)', background: 'rgba(15,23,42,0.02)', color: page === pageCount - 1 ? 'var(--text-dim)' : '#1e293b', cursor: page === pageCount - 1 ? 'not-allowed' : 'pointer' }}>Next</button>
                             </div>
                         </div>
                     )}

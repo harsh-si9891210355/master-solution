@@ -35,8 +35,8 @@ export function ThreatRadar() {
 
     return (
         <div className="grid gap-4 lg:grid-cols-[auto_1fr]">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-                <p className="mb-2 text-sm font-semibold text-slate-200">Threat Radar (Live)</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="mb-2 text-sm font-semibold text-slate-800">Threat Radar (Live)</p>
                 <svg width={SIZE} height={SIZE} className="mx-auto block">
                     {[100, 76, 52, 28].map((r) => (
                         <circle key={r} cx={CENTER} cy={CENTER} r={r} fill="none" stroke="rgba(148,163,184,0.18)" />

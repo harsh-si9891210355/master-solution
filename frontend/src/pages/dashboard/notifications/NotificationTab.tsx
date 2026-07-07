@@ -34,7 +34,7 @@ export function NotificationTab() {
                         title={v.hint}
                         className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
                             view === v.key
-                                ? 'bg-slate-900 text-white'
+                                ? 'bg-blue-700 text-white'
                                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                         }`}
                     >

@@ -91,7 +91,7 @@ export function AlertDrawer({ alertId, onClose, onChanged }: Props) {
 
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-                        <button type="button" disabled={busy} onClick={() => run(() => alertService.acknowledge(alert.id), 'Acknowledged')} className={`${actionBtn} bg-cyan-50 text-cyan-700 hover:bg-cyan-100`}>Acknowledge</button>
+                        <button type="button" disabled={busy} onClick={() => run(() => alertService.acknowledge(alert.id), 'Acknowledged')} className={`${actionBtn} bg-blue-50 text-blue-700 hover:bg-blue-100`}>Acknowledge</button>
                         <button type="button" disabled={busy} onClick={() => run(() => alertService.changeStatus(alert.id, 'INVESTIGATING'), 'Investigating')} className={`${actionBtn} bg-violet-50 text-violet-700 hover:bg-violet-100`}>Investigate</button>
                         <button type="button" disabled={busy} onClick={() => setShowIncidentForm((v) => !v)} className={`${actionBtn} bg-orange-50 text-orange-700 hover:bg-orange-100`}>Create Incident</button>
                         <button type="button" disabled={busy} onClick={() => run(() => alertService.changeStatus(alert.id, 'RESOLVED'), 'Resolved')} className={`${actionBtn} bg-emerald-50 text-emerald-700 hover:bg-emerald-100`}>Resolve</button>

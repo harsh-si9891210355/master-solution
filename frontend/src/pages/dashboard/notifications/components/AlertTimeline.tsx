@@ -20,7 +20,7 @@ export function AlertTimeline({ entries }: { entries: AlertTimelineEntry[] }) {
         <ol className="relative space-y-4 border-l border-slate-200 pl-5">
             {entries.map((e) => (
                 <li key={e.id} className="relative">
-                    <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full border-2 border-white bg-cyan-400" />
+                    <span className="absolute -left-[23px] top-1 h-3 w-3 rounded-full border-2 border-white bg-blue-600" />
                     <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-700">
                             {ACTION_LABEL[e.action] ?? e.action}

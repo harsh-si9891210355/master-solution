@@ -99,7 +99,7 @@ export function EscalationBuilderView() {
                     {draft.steps.map((step, i) => (
                         <div key={i} className="rounded-xl border border-slate-200 p-3">
                             <div className="mb-2 flex items-center justify-between">
-                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500 text-xs font-bold text-white">{i + 1}</span>
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">{i + 1}</span>
                                 {draft.steps.length > 1 && (
                                     <button type="button" onClick={() => removeStep(i)} className="text-xs text-rose-500">Remove</button>
                                 )}
@@ -121,7 +121,7 @@ export function EscalationBuilderView() {
                                             key={ch}
                                             type="button"
                                             onClick={() => updateStep(i, { channels: active ? step.channels.filter((c) => c !== ch) : [...step.channels, ch] })}
-                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${active ? 'bg-cyan-500 text-white' : 'bg-slate-100 text-slate-500'}`}
+                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${active ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-500'}`}
                                         >
                                             {ch.replace('_', '-')}
                                         </button>
@@ -134,7 +134,7 @@ export function EscalationBuilderView() {
                 <button type="button" onClick={addStep} className="rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500 hover:bg-slate-50">+ Add Step</button>
 
                 <div className="flex justify-end">
-                    <button type="button" disabled={createMut.isPending} onClick={save} className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:opacity-50">Save Rule</button>
+                    <button type="button" disabled={createMut.isPending} onClick={save} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">Save Rule</button>
                 </div>
             </div>
 

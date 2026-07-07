@@ -4,11 +4,38 @@
     "subtitle": "Todas las cámaras · Todos los casos de uso",
     "footer": "© 2025 SentinelAI · Todos los derechos reservados · Versión v2.0.0",
     "tabs": {
+      "master": "Resumen",
       "cameras": "Cámaras",
       "users": "Usuarios",
       "events": "Eventos",
       "ai": "Información IA",
       "notifications": "Notificaciones"
+    },
+    "master": {
+      "badge": "VISTA EJECUTIVA",
+      "banner_title": "Resumen del Centro de Mando",
+      "banner_sub": "La pantalla única para dirección: las cifras clave y el mejor gráfico de cada sección. Abra cualquier sección para ver el detalle completo.",
+      "open": "Ver {{tab}} completo",
+      "ai_sub": "Puntuaciones de salud del sistema: eventos, cámaras y usuarios.",
+      "events_sub": "Tendencia de actividad y desglose de lo que se detecta.",
+      "cameras_sub": "Tendencia de salud de la flota y estado operativo en vivo.",
+      "users_sub": "Actividad de inicio de sesión y composición del equipo por rol.",
+      "notifications_sub": "Radar de amenazas en vivo y las últimas alertas críticas.",
+      "kpi": {
+        "total_events": "Eventos Totales",
+        "total_events_sub": "{{pct}} resueltos",
+        "critical": "Eventos Críticos",
+        "critical_sub": "Requieren atención ahora",
+        "cameras_online": "Cámaras En Línea",
+        "cameras_online_sub": "{{pct}} de la flota activa",
+        "active_users": "Usuarios Activos",
+        "active_users_sub": "{{pct}} comprometidos"
+      },
+      "health": {
+        "resolved": "{{pct}} resueltos",
+        "online": "{{pct}} flota en línea",
+        "active": "{{pct}} activos"
+      }
     },
     "layout": {
       "customize": "Personalizar diseño",
